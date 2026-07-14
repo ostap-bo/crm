@@ -245,6 +245,21 @@
   .col-proj-row:hover{background:var(--surface-2);}
   .col-proj-row .col-proj-main{flex:1;min-width:0;}
   .col-proj-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .proj-card{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 12px;margin-bottom:8px;transition:.12s;}
+  .proj-card:last-child{margin-bottom:0;}
+  .proj-card:hover{border-color:var(--border-strong);}
+  .proj-card-main{flex:1;min-width:0;cursor:pointer;}
+  .proj-card-top{display:flex;align-items:center;gap:8px;}
+  .proj-complete-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border-strong);background:var(--surface);color:var(--text-dim);display:flex;align-items:center;justify-content:center;flex:none;transition:.15s;}
+  .proj-complete-btn:hover{background:#22c55e;border-color:#16a34a;color:#fff;transform:scale(1.08);}
+  .success-burst{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(0,0,0,0);}
+  .success-burst-inner{background:var(--surface);border:2px solid #22c55e;border-radius:20px;padding:26px 34px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:successPop .45s cubic-bezier(.34,1.56,.64,1);}
+  .success-burst-icon{width:60px;height:60px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;animation:successCheck .4s ease .08s both;}
+  .success-burst-text{font-weight:800;font-size:14.5px;text-align:center;max-width:280px;}
+  .success-burst.fadeout{animation:successFadeOut .35s ease forwards;}
+  @keyframes successPop{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+  @keyframes successCheck{from{transform:scale(0);}to{transform:scale(1);}}
+  @keyframes successFadeOut{to{opacity:0;}}
 
   /* projects */
   .status-pill{font-size:10.5px;font-weight:700;padding:3px 8px;display:inline-block;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border);border-radius:var(--radius-sm);flex:none;}
@@ -435,6 +450,7 @@ const ICON = {
   chevronDown:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
   google:`<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.6-.2-2.4H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.1-4 1.1-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1C3.3 21.3 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.4 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.4C.5 8.3 0 10.1 0 12s.5 3.7 1.4 5.4z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.3 0 3.3 2.7 1.4 6.6l4 3.1c.9-2.8 3.5-4.9 6.6-4.9z"/></svg>`,
   paperclip:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.5-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 1 1-3-3l8-8"/></svg>`,
+  check:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,
   sparkle:`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6z"/></svg>`,
   logout:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>`,
   send:`<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg>`,
@@ -476,6 +492,13 @@ function fmtFullDate(d){
   return `${DOW_FULL[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function renderFileLink(f){
+  const s = (f||'').trim();
+  if(/^https?:\/\//i.test(s)){
+    return `<a href="${escapeHtml(s)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="color:var(--accent-dark);text-decoration:underline">${escapeHtml(s)}</a>`;
+  }
+  return escapeHtml(s);
+}
 function timeAgo(ts){
   const diff = (Date.now()-ts)/1000;
   if(diff<60) return 'щойно';
@@ -508,6 +531,27 @@ function loadGcalToken(){
   return null;
 }
 function clearGcalToken(){ try{ localStorage.removeItem(LS_GCAL_TOKEN); }catch(e){} }
+const LS_GCAL_DELQ = 'personalCrmGcalDelQueue_v1';
+function loadDelQueue(){ try{ return JSON.parse(localStorage.getItem(LS_GCAL_DELQ)||'[]'); }catch(e){ return []; } }
+function saveDelQueue(arr){ try{ localStorage.setItem(LS_GCAL_DELQ, JSON.stringify(arr)); }catch(e){} }
+function queueGcalDelete(gid){
+  const q = loadDelQueue();
+  if(!q.includes(gid)){ q.push(gid); saveDelQueue(q); }
+  gcalPendingDeletes.add(gid);
+}
+function dequeueGcalDelete(gid){
+  saveDelQueue(loadDelQueue().filter(x=>x!==gid));
+  gcalPendingDeletes.delete(gid);
+}
+function processGcalDeleteQueue(){
+  if(!state.gcalToken) return;
+  loadDelQueue().forEach(gid=>{
+    gcalPendingDeletes.add(gid);
+    gcalDelete(gid).then(()=>{ dequeueGcalDelete(gid); }).catch(err=>{
+      if(err && err.code===401){ state.gcalToken = null; clearGcalToken(); }
+    });
+  });
+}
 
 function emptyData(){ return {tasks:[], projects:[], events:[], inbox:[]}; }
 
@@ -608,6 +652,7 @@ function captureGcalToken(result){
       state.gcalConnected = true;
       saveGcalToken(cred.accessToken);
       toast('Google Calendar підключено');
+      processGcalDeleteQueue();
       syncGoogleCalendar(false);
     } else {
       toast('Google не повернув доступ до календаря — спробуйте ще раз');
@@ -659,6 +704,7 @@ if(fbReady){
         state.gcalToken = saved.token;
         state.gcalTokenAt = saved.at;
         state.gcalConnected = true;
+        processGcalDeleteQueue();
         syncGoogleCalendar(true);
       }
     } else {
@@ -712,7 +758,7 @@ function gcalFetch(url, opts){
     return r.json();
   });
 }
-const gcalPendingDeletes = new Set();
+const gcalPendingDeletes = new Set(loadDelQueue());
 function gcalList(){
   if(!state.gcalToken) return Promise.resolve(null);
   const timeMin = new Date(Date.now()-30*86400000).toISOString();
@@ -727,6 +773,7 @@ function gcalDelete(googleEventId){ return gcalFetch(`${GCAL_BASE}/${googleEvent
 function syncGoogleCalendar(silent){
   if(!state.gcalToken || state.gcalSyncing) return;
   state.gcalSyncing = true;
+  processGcalDeleteQueue();
   const events = state.data.events;
   const toCreate = events.filter(e=>!e.googleEventId && !e.deleted);
   const toUpdate = events.filter(e=>e.googleEventId && e.dirty);
@@ -1038,6 +1085,7 @@ const VIEW_TITLES = {dashboard:'Головна', calendar:'Календар', ta
 function renderTopbar(){
   const notifs = computeNotifications();
   const title = state.view==='workspace' ? wsName(state.activeWs) : (VIEW_TITLES[state.view]||'');
+  const wsCtx = state.view==='workspace' ? `,{workspace:'${state.activeWs}'}` : '';
   return `
   <div class="topbar">
     <h2>${title}</h2>
@@ -1060,9 +1108,9 @@ function renderTopbar(){
         ${notifs.length? notifs.map((n,i)=>`<button type="button" class="notif-row" onclick="clickNotif(${i})">${escapeHtml(n.text)}</button>`).join('') : `<div style="padding:14px 12px;font-size:12.5px;color:var(--text-dim)">Немає нових сповіщень</div>`}
       </div>`:''}
     </div>
-    <button class="btn btn-primary" onclick="openTaskModal(null)">${ICON.plus} Задача</button>
-    <button class="btn" onclick="openEventModal(null)">${ICON.plus} Подія</button>
-    <button class="btn" onclick="openProjectModal(null)">${ICON.plus} Проєкт</button>
+    <button class="btn btn-primary" onclick="openTaskModal(null${wsCtx})">${ICON.plus} Задача</button>
+    <button class="btn" onclick="openEventModal(null${wsCtx})">${ICON.plus} Подія</button>
+    <button class="btn" onclick="openProjectModal(null${wsCtx})">${ICON.plus} Проєкт</button>
   </div>`;
 }
 
@@ -1224,6 +1272,28 @@ function restoreProject(id){
   p.deleted = false;
   saveData(); toast('Проєкт відновлено'); render();
 }
+function completeProject(id){
+  const p = getProject(id); if(!p) return;
+  p.completed = true; p.completedAt = Date.now();
+  p.activity = p.activity||[]; p.activity.push({ts:Date.now(), text:'Проєкт завершено'});
+  saveData(); render();
+  showSuccessBurst(`Проєкт «${p.name}» завершено`);
+}
+function reopenProject(id){
+  const p = getProject(id); if(!p) return;
+  p.completed = false; p.completedAt = null;
+  saveData(); toast('Проєкт повернено в активні'); render();
+}
+function showSuccessBurst(text){
+  const wrap = document.createElement('div');
+  wrap.className = 'success-burst';
+  wrap.innerHTML = `<div class="success-burst-inner"><div class="success-burst-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div class="success-burst-text">${escapeHtml(text)}</div></div>`;
+  document.body.appendChild(wrap);
+  setTimeout(()=>{
+    wrap.classList.add('fadeout');
+    setTimeout(()=>wrap.remove(), 400);
+  }, 1200);
+}
 function hardDeleteProject(id){
   confirmAction('Видалити проєкт назавжди? Дію не можна скасувати.', ()=>{
     state.data.projects = state.data.projects.filter(p=>p.id!==id);
@@ -1235,6 +1305,7 @@ function deleteProject(id){ closeModal(); trashProject(id); }
 function renderTrash(){
   const tasks = state.data.tasks.filter(t=>t.deleted);
   const projects = state.data.projects.filter(p=>p.deleted);
+  const completedProjects = state.data.projects.filter(p=>p.completed && !p.deleted);
   return `
   <div class="card" style="margin-bottom:16px">
     <h3>${ICON.tasks} Задачі <span class="count">${tasks.length}</span></h3>
@@ -1246,7 +1317,7 @@ function renderTrash(){
         <button class="icon-btn" title="Видалити назавжди" onclick="hardDeleteTask('${t.id}')">${ICON.trash}</button>
       </div>`).join('') : `<div class="empty-hint">Кошик порожній</div>`}
   </div>
-  <div class="card">
+  <div class="card" style="margin-bottom:16px">
     <h3>${ICON.projects} Проєкти <span class="count">${projects.length}</span></h3>
     ${projects.length? projects.map(p=>`
       <div class="list-row">
@@ -1254,6 +1325,17 @@ function renderTrash(){
         <button class="btn btn-sm" onclick="restoreProject('${p.id}')">Відновити</button>
         <button class="icon-btn" title="Видалити назавжди" onclick="hardDeleteProject('${p.id}')">${ICON.trash}</button>
       </div>`).join('') : `<div class="empty-hint">Кошик порожній</div>`}
+  </div>
+  <div class="card">
+    <h3>${ICON.check} Завершені проєкти <span class="count">${completedProjects.length}</span></h3>
+    ${completedProjects.length? completedProjects.map(p=>`
+      <div class="list-row">
+        <span class="dot" style="background:${wsColor(p.workspace)}"></span>
+        <span class="title">${escapeHtml(p.name)}</span>
+        <span class="meta">${p.completedAt? new Date(p.completedAt).toLocaleDateString('uk-UA'):''}</span>
+        <button class="btn btn-sm" onclick="reopenProject('${p.id}')">Повернути в активні</button>
+        <button class="icon-btn" title="Видалити назавжди" onclick="hardDeleteProject('${p.id}')">${ICON.trash}</button>
+      </div>`).join('') : `<div class="empty-hint">Завершених проєктів немає</div>`}
   </div>`;
 }
 
@@ -1290,15 +1372,15 @@ function aiEventsForDayText(offsetDays, label){
   return `Події (${label}):\n` + evts.sort((a,b)=>a.start.localeCompare(b.start)).map(e=>`• ${e.start}–${e.end} ${e.title} (${wsName(e.workspace)})`).join('\n');
 }
 function aiProjectsText(){
-  const projects = state.data.projects.filter(p=>!p.deleted);
-  if(!projects.length) return 'Проєктів поки немає.';
+  const projects = state.data.projects.filter(p=>!p.deleted && !p.completed);
+  if(!projects.length) return 'Активних проєктів поки немає.';
   return 'Проєкти:\n' + projects.map(p=>`• ${p.name} — ${STATUS_LABEL[p.status]||p.status} (${wsName(p.workspace)})`).join('\n');
 }
 function aiStatsText(){
   const tasks = state.data.tasks.filter(t=>!t.deleted);
   const open = tasks.filter(t=>!t.done);
   const done = tasks.filter(t=>t.done);
-  const projects = state.data.projects.filter(p=>!p.deleted);
+  const projects = state.data.projects.filter(p=>!p.deleted && !p.completed);
   const byWs = WORKSPACES.map(w=>`${w.name}: ${open.filter(t=>t.workspace===w.id).length}`).join(', ');
   return `Статистика:\nВідкритих задач: ${open.length}\nВиконаних задач: ${done.length}\nПроєктів: ${projects.length}\n\nПо напрямках — ${byWs}`;
 }
@@ -1479,19 +1561,12 @@ function renderWorkspacePage(){
   if(!ws){ state.view='dashboard'; return renderDashboard(); }
   const tasks = state.data.tasks.filter(t=>t.workspace===wsId && !t.deleted);
   const openTasks = tasks.filter(t=>!t.done);
-  const projects = state.data.projects.filter(p=>p.workspace===wsId && !p.deleted);
+  const projects = state.data.projects.filter(p=>p.workspace===wsId && !p.deleted && !p.completed);
   const events = state.data.events.filter(e=>e.workspace===wsId).sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start)).slice(0,6);
   return `
-  <div class="day-hero" style="border-left:6px solid ${ws.color}">
-    <div>
-      <button class="btn btn-sm btn-ghost" style="margin-bottom:8px;padding-left:0" onclick="switchView('dashboard')">${ICON.arrowLeft} Усі простори</button>
-      <div class="date" style="text-transform:none">${ws.name}</div>
-    </div>
-    <div class="quick-actions">
-      <button class="btn btn-primary" onclick="openTaskModal(null,{workspace:'${wsId}'})">${ICON.plus} Задача</button>
-      <button class="btn" onclick="openEventModal(null,{workspace:'${wsId}'})">${ICON.plus} Подія</button>
-      <button class="btn" onclick="openProjectModal(null,{workspace:'${wsId}'})">${ICON.plus} Проєкт</button>
-    </div>
+  <div style="margin-bottom:16px">
+    <button class="btn btn-sm btn-ghost" style="margin-bottom:8px;padding-left:0" onclick="switchView('dashboard')">${ICON.arrowLeft} Усі простори</button>
+    <div style="font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px"><span class="dot" style="width:12px;height:12px;background:${ws.color}"></span>${ws.name}</div>
   </div>
   <div class="grid-dash">
     <div class="card">
@@ -1596,7 +1671,7 @@ function openTaskModal(id, opts){
 
         ${!isNew? `
         <label>Вкладення</label>
-        <div>${t.attachments.map((a,i)=>`<span class="link-chip">${ICON.paperclip}${escapeHtml(a)}<button class="mini-x" onclick="removeAttachment('${t.id}',${i})">${ICON.x}</button></span>`).join('') || ''}</div>
+        <div>${t.attachments.map((a,i)=>`<span class="link-chip">${ICON.paperclip}${renderFileLink(a)}<button class="mini-x" onclick="removeAttachment('${t.id}',${i})">${ICON.x}</button></span>`).join('') || ''}</div>
         <div style="display:flex;gap:8px;margin-top:6px">
           <input id="newAttachment" type="text" placeholder="Назва файлу або посилання Google Drive">
           <button class="btn btn-sm" onclick="addAttachment('${t.id}')">Додати</button>
@@ -1668,7 +1743,7 @@ function renderProjects(){
 }
 function renderProjectColumn(wsId){
   const ws = WORKSPACES.find(w=>w.id===wsId);
-  const projects = state.data.projects.filter(p=>p.workspace===wsId && !p.deleted);
+  const projects = state.data.projects.filter(p=>p.workspace===wsId && !p.deleted && !p.completed);
   return `
   <div class="card">
     <div class="section-head">
@@ -1681,14 +1756,14 @@ function renderProjectColumn(wsId){
 }
 function colProjRow(p){
   return `
-  <div class="col-proj-row">
-    <div class="col-proj-main" onclick="openProjectDetail('${p.id}')">
-      <div class="col-proj-top">
+  <div class="proj-card">
+    <div class="proj-card-main" onclick="openProjectDetail('${p.id}')">
+      <div class="proj-card-top">
         <span class="col-task-title">${escapeHtml(p.name)}</span>
         <span class="status-pill">${STATUS_LABEL[p.status]||p.status}</span>
       </div>
-      <span class="col-task-meta">Дедлайн: ${fmtDateHuman(p.deadline)}</span>
     </div>
+    <button class="proj-complete-btn" title="Завершити проєкт" onclick="event.stopPropagation();completeProject('${p.id}')">${ICON.check}</button>
     <button class="row-trash-btn" title="У кошик" onclick="event.stopPropagation();trashProject('${p.id}')">${ICON.trash}</button>
   </div>`;
 }
@@ -1739,7 +1814,7 @@ function saveProjectForm(id){
     p.activity.push({ts:Date.now(), text:'Проєкт оновлено'});
     toast('Проєкт збережено');
   } else {
-    state.data.projects.unshift(Object.assign({id:uid(), deleted:false, fileIds:[], activity:[{ts:Date.now(), text:'Проєкт створено'}]}, vals));
+    state.data.projects.unshift(Object.assign({id:uid(), deleted:false, completed:false, completedAt:null, fileIds:[], activity:[{ts:Date.now(), text:'Проєкт створено'}]}, vals));
     toast('Проєкт створено');
     if(pendingInboxSourceId){
       state.data.inbox = state.data.inbox.filter(i=>i.id!==pendingInboxSourceId);
@@ -1759,13 +1834,9 @@ function openProjectDetail(id){
       </div>
       <div class="modal-body">
         <div style="color:var(--text-dim);font-size:13px;margin-bottom:10px">${escapeHtml(p.description||'')}</div>
-        <div class="row2" style="margin-bottom:10px">
-          <div><b>Компанія:</b> ${escapeHtml(p.company||'—')}</div>
-          <div><b>Дедлайн:</b> ${fmtDateHuman(p.deadline)}</div>
-        </div>
 
         <label>Файли</label>
-        <div>${(p.fileIds||[]).map((f,i)=>`<span class="link-chip">${ICON.paperclip}${escapeHtml(f)}<button class="mini-x" onclick="removeProjectFile('${p.id}',${i})">${ICON.x}</button></span>`).join('') || '<span class="empty-hint">Файлів немає</span>'}</div>
+        <div>${(p.fileIds||[]).map((f,i)=>`<span class="link-chip">${ICON.paperclip}${renderFileLink(f)}<button class="mini-x" onclick="removeProjectFile('${p.id}',${i})">${ICON.x}</button></span>`).join('') || '<span class="empty-hint">Файлів немає</span>'}</div>
         <div style="display:flex;gap:8px;margin-top:6px">
           <input id="newProjFile" type="text" placeholder="Назва файлу або посилання Google Drive">
           <button class="btn btn-sm" onclick="addProjectFile('${p.id}')">Додати</button>
@@ -2131,14 +2202,19 @@ function deleteEvent(id){
     const gid = ev && ev.googleEventId;
     state.data.events = state.data.events.filter(e=>e.id!==id);
     saveData(); closeModal(); toast('Подію видалено'); render();
-    if(gid && state.gcalToken){
-      gcalPendingDeletes.add(gid);
-      gcalDelete(gid).catch(err=>{
-        if(err && err.code===401){ state.gcalToken = null; clearGcalToken(); toast('Подію видалено локально, але доступ до Google Calendar прострочено — підключіть його знову, щоб видалити й там'); }
-        else toast('Подію видалено локально, але не вдалося видалити з Google Calendar');
-      }).finally(()=>{
-        setTimeout(()=>gcalPendingDeletes.delete(gid), 20000);
-      });
+    if(gid){
+      queueGcalDelete(gid);
+      if(state.gcalToken){
+        gcalDelete(gid).then(()=>{
+          dequeueGcalDelete(gid);
+        }).catch(err=>{
+          console.error('GCAL DEBUG: delete failed, will retry later', gid, err);
+          if(err && err.code===401){ state.gcalToken = null; clearGcalToken(); toast('Подію видалено локально. Доступ до Google Calendar прострочено — після повторного підключення вона видалиться й там автоматично'); }
+          else toast('Подію видалено локально, спробуємо видалити з Google Calendar пізніше автоматично');
+        });
+      } else {
+        toast('Подію видалено локально. Вона автоматично видалиться з Google Calendar, щойно ви підключите його знову');
+      }
     }
   });
 }
