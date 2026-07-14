@@ -412,6 +412,7 @@ const ICON = {
   send:`<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg>`,
   arrowLeft:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>`,
   search:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
+  refresh:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.36M21 3v6h-6"/></svg>`,
 };
 
 /* ============================= КОНСТАНТИ ============================= */
@@ -507,6 +508,11 @@ const state = {
   profileOpen: false,
   searchOpen: false,
   searchQuery: '',
+  gcalToken: null,
+  gcalTokenAt: 0,
+  gcalConnected: false,
+  gcalSyncing: false,
+  gcalLastSync: 0,
 };
 let lastRenderedView = null;
 let pendingInboxSourceId = null;
@@ -543,16 +549,44 @@ function subscribeToData(uid){
     render();
   }, ()=>{ toast('Помилка синхронізації даних'); });
 }
+function googleProviderWithCalendar(){
+  const p = new firebase.auth.GoogleAuthProvider();
+  p.addScope('https://www.googleapis.com/auth/calendar.events');
+  return p;
+}
+function captureGcalToken(result){
+  try{
+    const cred = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+    if(cred && cred.accessToken){
+      state.gcalToken = cred.accessToken;
+      state.gcalTokenAt = Date.now();
+      state.gcalConnected = true;
+      syncGoogleCalendar(true);
+    }
+  }catch(e){}
+}
 function doLogin(){
   if(!fbReady){ toast('Firebase не налаштовано — встав конфіг у коді'); return; }
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(err=>{
+  auth.signInWithPopup(googleProviderWithCalendar()).then(result=>{
+    captureGcalToken(result);
+  }).catch(err=>{
     toast('Не вдалося увійти: ' + (err && err.message ? err.message : 'помилка'));
+  });
+}
+function requestGcalToken(){
+  if(!fbReady || !auth.currentUser){ toast('Спершу увійдіть у застосунок'); return; }
+  auth.currentUser.reauthenticateWithPopup(googleProviderWithCalendar()).then(result=>{
+    captureGcalToken(result);
+    toast('Google Calendar підключено');
+  }).catch(err=>{
+    toast('Не вдалося підключити Google Calendar: ' + (err && err.message ? err.message : 'помилка'));
   });
 }
 function doLogout(){
   if(dataUnsub){ dataUnsub(); dataUnsub = null; }
   state.profileOpen = false;
+  state.gcalToken = null;
+  state.gcalConnected = false;
   if(auth) auth.signOut();
 }
 function toggleTheme(){
@@ -581,6 +615,94 @@ if(fbReady){
   });
 } else {
   state.authReady = true;
+}
+
+/* ============================= GOOGLE CALENDAR ============================= */
+const GCAL_BASE = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+function gcalHeaders(){ return { 'Authorization': 'Bearer '+state.gcalToken, 'Content-Type': 'application/json' }; }
+function gcalTz(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }catch(e){ return 'UTC'; } }
+
+function gcalEventToLocal(ev){
+  const s = ev.start||{}, en = ev.end||{};
+  let date, start, end;
+  if(s.date){ date = s.date; start='00:00'; end='23:59'; }
+  else if(s.dateTime){
+    const sd = new Date(s.dateTime), ed = new Date(en.dateTime||s.dateTime);
+    date = dstr(sd); start = pad(sd.getHours())+':'+pad(sd.getMinutes()); end = pad(ed.getHours())+':'+pad(ed.getMinutes());
+  } else return null;
+  return {
+    title: ev.summary || '(без назви)', description: ev.description || '',
+    workspace: 'personal', recurring: 'none',
+    date, start, end,
+    googleEventId: ev.id, gUpdated: ev.updated, source: 'google',
+  };
+}
+function localEventToGcal(e){
+  return {
+    summary: e.title,
+    description: e.description || '',
+    start: { dateTime: `${e.date}T${e.start}:00`, timeZone: gcalTz() },
+    end: { dateTime: `${e.date}T${e.end}:00`, timeZone: gcalTz() },
+  };
+}
+function gcalFetch(url, opts){
+  opts = opts || {};
+  opts.headers = gcalHeaders();
+  return fetch(url, opts).then(r=>{
+    if(r.status===401){ const err = new Error('unauthorized'); err.code = 401; throw err; }
+    if(!r.ok) throw new Error('gcal request failed: ' + r.status);
+    if(r.status===204) return null;
+    return r.json();
+  });
+}
+function gcalList(){
+  if(!state.gcalToken) return Promise.resolve(null);
+  const timeMin = new Date(Date.now()-30*86400000).toISOString();
+  const timeMax = new Date(Date.now()+180*86400000).toISOString();
+  const url = `${GCAL_BASE}?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&maxResults=250`;
+  return gcalFetch(url);
+}
+function gcalCreate(e){ return gcalFetch(GCAL_BASE, {method:'POST', body: JSON.stringify(localEventToGcal(e))}); }
+function gcalUpdate(e){ return gcalFetch(`${GCAL_BASE}/${e.googleEventId}`, {method:'PATCH', body: JSON.stringify(localEventToGcal(e))}); }
+function gcalDelete(googleEventId){ return gcalFetch(`${GCAL_BASE}/${googleEventId}`, {method:'DELETE'}); }
+
+function syncGoogleCalendar(silent){
+  if(!state.gcalToken || state.gcalSyncing) return;
+  state.gcalSyncing = true;
+  const events = state.data.events;
+  const toCreate = events.filter(e=>!e.googleEventId && !e.deleted);
+  const toUpdate = events.filter(e=>e.googleEventId && e.dirty);
+  let chain = Promise.resolve();
+  toCreate.forEach(e=>{ chain = chain.then(()=>gcalCreate(e)).then(res=>{ e.googleEventId=res.id; e.gUpdated=res.updated; e.source=e.source||'local'; }); });
+  toUpdate.forEach(e=>{ chain = chain.then(()=>gcalUpdate(e)).then(res=>{ e.gUpdated=res.updated; delete e.dirty; }); });
+  chain.then(()=>gcalList()).then(data=>{
+    if(data && Array.isArray(data.items)){
+      data.items.forEach(gev=>{
+        if(gev.status==='cancelled'){
+          const idx = events.findIndex(e=>e.googleEventId===gev.id);
+          if(idx>-1) events.splice(idx,1);
+          return;
+        }
+        const conv = gcalEventToLocal(gev);
+        if(!conv) return;
+        const local = events.find(e=>e.googleEventId===gev.id);
+        if(local){
+          if(local.gUpdated !== gev.updated && !local.dirty) Object.assign(local, conv, {id: local.id});
+        } else {
+          events.unshift(Object.assign({id:uid()}, conv));
+        }
+      });
+    }
+    state.gcalLastSync = Date.now();
+    saveData(); render();
+    if(!silent) toast('Google Calendar синхронізовано');
+  }).catch(err=>{
+    if(err && err.code===401){
+      state.gcalToken = null;
+      if(!silent) toast('Доступ до Google Calendar прострочено — натисніть кнопку підключення ще раз');
+      else render();
+    } else if(!silent){ toast('Помилка синхронізації з Google Calendar'); }
+  }).finally(()=>{ state.gcalSyncing = false; });
 }
 
 /* ============================= ПРОФІЛЬ ============================= */
@@ -1595,6 +1717,13 @@ function eventsForDate(dateStr){
   return filteredEvents().filter(e=> e.date===dateStr || (e.recurring==='weekly' && e.date<=dateStr && new Date(e.date+'T00:00:00').getDay()===d.getDay()));
 }
 
+function renderGcalStatus(){
+  if(!state.gcalToken){
+    return `<button class="btn btn-sm" onclick="requestGcalToken()" style="margin-right:8px">${ICON.google} Підключити Google Calendar</button>`;
+  }
+  const lastSync = state.gcalLastSync ? timeAgo(state.gcalLastSync) : 'ще не синхронізовано';
+  return `<button class="btn btn-sm btn-ghost" title="Оновити зараз" onclick="syncGoogleCalendar()" style="margin-right:8px;gap:6px">${state.gcalSyncing?ICON.refresh:ICON.google} ${state.gcalSyncing?'Синхронізація...':'Синхр.: '+lastSync}</button>`;
+}
 function renderCalendar(){
   const d = state.calendarDate;
   let title = '';
@@ -1614,6 +1743,7 @@ function renderCalendar(){
     <button class="btn btn-sm" onclick="calToday()">Сьогодні</button>
     <div class="cal-title">${title}</div>
     <span style="flex:1"></span>
+    ${renderGcalStatus()}
     <div class="modes">
       <button class="${state.calendarMode==='day'?'active':''}" onclick="setCalMode('day')">День</button>
       <button class="${state.calendarMode==='week'?'active':''}" onclick="setCalMode('week')">Тиждень</button>
@@ -1745,9 +1875,14 @@ function saveEventForm(id){
     start: document.getElementById('e_start').value,
     end: document.getElementById('e_end').value,
   };
-  if(id){ Object.assign(state.data.events.find(x=>x.id===id), vals); toast('Подію оновлено'); }
+  if(id){
+    const ev = state.data.events.find(x=>x.id===id);
+    Object.assign(ev, vals);
+    if(ev.googleEventId) ev.dirty = true;
+    toast('Подію оновлено');
+  }
   else{
-    state.data.events.unshift(Object.assign({id:uid()}, vals));
+    state.data.events.unshift(Object.assign({id:uid(), source:'local'}, vals));
     toast('Подію створено');
     if(pendingInboxSourceId){
       state.data.inbox = state.data.inbox.filter(i=>i.id!==pendingInboxSourceId);
@@ -1755,11 +1890,15 @@ function saveEventForm(id){
     }
   }
   saveData(); closeModal(); render();
+  if(state.gcalToken) syncGoogleCalendar(true);
 }
 function deleteEvent(id){
   confirmAction('Видалити цю подію?', ()=>{
+    const ev = state.data.events.find(e=>e.id===id);
+    const gid = ev && ev.googleEventId;
     state.data.events = state.data.events.filter(e=>e.id!==id);
     saveData(); closeModal(); toast('Подію видалено'); render();
+    if(gid && state.gcalToken) gcalDelete(gid).catch(()=>{});
   });
 }
 
@@ -1821,7 +1960,7 @@ applyAccent(loadAccent());
 render();
 initAiChatWidget();
 setInterval(snapshotData, 3600000);
-
+setInterval(()=>{ if(state.gcalToken) syncGoogleCalendar(true); }, 300000);
 </script>
 </body>
 </html>
