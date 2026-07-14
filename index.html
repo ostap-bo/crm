@@ -558,6 +558,8 @@ function googleProviderWithCalendar(){
 function captureGcalToken(result){
   try{
     const cred = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+    console.log('GCAL DEBUG result:', result);
+    console.log('GCAL DEBUG credential:', cred);
     if(cred && cred.accessToken){
       state.gcalToken = cred.accessToken;
       state.gcalTokenAt = Date.now();
