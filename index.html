@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="uk" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Особистий Workspace — CRM</title>
+<style>
+  :root{
+    --accent:#1f6b45;
+    --accent-dark:#154c31;
+    --accent-light:#e5f3ec;
+    --accent-contrast:#ffffff;
+    --radius:10px;
+    --radius-sm:6px;
+    --ws-personal:#2563eb;
+    --ws-kykil:#6d28d9;
+    --ws-kofax:#1e3a8a;
+    --pr-critical:#dc2626;
+    --pr-high:#f97316;
+    --pr-medium:#eab308;
+    --pr-low:#64748b;
+  }
+  html[data-theme="light"]{
+    --bg:#f5f7f6;
+    --surface:#ffffff;
+    --surface-2:#eef1ef;
+    --surface-3:#e4e8e5;
+    --text:#16201b;
+    --text-dim:#5b665f;
+    --border:#dadfdb;
+    --border-strong:#c3cbc5;
+    --shadow:0 1px 2px rgba(20,30,24,.04), 0 8px 24px rgba(20,30,24,.05);
+    --overlay:rgba(15,20,17,.45);
+  }
+  html[data-theme="dark"]{
+    --bg:#10140f;
+    --surface:#171d18;
+    --surface-2:#1e251f;
+    --surface-3:#283029;
+    --text:#eef1ee;
+    --text-dim:#9aa69d;
+    --border:#2c342d;
+    --border-strong:#3a443b;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    --overlay:rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  button, .chip, .btn, .icon-btn, .nav-item, .custom-select-btn, .custom-select-opt,
+  .list-row, .month-cell, .week-cell, .col-task-row, .col-proj-row, .cal-head .modes button,
+  .status-pill, .tag, .dropdown button, .inbox-menu button, .notif-row, .ws-legend-row{
+    user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;
+  }
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  #app{height:100vh;width:100vw;display:flex;}
+  button{font-family:inherit;cursor:pointer;}
+  ::-webkit-scrollbar{width:9px;height:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--border-strong);}
+  ::-webkit-scrollbar-track{background:transparent;}
+  a{color:inherit;}
+  svg{display:block;}
+
+  /* ---------- LOGIN ---------- */
+  .login-screen{
+    height:100vh;width:100vw;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 20% 20%, var(--accent-light), var(--bg) 55%);
+  }
+  html[data-theme="dark"] .login-screen{
+    background:radial-gradient(circle at 20% 20%, #17301f, var(--bg) 55%);
+  }
+  .login-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:48px 44px;width:380px;box-shadow:var(--shadow);text-align:center;
+  }
+  .login-logo{
+    width:56px;height:56px;background:var(--accent);border-radius:var(--radius-sm);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 20px;color:#fff;
+  }
+  .login-card h1{font-size:20px;margin:0 0 6px;}
+  .login-card p{color:var(--text-dim);font-size:14px;margin:0 0 28px;}
+  .google-btn{
+    width:100%;padding:12px 16px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);
+    background:var(--surface-2);color:var(--text);font-size:14px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;gap:10px;transition:.15s;
+  }
+  .google-btn:hover{border-color:var(--accent);background:var(--accent-light);}
+  .login-foot{margin-top:18px;font-size:12px;color:var(--text-dim);}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:236px;flex:none;background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:18px 14px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px;}
+  .brand-mark{width:32px;height:32px;background:var(--accent);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;flex:none;}
+  .brand-name{font-weight:700;font-size:15px;}
+  .brand-sub{font-size:11px;color:var(--text-dim);}
+  .nav{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:9px 10px;
+    border:none;background:transparent;color:var(--text-dim);font-size:14px;font-weight:500;text-align:left;width:100%;
+    transition:.12s;
+  }
+  .nav-item svg{flex:none;opacity:.85;}
+  .nav-item:hover{background:var(--surface-2);color:var(--text);}
+  .nav-item.active{background:var(--accent-light);color:var(--accent-dark);font-weight:700;}
+  html[data-theme="dark"] .nav-item.active{background:#1d3527;color:#7fd9a6;}
+  .nav-sep{height:1px;background:var(--border);margin:12px 4px;}
+  .ws-legend{padding:4px 10px 10px;font-size:11px;color:var(--text-dim);}
+  .ws-legend-row{display:flex;align-items:center;gap:7px;padding:6px 4px;cursor:pointer;border:1px solid transparent;}
+  .ws-legend-row:hover{background:var(--surface-2);border-color:var(--border);}
+  .ws-legend-row.active{border-color:var(--border-strong);background:var(--surface-2);font-weight:700;color:var(--text);}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .sidebar-foot{border-top:1px solid var(--border);padding-top:12px;margin-top:8px;}
+  .profile-row{display:flex;align-items:center;gap:10px;padding:6px;position:relative;}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;}
+  .profile-name{font-size:13px;font-weight:600;}
+  .profile-email{font-size:11px;color:var(--text-dim);}
+  .profile-menu-btn{margin-left:auto;background:none;border:none;color:var(--text-dim);padding:4px;}
+  .profile-menu-btn:hover{background:var(--surface-2);}
+  .dropdown{
+    border-radius:var(--radius-sm);overflow:hidden;
+    position:absolute;bottom:46px;left:6px;right:6px;background:var(--surface);border:1.5px solid var(--border-strong);
+    box-shadow:var(--shadow);overflow:hidden;z-index:40;
+  }
+  .dropdown button{display:block;width:100%;text-align:left;padding:10px 12px;background:none;border:none;font-size:13px;color:var(--text);}
+  .dropdown button:hover{background:var(--surface-2);}
+
+  /* ---------- MAIN ---------- */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;height:100vh;}
+  .topbar{
+    display:flex;align-items:center;gap:12px;padding:16px 26px;border-bottom:1px solid var(--border);flex:none;
+  }
+  .topbar h2{font-size:19px;margin:0;font-weight:700;}
+  .topbar .spacer{flex:1;}
+  .icon-btn{
+    border-radius:var(--radius-sm);
+    width:36px;height:36px;border:1.5px solid var(--border-strong);background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;color:var(--text-dim);position:relative;transition:.12s;
+  }
+  .icon-btn:hover{background:var(--surface-3);color:var(--text);}
+  .notif-dot{position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--pr-critical);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);}
+  .btn{
+    border-radius:var(--radius-sm);
+    padding:10px 16px;border:1.5px solid var(--border-strong);background:var(--surface-2);
+    color:var(--text);font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:7px;transition:.12s;
+    box-shadow:0 1px 0 rgba(0,0,0,.03);
+  }
+  .btn:hover{background:var(--surface-3);}
+  .btn-primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-sm{padding:6px 12px;font-size:12px;}
+  .btn-ghost{border-color:transparent;background:transparent;box-shadow:none;}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-danger-text{color:var(--pr-critical);}
+
+  .view{flex:1;overflow-y:auto;padding:22px 26px 60px;}
+  .filters-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+  .chip{
+    border-radius:var(--radius-sm);
+    padding:7px 14px;border:1.5px solid var(--border-strong);background:var(--surface-2);
+    font-size:12.5px;font-weight:700;color:var(--text-dim);display:inline-flex;align-items:center;gap:6px;transition:.12s;
+    cursor:pointer;
+  }
+  .chip:hover{background:var(--surface-3);}
+  .chip.active{background:var(--accent);border-color:var(--accent-dark);color:#fff;}
+  .chip:active{transform:translateY(1px);}
+
+  /* dashboard */
+  .day-hero{
+    border-radius:var(--radius);
+    display:flex;align-items:center;justify-content:space-between;background:var(--surface);
+    border:1px solid var(--border);padding:20px 24px;margin-bottom:18px;box-shadow:var(--shadow);
+  }
+  .day-hero .date{font-size:17px;font-weight:800;text-transform:capitalize;}
+  .quick-actions{display:flex;gap:10px;}
+  .grid-dash{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+  @media (max-width:1100px){.grid-dash{grid-template-columns:1fr 1fr;}}
+  @media (max-width:760px){.grid-dash{grid-template-columns:1fr;}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px 16px;box-shadow:var(--shadow);}
+  .card h3{font-size:14px;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+  .card h3 .count{margin-left:auto;font-size:11px;background:var(--surface-2);border-radius:var(--radius-sm);padding:2px 8px;color:var(--text-dim);font-weight:700;}
+  .empty-hint{color:var(--text-dim);font-size:12.5px;padding:10px 2px;}
+  .list-row{display:flex;align-items:center;gap:10px;padding:9px 6px;transition:.12s;cursor:pointer;}
+  .list-row:hover{background:var(--surface-2);}
+  .list-row .title{font-size:13.5px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .list-row .meta{font-size:11.5px;color:var(--text-dim);flex:none;}
+  .tag{font-size:10.5px;font-weight:700;padding:2px 7px;color:#fff;flex:none;border-radius:var(--radius-sm);}
+  .quick-capture{display:flex;gap:8px;margin-bottom:18px;}
+  .quick-capture input{flex:1;}
+  .done-text{text-decoration:line-through;color:var(--text-dim);}
+
+  input,textarea{
+    background:var(--surface-2);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);
+    padding:9px 12px;font-size:13.5px;color:var(--text);width:100%;font-family:inherit;
+  }
+  input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;}
+  input[type=checkbox]{width:auto;flex:none;accent-color:var(--accent);cursor:pointer;}
+  input[type=color]{width:36px;height:36px;padding:2px;flex:none;cursor:pointer;}
+  label{font-size:12px;font-weight:700;color:var(--text-dim);display:block;margin:12px 0 5px;}
+  label:first-child{margin-top:0;}
+
+  /* custom select */
+  .custom-select{position:relative;display:block;width:100%;}
+  .custom-select-btn{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:9px 12px;background:var(--surface-2);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);
+    color:var(--text);font-size:13px;font-weight:600;text-align:left;
+  }
+  .custom-select-btn:hover{border-color:var(--accent);}
+  .cs-label{display:flex;align-items:center;gap:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cs-chev{flex:none;opacity:.6;}
+  .custom-select-panel{
+    display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--surface);border-radius:var(--radius-sm);overflow:hidden;
+    border:1.5px solid var(--border-strong);box-shadow:var(--shadow);z-index:60;max-height:220px;overflow-y:auto;
+  }
+  .custom-select-panel.open{display:block;}
+  .custom-select-opt{padding:9px 12px;font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer;}
+  .custom-select-opt:hover{background:var(--surface-2);}
+  .custom-select-opt.active{font-weight:700;color:var(--accent-dark);background:var(--accent-light);}
+
+  /* direction columns (tasks / projects) */
+  .dir-columns{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+  @media (max-width:1100px){.dir-columns{grid-template-columns:1fr;}}
+  .section-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .section-head h3{margin:0;font-size:15px;font-weight:800;}
+  .col-task-row{display:flex;align-items:center;gap:9px;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .col-task-row:last-child{border-bottom:none;}
+  .col-task-row:hover{background:var(--surface-2);}
+  .col-task-title{flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .col-task-meta{font-size:10.5px;color:var(--text-dim);flex:none;display:flex;align-items:center;gap:4px;}
+  .col-proj-row{padding:10px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .col-proj-row:last-child{border-bottom:none;}
+  .col-proj-row:hover{background:var(--surface-2);}
+  .col-proj-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+
+  /* projects */
+  .progress-bar{height:7px;background:var(--surface-2);overflow:hidden;margin:4px 0;border:1px solid var(--border);}
+  .progress-fill{height:100%;background:var(--accent);}
+  .status-pill{font-size:10.5px;font-weight:700;padding:3px 8px;display:inline-block;background:var(--surface-2);color:var(--text-dim);border:1px solid var(--border);border-radius:var(--radius-sm);flex:none;}
+
+  /* calendar */
+  .cal-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .cal-head .modes{display:flex;gap:0;background:var(--surface-2);border:1.5px solid var(--border-strong);padding:2px;}
+  .cal-head .modes button{padding:6px 14px;border:none;background:transparent;font-size:12.5px;font-weight:700;color:var(--text-dim);}
+  .cal-head .modes button.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
+  .cal-nav{display:flex;gap:6px;}
+  .cal-title{font-weight:700;font-size:15px;text-transform:capitalize;}
+  .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border-strong);border:1px solid var(--border-strong);border-radius:var(--radius);overflow:hidden;}
+  .month-dow{background:var(--surface-2);padding:8px;text-align:center;font-size:11px;font-weight:700;color:var(--text-dim);}
+  .month-cell{background:var(--surface);min-height:96px;padding:6px;position:relative;cursor:pointer;}
+  .month-cell:hover{background:var(--surface-2);}
+  .month-cell.other{opacity:.4;}
+  .month-cell.today{background:var(--accent-light);}
+  html[data-theme="dark"] .month-cell.today{background:#1a2c1f;}
+  .month-cell .dnum{font-size:12px;font-weight:700;margin-bottom:4px;}
+  .month-evt{font-size:10.5px;padding:2px 5px;color:#fff;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;border-radius:3px;}
+  .week-grid{display:grid;grid-template-columns:56px repeat(7,1fr);border:1px solid var(--border-strong);background:var(--surface);border-radius:var(--radius);overflow:hidden;}
+  .week-dow-head{padding:8px 4px;text-align:center;font-size:11px;font-weight:700;color:var(--text-dim);border-bottom:1px solid var(--border);border-left:1px solid var(--border);background:var(--surface-2);}
+  .week-dow-head.today{color:var(--accent-dark);}
+  .hour-label{font-size:10px;color:var(--text-dim);padding:4px;text-align:right;border-top:1px solid var(--border);}
+  .week-cell{border-top:1px solid var(--border);border-left:1px solid var(--border);min-height:44px;position:relative;padding:1px;cursor:pointer;}
+  .week-cell:hover{background:var(--surface-2);}
+  .week-evt{background:var(--ws-personal);color:#fff;font-size:10.5px;padding:3px 6px;margin-bottom:2px;cursor:grab;overflow:hidden;border-radius:3px;}
+  .day-list .week-evt{font-size:12px;padding:8px 10px;}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:var(--overlay);display:flex;align-items:flex-start;justify-content:center;padding:5vh 20px;z-index:100;overflow-y:auto;}
+  .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius);overflow:hidden;width:560px;max-width:100%;box-shadow:var(--shadow);margin-bottom:40px;}
+  .modal-head{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);}
+  .modal-head h3{margin:0;font-size:16px;}
+  .modal-body{padding:20px 22px;max-height:70vh;overflow-y:auto;}
+  .modal-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .checklist-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;font-size:13px;}
+  .checklist-item .txt{flex:1;line-height:1.4;word-break:break-word;padding-top:2px;}
+  .checklist-item.done .txt{text-decoration:line-through;color:var(--text-dim);}
+  .mini-x{background:none;border:none;color:var(--text-dim);padding:2px;flex:none;}
+  .mini-x:hover{color:var(--pr-critical);}
+  .link-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px 10px;font-size:12px;margin:2px 4px 2px 0;}
+
+  /* focus mode */
+  .focus-screen{height:100vh;width:100vw;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);position:relative;}
+  .focus-exit{position:absolute;top:22px;right:26px;}
+  .focus-box{width:520px;max-width:90vw;text-align:center;}
+  .focus-ws{font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+  .focus-title{font-size:26px;font-weight:800;margin-bottom:26px;}
+  .focus-timer{font-size:64px;font-weight:800;letter-spacing:2px;font-variant-numeric:tabular-nums;margin-bottom:18px;}
+  .focus-controls{display:flex;gap:10px;justify-content:center;margin-bottom:30px;}
+  .focus-checklist{text-align:left;background:var(--surface);border:1px solid var(--border);padding:16px 18px;margin-bottom:16px;}
+  .focus-notes{width:100%;min-height:80px;resize:vertical;}
+
+  .toast-wrap{position:fixed;bottom:24px;left:24px;display:flex;flex-direction:column;gap:8px;z-index:200;}
+  .toast{background:var(--text);color:var(--bg);border-radius:var(--radius-sm);padding:11px 18px;font-size:13px;font-weight:700;box-shadow:var(--shadow);animation:toastin .18s ease-out;}
+  @keyframes toastin{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-dim);}
+  @media (max-width:900px){
+    .sidebar{position:fixed;bottom:0;left:0;right:0;width:100%;height:64px;flex-direction:row;padding:8px 10px;z-index:30;border-right:none;border-top:1px solid var(--border);}
+    .brand,.ws-legend,.sidebar-foot,.nav-sep{display:none;}
+    .nav{flex-direction:row;justify-content:space-around;overflow:visible;}
+    .nav-item{flex-direction:column;font-size:10px;gap:3px;padding:6px;}
+    .main{height:calc(100vh - 64px);}
+    .grid-dash{grid-template-columns:1fr;}
+  }
+
+  /* AI chat widget */
+  #aiChatWidget{position:fixed;bottom:22px;right:22px;z-index:150;}
+  .ai-fab{
+    border-radius:var(--radius);
+    width:54px;height:54px;background:var(--accent);color:#fff;border:1.5px solid var(--accent-dark);
+    display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);position:relative;
+  }
+  .ai-fab:hover{background:var(--accent-dark);}
+  .ai-fab-badge{position:absolute;top:-5px;right:-5px;background:var(--pr-critical);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;padding:0 4px;display:none;align-items:center;justify-content:center;border:2px solid var(--bg);border-radius:50%;}
+  .ai-chat-panel{
+    border-radius:var(--radius);overflow:hidden;
+    display:none;position:absolute;bottom:64px;right:0;width:340px;
+    background:var(--surface);border:1.5px solid var(--border-strong);box-shadow:var(--shadow);
+    flex-direction:column;
+  }
+  .ai-chat-panel.open{display:flex;}
+  .ai-chat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);font-weight:700;font-size:13.5px;gap:8px;}
+  .ai-chat-messages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;max-height:280px;min-height:180px;}
+  .ai-msg{padding:9px 12px;font-size:12.5px;line-height:1.5;white-space:pre-line;max-width:85%;}
+  .ai-msg.ai{background:var(--surface-2);align-self:flex-start;}
+  .ai-msg.user{background:var(--accent);color:#fff;align-self:flex-end;}
+  .ai-chat-quick{display:flex;gap:6px;padding:0 14px 8px;flex-wrap:wrap;}
+  .ai-chat-input-row{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);}
+  .ai-chat-input-row input{flex:1;}
+
+  /* inbox */
+  .inbox-row{display:flex;align-items:flex-start;gap:12px;padding:13px 6px;border-bottom:1px solid var(--border);}
+  .inbox-row:last-child{border-bottom:none;}
+  .inbox-text{flex:1;font-size:13.5px;padding-top:6px;}
+  .inbox-time{font-size:11px;color:var(--text-dim);margin-top:2px;}
+  .inbox-menu-wrap{position:relative;}
+  .inbox-menu{display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow);z-index:60;min-width:150px;}
+  .inbox-menu.open{display:block;}
+  .inbox-menu button{display:block;width:100%;text-align:left;padding:9px 12px;background:none;border:none;font-size:12.5px;color:var(--text);}
+  .inbox-menu button:hover{background:var(--surface-2);}
+
+  /* notifications */
+  .notif-row{display:block;width:100%;text-align:left;padding:10px 12px;background:none;border:none;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--text);cursor:pointer;}
+  .notif-row:last-child{border-bottom:none;}
+  .notif-row:hover{background:var(--surface-2);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ============================= ІКОНКИ ============================= */
+const ICON = {
+  home:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>`,
+  calendar:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="0"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>`,
+  tasks:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 2 2 4-4"/><path d="M11 6h9"/><path d="m4 15 2 2 4-4"/><path d="M11 16h9"/></svg>`,
+  projects:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`,
+  inbox:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></svg>`,
+  focus:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6" fill="currentColor"/></svg>`,
+  sun:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`,
+  moon:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>`,
+  bell:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>`,
+  plus:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+  x:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>`,
+  chevronL:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
+  chevronR:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`,
+  chevronDown:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
+  play:`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`,
+  pause:`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>`,
+  stop:`<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="0"/></svg>`,
+  clock:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`,
+  google:`<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.6-.2-2.4H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.1-4 1.1-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1C3.3 21.3 7.3 24 12 24z"/><path fill="#FBBC05" d="M5.4 14.3c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.4C.5 8.3 0 10.1 0 12s.5 3.7 1.4 5.4z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.5 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.3 0 3.3 2.7 1.4 6.6l4 3.1c.9-2.8 3.5-4.9 6.6-4.9z"/></svg>`,
+  paperclip:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.5-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 1 1-3-3l8-8"/></svg>`,
+  sparkle:`<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6z"/></svg>`,
+  logout:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>`,
+  send:`<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg>`,
+  arrowLeft:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>`,
+  search:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
+};
+
+/* ============================= КОНСТАНТИ ============================= */
+const WORKSPACES = [
+  {id:'personal', name:'Особисте', color:'var(--ws-personal)'},
+  {id:'kykil', name:'Kykil', color:'var(--ws-kykil)'},
+  {id:'kofax', name:'Kofax', color:'var(--ws-kofax)'},
+];
+const DIR_ORDER = ['kofax','personal','kykil'];
+const wsColor = id => (WORKSPACES.find(w=>w.id===id)||{}).color || '#999';
+const wsName = id => (WORKSPACES.find(w=>w.id===id)||{}).name || id;
+
+const STATUSES = ['todo','inprogress','waiting','done','archive'];
+const STATUS_LABEL = {todo:'До виконання', inprogress:'У роботі', waiting:'Очікує', done:'Виконано', archive:'Архів'};
+
+const DOW = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+const DOW_FULL = ['неділя','понеділок','вівторок','середа','четвер','п’ятниця','субота'];
+const MONTHS = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+const MONTHS_NOM = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+
+/* ============================= УТИЛІТИ ============================= */
+const uid = () => Math.random().toString(36).slice(2,10);
+const pad = n => String(n).padStart(2,'0');
+function dstr(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function todayStr(){ return dstr(new Date()); }
+function fmtDateHuman(str){
+  if(!str) return '—';
+  const d = new Date(str+'T00:00:00');
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
+function fmtFullDate(d){
+  return `${DOW_FULL[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+function fmtSec(sec){
+  sec = Math.max(0, Math.floor(sec));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function timeAgo(ts){
+  const diff = (Date.now()-ts)/1000;
+  if(diff<60) return 'щойно';
+  if(diff<3600) return Math.floor(diff/60)+' хв тому';
+  if(diff<86400) return Math.floor(diff/3600)+' год тому';
+  return Math.floor(diff/86400)+' дн тому';
+}
+function addHourStr(t){
+  let [h,m] = t.split(':').map(Number);
+  h = (h+1)%24;
+  return pad(h)+':'+pad(m);
+}
+
+/* ============================= ДАНІ (localStorage) ============================= */
+const LS_KEY = 'personalCrmData_v3';
+const LS_THEME = 'personalCrmTheme_v1';
+const LS_AUTH = 'personalCrmAuth_v1';
+const LS_CHAT = 'personalCrmChat_v1';
+const LS_PROFILE = 'personalCrmProfile_v1';
+const LS_ACCENT = 'personalCrmAccent_v1';
+
+function seedData(){
+  const t = new Date();
+  const projPersonal1 = uid(), projKykil1 = uid(), projKykil2 = uid(), projKofax1 = uid();
+  const projects = [
+    {id:projPersonal1, name:'Ремонт квартири', description:'Організація ремонту: пошук майстрів, закупівля матеріалів.', company:'—', workspace:'personal', status:'inprogress', deadline:dstr(addDays(t,20)), fileIds:[], activity:[
+      {ts:Date.now()-86400000*3, text:'Проєкт створено'},
+    ]},
+    {id:projKykil1, name:'Запуск нового модуля оплат', description:'Інтеграція нового платіжного провайдера у продукт Kykil.', company:'Kykil LLC', workspace:'kykil', status:'inprogress', deadline:dstr(addDays(t,7)), fileIds:[], activity:[
+      {ts:Date.now()-86400000*5, text:'Проєкт створено'},
+      {ts:Date.now()-86400000*2, text:'Статус змінено на «У роботі»'},
+    ]},
+    {id:projKykil2, name:'Редизайн лендінгу', description:'Оновлення маркетингового сайту, нова структура блоків.', company:'Kykil LLC', workspace:'kykil', status:'todo', deadline:dstr(addDays(t,30)), fileIds:[], activity:[
+      {ts:Date.now()-86400000, text:'Проєкт створено'},
+    ]},
+    {id:projKofax1, name:'Впровадження CRM для клієнта', description:'Налаштування та навчання команди клієнта роботі з системою.', company:'Kofax Inc.', workspace:'kofax', status:'waiting', deadline:dstr(addDays(t,14)), fileIds:[], activity:[
+      {ts:Date.now()-86400000*4, text:'Проєкт створено'},
+      {ts:Date.now()-86400000, text:'Очікуємо відповідь клієнта'},
+    ]},
+  ];
+
+  function mkTask(o){
+    return Object.assign({
+      id:uid(), title:'', description:'', workspace:'personal',
+      checklist:[], attachments:[], done:false, completedAt:null, createdAt:Date.now(),
+    }, o);
+  }
+
+  const tasks = [
+    mkTask({title:'Подати податкову декларацію', workspace:'personal', checklist:[{text:'Зібрати довідки',done:true},{text:'Заповнити форму',done:false}]}),
+    mkTask({title:'Забрати замовлення з пошти', workspace:'personal'}),
+    mkTask({title:'Записатися до стоматолога', workspace:'personal'}),
+    mkTask({title:'Оплатити комунальні', workspace:'personal'}),
+    mkTask({title:'Замовити плитку для ванної', workspace:'personal', attachments:['каталог_плитки.pdf']}),
+    mkTask({title:'Підготувати технічне завдання для інтеграції', workspace:'kykil', checklist:[{text:'Опис ендпоінтів',done:true},{text:'Схема даних',done:false},{text:'Узгодити з командою',done:false}]}),
+    mkTask({title:'Провести код-рев’ю пул-реквестів', workspace:'kykil'}),
+    mkTask({title:'Зустріч з дизайнером щодо лендінгу', workspace:'kykil'}),
+    mkTask({title:'Написати варіанти заголовків для лендінгу', workspace:'kykil'}),
+    mkTask({title:'Архівний звіт за минулий квартал', workspace:'kykil', done:true, completedAt:Date.now()-86400000}),
+    mkTask({title:'Підготувати демо для клієнта', workspace:'kofax', attachments:['презентація.pptx']}),
+    mkTask({title:'Оновити документацію проєкту', workspace:'kofax', done:true, completedAt:Date.now()-3600000}),
+    mkTask({title:'Надіслати рахунок клієнту', workspace:'kofax'}),
+  ];
+
+  function mkEvent(o){
+    return Object.assign({id:uid(), title:'', workspace:'personal', date:todayStr(), start:'10:00', end:'11:00', recurring:'none', description:''}, o);
+  }
+  const events = [
+    mkEvent({title:'Ранкове планування', workspace:'personal', date:todayStr(), start:'08:30', end:'09:00', recurring:'weekly'}),
+    mkEvent({title:'Дзвінок з командою Kykil', workspace:'kykil', date:todayStr(), start:'11:00', end:'11:30', recurring:'weekly'}),
+    mkEvent({title:'Демо для клієнта Kofax', workspace:'kofax', date:todayStr(), start:'15:00', end:'16:00'}),
+    mkEvent({title:'Тренування', workspace:'personal', date:todayStr(), start:'19:00', end:'20:00', recurring:'weekly'}),
+    mkEvent({title:'Ретроспектива спринту', workspace:'kykil', date:dstr(addDays(t,1)), start:'10:00', end:'11:00'}),
+    mkEvent({title:'Дзвінок з клієнтом', workspace:'kofax', date:dstr(addDays(t,2)), start:'13:00', end:'13:30'}),
+    mkEvent({title:'День народження мами', workspace:'personal', date:dstr(addDays(t,3)), start:'09:00', end:'10:00'}),
+    mkEvent({title:'Огляд макетів лендінгу', workspace:'kykil', date:dstr(addDays(t,-1)), start:'14:00', end:'15:00'}),
+  ];
+
+  const inbox = [
+    {id:uid(), text:'Ідея: додати темну тему до мобільного застосунку', createdAt:Date.now()-3600000},
+    {id:uid(), text:'Подзвонити орендодавцю щодо продовження договору', createdAt:Date.now()-7200000},
+    {id:uid(), text:'Перевірити акційні тарифи на хостинг', createdAt:Date.now()-1800000},
+  ];
+
+  return {tasks, projects, events, inbox};
+}
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  const fresh = seedData();
+  localStorage.setItem(LS_KEY, JSON.stringify(fresh));
+  return fresh;
+}
+function saveData(){ localStorage.setItem(LS_KEY, JSON.stringify(state.data)); }
+function loadProfile(){
+  try{
+    const raw = localStorage.getItem(LS_PROFILE);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {name:'Остап', email:'ostap.booodnar@gmail.com', phone:'', position:'', avatar:''};
+}
+function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }
+function initials(name){
+  const parts = (name||'').trim().split(/\s+/).filter(Boolean);
+  const s = parts.slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  return s || 'О';
+}
+
+/* ============================= СТАН ============================= */
+const state = {
+  theme: localStorage.getItem(LS_THEME) || 'light',
+  authed: localStorage.getItem(LS_AUTH) === '1',
+  view: 'dashboard',
+  calendarMode: 'week',
+  calendarDate: new Date(),
+  wsFilter: 'all', // 'all' | 'personal' | 'kykil' | 'kofax'
+  activeWs: null,
+  data: loadData(),
+  profile: loadProfile(),
+  notifOpen: false,
+  profileOpen: false,
+  searchOpen: false,
+  searchQuery: '',
+};
+let lastRenderedView = null;
+let pendingInboxSourceId = null;
+let currentNotifs = [];
+
+function getTask(id){ return state.data.tasks.find(t=>t.id===id); }
+function getProject(id){ return state.data.projects.find(p=>p.id===id); }
+
+/* ============================= ТОСТИ ============================= */
+function toast(msg){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className='toast'; el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(), 2800);
+}
+
+/* ============================= АВТОРИЗАЦІЯ ============================= */
+function doLogin(){
+  localStorage.setItem(LS_AUTH,'1');
+  state.authed = true;
+  toast('Профіль створено автоматично — вітаємо!');
+  render();
+}
+function doLogout(){
+  localStorage.setItem(LS_AUTH,'0');
+  state.authed = false;
+  state.profileOpen = false;
+  render();
+}
+function toggleTheme(){
+  state.theme = state.theme==='light' ? 'dark' : 'light';
+  localStorage.setItem(LS_THEME, state.theme);
+  render();
+}
+
+/* ============================= ПРОФІЛЬ ============================= */
+function triggerAvatarUpload(){
+  const inp = document.getElementById('avatarFileInput');
+  if(inp) inp.click();
+}
+function handleAvatarFile(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ toast('Виберіть файл зображення'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const size = 240;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size/img.width, size/img.height);
+      const w = img.width*scale, h = img.height*scale;
+      ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+      state.profile.avatar = canvas.toDataURL('image/jpeg', 0.85);
+      saveProfile();
+      toast('Фото оновлено');
+      render();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+  ev.target.value = '';
+}
+function removeAvatar(){
+  state.profile.avatar = '';
+  saveProfile();
+  toast('Фото видалено');
+  render();
+}
+function saveProfileForm(){
+  state.profile.name = document.getElementById('prof_name').value.trim() || state.profile.name;
+  state.profile.email = document.getElementById('prof_email').value.trim();
+  state.profile.phone = document.getElementById('prof_phone').value.trim();
+  state.profile.position = document.getElementById('prof_position').value.trim();
+  saveProfile();
+  toast('Профіль збережено');
+  render();
+}
+
+/* ------- акцентний колір ------- */
+const DEFAULT_ACCENT = '#1f6b45';
+const ACCENT_PRESETS = ['#1f6b45','#0f766e','#1e3a8a','#4338ca','#6d28d9','#a21caf','#be123c','#b91c1c','#c2410c','#334155'];
+function loadAccent(){ return localStorage.getItem(LS_ACCENT) || DEFAULT_ACCENT; }
+function shadeColor(hex, percent){
+  const f = parseInt(hex.slice(1),16);
+  const t = percent<0 ? 0 : 255;
+  const p = percent<0 ? percent*-1 : percent;
+  const R = f>>16, G = f>>8 & 0x00FF, B = f & 0x0000FF;
+  return '#'+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+}
+function applyAccent(color){
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.style.setProperty('--accent-dark', shadeColor(color, -0.22));
+  document.documentElement.style.setProperty('--accent-light', shadeColor(color, 0.86));
+}
+function setAccentColor(color){
+  localStorage.setItem(LS_ACCENT, color);
+  applyAccent(color);
+  render();
+}
+function resetAccent(){
+  localStorage.removeItem(LS_ACCENT);
+  applyAccent(DEFAULT_ACCENT);
+  render();
+}
+
+function renderProfile(){
+  const p = state.profile;
+  const curAccent = loadAccent();
+  return `
+  <button class="btn btn-sm btn-ghost" style="margin-bottom:14px;padding-left:0" onclick="switchView('dashboard')">${ICON.arrowLeft} Назад</button>
+  <div class="card" style="max-width:520px">
+    <h3>Фото профілю</h3>
+    <div style="display:flex;align-items:center;gap:18px;margin-top:6px">
+      <div style="width:88px;height:88px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:30px;flex:none;overflow:hidden">
+        ${p.avatar? `<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover">` : initials(p.name)}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-sm" onclick="triggerAvatarUpload()">Завантажити фото</button>
+        ${p.avatar? `<button class="btn btn-sm btn-ghost btn-danger-text" onclick="removeAvatar()">Видалити фото</button>`:''}
+      </div>
+      <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarFile(event)">
+    </div>
+  </div>
+  <div class="card" style="max-width:520px;margin-top:16px">
+    <h3>Особисті дані</h3>
+    <label>Ім'я</label>
+    <input id="prof_name" type="text" value="${escapeHtml(p.name)}" placeholder="Ваше ім'я">
+    <label>Email</label>
+    <input id="prof_email" type="email" value="${escapeHtml(p.email)}" placeholder="you@example.com">
+    <label>Телефон</label>
+    <input id="prof_phone" type="text" value="${escapeHtml(p.phone||'')}" placeholder="+380...">
+    <label>Посада / компанія</label>
+    <input id="prof_position" type="text" value="${escapeHtml(p.position||'')}" placeholder="напр. Засновник">
+    <div style="margin-top:16px">
+      <button class="btn btn-primary" onclick="saveProfileForm()">Зберегти профіль</button>
+    </div>
+  </div>
+  <div class="card" style="max-width:520px;margin-top:16px">
+    <h3>Вигляд</h3>
+    <label>Акцентний колір</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 4px">
+      ${ACCENT_PRESETS.map(c=>`<button type="button" title="${c}" onclick="setAccentColor('${c}')" style="width:26px;height:26px;border-radius:50%;border:2px solid ${curAccent.toLowerCase()===c?'var(--text)':'transparent'};background:${c};cursor:pointer;padding:0"></button>`).join('')}
+      <input type="color" value="${curAccent}" onchange="setAccentColor(this.value)" title="Свій колір">
+    </div>
+    <button class="btn btn-sm btn-ghost" style="margin-top:10px" onclick="resetAccent()">Скинути на типовий</button>
+  </div>`;
+}
+
+/* ============================= НАВІГАЦІЯ ============================= */
+function switchView(v){ state.view = v; state.notifOpen=false; state.profileOpen=false; render(); }
+function setWsFilter(id){ state.wsFilter = id; render(); }
+function openWorkspacePage(wsId){ state.activeWs = wsId; state.view = 'workspace'; state.notifOpen=false; state.profileOpen=false; render(); }
+
+/* ============================= СПОВІЩЕННЯ ============================= */
+function computeNotifications(){
+  currentNotifs = state.data.tasks.filter(t=>!t.done).map(t=>({
+    text: `${wsName(t.workspace)}: «${t.title.length>44? t.title.slice(0,44)+'…' : t.title}»`,
+    taskId: t.id,
+  }));
+  return currentNotifs;
+}
+function clickNotif(idx){
+  const n = currentNotifs[idx]; if(!n) return;
+  state.notifOpen = false;
+  if(n.taskId){ openTaskModal(n.taskId); }
+  else if(n.view){ switchView(n.view); }
+}
+function toggleNotif(){ state.notifOpen = !state.notifOpen; state.profileOpen=false; state.searchOpen=false; render(); }
+function toggleProfile(){ state.profileOpen = !state.profileOpen; state.notifOpen=false; state.searchOpen=false; render(); }
+
+/* ============================= ПОШУК ============================= */
+function toggleSearch(){
+  state.searchOpen = !state.searchOpen; state.notifOpen=false; state.profileOpen=false; render();
+  if(state.searchOpen) setTimeout(()=>{ const inp=document.getElementById('searchInput'); if(inp) inp.focus(); }, 0);
+}
+function onSearchInput(){
+  const inp = document.getElementById('searchInput');
+  state.searchQuery = inp ? inp.value : '';
+  const box = document.getElementById('searchResults');
+  if(box) box.innerHTML = renderSearchResults(state.searchQuery);
+}
+function renderSearchResults(q){
+  q = (q||'').trim().toLowerCase();
+  if(!q) return `<div class="empty-hint">Введіть запит для пошуку</div>`;
+  const tasks = state.data.tasks.filter(t=>t.title.toLowerCase().includes(q)).slice(0,8);
+  const projects = state.data.projects.filter(p=>p.name.toLowerCase().includes(q)).slice(0,8);
+  if(!tasks.length && !projects.length) return `<div class="empty-hint">Нічого не знайдено</div>`;
+  let html = '';
+  if(tasks.length) html += `<div style="font-size:10.5px;font-weight:700;color:var(--text-dim);padding:4px 2px">Задачі</div>` + tasks.map(t=>`<button type="button" class="notif-row" onclick="closeSearchAndOpenTask('${t.id}')">${escapeHtml(t.title)}</button>`).join('');
+  if(projects.length) html += `<div style="font-size:10.5px;font-weight:700;color:var(--text-dim);padding:4px 2px">Проєкти</div>` + projects.map(p=>`<button type="button" class="notif-row" onclick="closeSearchAndOpenProject('${p.id}')">${escapeHtml(p.name)}</button>`).join('');
+  return html;
+}
+function closeSearchAndOpenTask(id){ state.searchOpen=false; render(); openTaskModal(id); }
+function closeSearchAndOpenProject(id){ state.searchOpen=false; render(); openProjectDetail(id); }
+
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.custom-select')) document.querySelectorAll('.custom-select-panel.open').forEach(p=>p.classList.remove('open'));
+  if(!e.target.closest('.inbox-menu-wrap')) document.querySelectorAll('.inbox-menu.open').forEach(p=>p.classList.remove('open'));
+  if(state.notifOpen && !e.target.closest('#notifWrap')){ state.notifOpen=false; render(); }
+  if(state.profileOpen && !e.target.closest('#profileWrap')){ state.profileOpen=false; render(); }
+  if(state.searchOpen && !e.target.closest('#searchWrap')){ state.searchOpen=false; render(); }
+});
+
+/* ============================= РЕНДЕР: КОРІНЬ ============================= */
+function render(){
+  const prevViewEl = document.querySelector('.view');
+  const scrollTop = (prevViewEl && lastRenderedView===state.view) ? prevViewEl.scrollTop : 0;
+  document.documentElement.setAttribute('data-theme', state.theme);
+  const app = document.getElementById('app');
+  if(!state.authed){ app.innerHTML = renderLogin(); updateAiWidgetVisibility(); return; }
+  app.innerHTML = `
+    ${renderSidebar()}
+    <div class="main">
+      ${renderTopbar()}
+      <div class="view">${renderViewBody()}</div>
+    </div>
+  `;
+  const newViewEl = document.querySelector('.view');
+  if(newViewEl) newViewEl.scrollTop = scrollTop;
+  lastRenderedView = state.view;
+  updateAiWidgetVisibility();
+}
+function updateAiWidgetVisibility(){
+  const w = document.getElementById('aiChatWidget');
+  if(w) w.style.display = !state.authed ? 'none' : '';
+}
+
+function renderLogin(){
+  return `
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="login-logo">${ICON.focus}</div>
+      <h1>Особистий Workspace</h1>
+      <p>Робота, проєкти, задачі та календар — в одному місці.</p>
+      <button class="google-btn" onclick="doLogin()">${ICON.google} Увійти через Google</button>
+      <div class="login-foot">Профіль створюється автоматично при першому вході.</div>
+    </div>
+  </div>`;
+}
+
+function renderSidebar(){
+  const navItems = [
+    ['dashboard','Головна','home'],
+    ['calendar','Календар','calendar'],
+    ['tasks','Задачі','tasks'],
+    ['projects','Проєкти','projects'],
+    ['inbox','Inbox','inbox'],
+  ];
+  return `
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">${ICON.sparkle}</div>
+      <div>
+        <div class="brand-name">Workspace</div>
+        <div class="brand-sub">Персональний CRM</div>
+      </div>
+    </div>
+    <div class="nav">
+      ${navItems.map(([id,label,icon])=>`
+        <button class="nav-item ${state.view===id?'active':''}" onclick="switchView('${id}')">
+          ${ICON[icon]}<span>${label}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="nav-sep"></div>
+    <div class="ws-legend">
+      <div style="padding:4px 4px 6px;font-weight:700;color:var(--text-dim)">Напрямки</div>
+      ${WORKSPACES.map(w=>`
+        <div class="ws-legend-row ${state.view==='workspace'&&state.activeWs===w.id?'active':''}" onclick="openWorkspacePage('${w.id}')">
+          <span class="dot" style="background:${w.color}"></span>${w.name}
+        </div>`).join('')}
+    </div>
+    <div class="sidebar-foot">
+      <div class="profile-row" id="profileWrap">
+        <div class="avatar">${state.profile.avatar? `<img src="${state.profile.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : initials(state.profile.name)}</div>
+        <div>
+          <div class="profile-name">${escapeHtml(state.profile.name)}</div>
+          <div class="profile-email">${escapeHtml(state.profile.email)}</div>
+        </div>
+        <button class="profile-menu-btn" onclick="toggleProfile()">⋯</button>
+        ${state.profileOpen ? `
+          <div class="dropdown">
+            <button onclick="switchView('profile');toggleProfile()">Профіль</button>
+            <button onclick="exportBackupManual()">Завантажити резервну копію</button>
+            <button onclick="triggerImportBackup()">Відновити з файлу</button>
+            <div style="padding:6px 12px;font-size:10.5px;color:var(--text-dim)">Локальні резервні копії зберігаються автоматично щогодини (без завантаження файлів)</div>
+            <button onclick="doLogout()" style="color:var(--pr-critical)">${ICON.logout} Вийти</button>
+          </div>`:''}
+      </div>
+      <input type="file" id="importFileInput" accept="application/json" style="display:none" onchange="handleImportFile(event)">
+    </div>
+  </div>`;
+}
+
+const VIEW_TITLES = {dashboard:'Головна', calendar:'Календар', tasks:'Задачі', projects:'Проєкти', inbox:'Inbox', profile:'Профіль'};
+function renderTopbar(){
+  const notifs = computeNotifications();
+  const title = state.view==='workspace' ? wsName(state.activeWs) : (VIEW_TITLES[state.view]||'');
+  return `
+  <div class="topbar">
+    <h2>${title}</h2>
+    <div class="spacer"></div>
+    <div style="position:relative" id="searchWrap">
+      <button class="icon-btn" onclick="toggleSearch()" title="Пошук">${ICON.search}</button>
+      ${state.searchOpen ? `
+      <div class="dropdown" style="top:44px;bottom:auto;left:auto;right:0;width:320px;padding:8px;">
+        <input id="searchInput" type="text" value="${escapeHtml(state.searchQuery||'')}" placeholder="Пошук задач і проєктів..." oninput="onSearchInput()" style="margin-bottom:6px">
+        <div id="searchResults">${renderSearchResults(state.searchQuery||'')}</div>
+      </div>`:''}
+    </div>
+    <button class="icon-btn" onclick="toggleTheme()" title="Тема">${state.theme==='light'?ICON.moon:ICON.sun}</button>
+    <div style="position:relative" id="notifWrap">
+      <button class="icon-btn" onclick="toggleNotif()" title="Сповіщення">
+        ${ICON.bell}${notifs.length? `<span class="notif-dot">${notifs.length}</span>`:''}
+      </button>
+      ${state.notifOpen ? `
+      <div class="dropdown" style="top:44px;bottom:auto;left:auto;right:0;width:300px;padding:0;">
+        ${notifs.length? notifs.map((n,i)=>`<button type="button" class="notif-row" onclick="clickNotif(${i})">${escapeHtml(n.text)}</button>`).join('') : `<div style="padding:14px 12px;font-size:12.5px;color:var(--text-dim)">Немає нових сповіщень</div>`}
+      </div>`:''}
+    </div>
+    <button class="btn btn-primary" onclick="openTaskModal(null)">${ICON.plus} Задача</button>
+    <button class="btn" onclick="openEventModal(null)">${ICON.plus} Подія</button>
+    <button class="btn" onclick="openProjectModal(null)">${ICON.plus} Проєкт</button>
+  </div>`;
+}
+
+function renderViewBody(){
+  if(state.view==='dashboard') return renderDashboard();
+  if(state.view==='calendar') return renderCalendar();
+  if(state.view==='tasks') return renderTasks();
+  if(state.view==='projects') return renderProjects();
+  if(state.view==='inbox') return renderInbox();
+  if(state.view==='workspace') return renderWorkspacePage();
+  if(state.view==='profile') return renderProfile();
+  return '';
+}
+
+/* ============================= CUSTOM SELECT ============================= */
+const DROPDOWN_REGISTRY = {};
+function renderCustomSelect(id, options, value, onChange){
+  DROPDOWN_REGISTRY[id] = {options, value, onChange};
+  return buildSelectHtml(id);
+}
+function buildSelectHtml(id){
+  const cfg = DROPDOWN_REGISTRY[id];
+  const selected = cfg.options.find(o=>o.value===cfg.value) || cfg.options[0] || {label:'—',value:''};
+  return `<div class="custom-select" id="wrap_${id}">
+    <input type="hidden" id="${id}" value="${escapeHtml(selected.value)}">
+    <button type="button" class="custom-select-btn" onclick="event.stopPropagation();toggleDropdown('${id}')">
+      <span class="cs-label">${selected.dot?`<span class="dot" style="background:${selected.dot}"></span>`:''}${escapeHtml(selected.label||'—')}</span>
+      <span class="cs-chev">${ICON.chevronDown}</span>
+    </button>
+    <div class="custom-select-panel" id="panel_${id}">
+      ${cfg.options.map(o=>`<div class="custom-select-opt ${o.value===cfg.value?'active':''}" onclick="event.stopPropagation();selectDropdownOption('${id}','${o.value}')">${o.dot?`<span class="dot" style="background:${o.dot}"></span>`:''}${escapeHtml(o.label)}</div>`).join('')}
+    </div>
+  </div>`;
+}
+function toggleDropdown(id){
+  const panel = document.getElementById('panel_'+id);
+  if(!panel) return;
+  const isOpen = panel.classList.contains('open');
+  document.querySelectorAll('.custom-select-panel.open').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.inbox-menu.open').forEach(p=>p.classList.remove('open'));
+  if(!isOpen) panel.classList.add('open');
+}
+function selectDropdownOption(id, value){
+  const cfg = DROPDOWN_REGISTRY[id];
+  cfg.value = value;
+  const wrap = document.getElementById('wrap_'+id);
+  if(wrap) wrap.outerHTML = buildSelectHtml(id);
+  if(cfg.onChange) cfg.onChange(value);
+}
+
+/* ============================= WORKSPACE FILTER CHIPS (single-select) ============================= */
+function renderWsFilters(){
+  return `<div class="filters-row">
+    <button type="button" class="chip ${state.wsFilter==='all'?'active':''}" onclick="setWsFilter('all')">Усі простори</button>
+    ${WORKSPACES.map(w=>`<button type="button" class="chip ${state.wsFilter===w.id?'active':''}" style="${state.wsFilter===w.id?`background:${w.color};border-color:${w.color}`:''}" onclick="setWsFilter('${w.id}')"><span class="dot" style="background:${state.wsFilter===w.id?'#fff':w.color}"></span>${w.name}</button>`).join('')}
+  </div>`;
+}
+
+function filteredTasks(){ return state.data.tasks.filter(t=>state.wsFilter==='all' || t.workspace===state.wsFilter); }
+function filteredEvents(){ return state.data.events.filter(e=>state.wsFilter==='all' || e.workspace===state.wsFilter); }
+
+/* ============================= DASHBOARD ============================= */
+function renderDashboard(){
+  const now = new Date();
+  const openTasks = filteredTasks().filter(t=>!t.done);
+  const todayEvents = filteredEvents().filter(e=> e.date===todayStr() || (e.recurring==='weekly' && new Date(e.date+'T00:00:00').getDay()===now.getDay() && e.date<=todayStr()) ).sort((a,b)=>a.start.localeCompare(b.start));
+
+  return `
+  ${renderWsFilters()}
+  <div class="grid-dash">
+    <div class="card">
+      <h3>${ICON.tasks} Активні задачі <span class="count">${openTasks.length}</span></h3>
+      ${openTasks.length? openTasks.slice(0,8).map(t=>rowTask(t)).join(''): `<div class="empty-hint">Усі задачі виконано</div>`}
+    </div>
+    <div class="card">
+      <h3>${ICON.calendar} Найближчі зустрічі <span class="count">${todayEvents.length}</span></h3>
+      ${todayEvents.length? todayEvents.map(e=>`
+        <div class="list-row" onclick="switchView('calendar')">
+          <span class="dot" style="background:${wsColor(e.workspace)}"></span>
+          <span class="title">${escapeHtml(e.title)}</span>
+          <span class="meta">${e.start}</span>
+        </div>`).join(''): `<div class="empty-hint">Сьогодні зустрічей немає</div>`}
+    </div>
+    <div class="card">
+      <h3>Швидкий запис</h3>
+      <div class="quick-capture" style="margin-bottom:6px">
+        <input id="quickInboxInput" type="text" placeholder="Записати ідею в Inbox..." onkeydown="if(event.key==='Enter')quickAddInbox()">
+        <button class="btn btn-sm" onclick="quickAddInbox()">Додати</button>
+      </div>
+      <div class="empty-hint">Ідеї потрапляють в Inbox — звідти їх можна перетворити на задачу, подію чи проєкт.</div>
+    </div>
+  </div>`;
+}
+
+function rowTask(t){
+  return `
+  <div class="list-row" onclick="openTaskModal('${t.id}')">
+    <input type="checkbox" onclick="event.stopPropagation();toggleTaskDone('${t.id}')">
+    <span class="dot" style="background:${wsColor(t.workspace)}"></span>
+    <span class="title">${escapeHtml(t.title)}</span>
+  </div>`;
+}
+
+function quickAddInbox(){
+  const inp = document.getElementById('quickInboxInput');
+  if(!inp || !inp.value.trim()) return;
+  state.data.inbox.unshift({id:uid(), text:inp.value.trim(), createdAt:Date.now()});
+  saveData(); toast('Додано в Inbox'); inp.value=''; render();
+}
+
+function toggleTaskDone(taskId){
+  const t = getTask(taskId); if(!t) return;
+  t.done = !t.done;
+  t.completedAt = t.done ? Date.now() : null;
+  saveData(); render();
+}
+
+/* ============================= AI (rule-based, chat-driven) ============================= */
+function aiRecommendText(){
+  const open = state.data.tasks.filter(t=>!t.done);
+  if(!open.length) return 'Усі задачі виконано — можна додати нові або відпочити.';
+  let out = `Рекомендую зайнятися: «${open[0].title}» (${wsName(open[0].workspace)}).`;
+  if(open[1]) out += `\nПотім можна перейти до «${open[1].title}».`;
+  out += `\n\nУсього відкритих задач: ${open.length}.`;
+  return out;
+}
+function aiOpenTasksText(){
+  const open = state.data.tasks.filter(t=>!t.done);
+  if(!open.length) return 'Відкритих задач немає.';
+  return 'Активні задачі:\n' + open.map(t=>`• ${t.title} (${wsName(t.workspace)})`).join('\n');
+}
+function aiSummaryText(){
+  const today = new Date().toDateString();
+  const doneToday = state.data.tasks.filter(t=>t.done && t.completedAt && new Date(t.completedAt).toDateString()===today);
+  return `Виконано сьогодні: ${doneToday.length} задач(і).`;
+}
+function parseQuickText(text){
+  let t = text.trim();
+  t = t.replace(/^(створи|додай|постав)\s+задачу:?/i,'').trim();
+  return {title: t || text.trim()};
+}
+function createTaskFromParsed(parsed, workspace){
+  const task = {
+    id:uid(), title:parsed.title, description:'', workspace:workspace||'personal',
+    checklist:[], attachments:[], done:false, completedAt:null, createdAt:Date.now(),
+  };
+  state.data.tasks.unshift(task);
+  saveData();
+  return task;
+}
+function aiSplitTaskSilent(taskId){
+  const t = getTask(taskId); if(!t) return null;
+  const subs = ['Дослідити деталі','Скласти план дій','Виконати основну роботу','Перевірити результат'];
+  subs.forEach(s=>{ if(!t.checklist.some(c=>c.text===s)) t.checklist.push({text:s, done:false}); });
+  saveData();
+  return t;
+}
+function aiSplitTask(taskId){
+  aiSplitTaskSilent(taskId);
+  toast('AI додав чеклист-підзадачі');
+  openTaskModal(taskId);
+}
+function generateAiReply(raw){
+  const text = raw.toLowerCase();
+  if(/рекоменд|що (мені )?зробити|з чого почати|найважлив/.test(text)) return aiRecommendText();
+  if(/активн\w* задач|що (ще )?відкрит|список задач/.test(text)) return aiOpenTasksText();
+  if(/підсумок|звіт за день|що (я )?зробив/.test(text)) return aiSummaryText();
+  if(/розбий|підзадач/.test(text)){
+    const match = state.data.tasks.find(tk=>text.includes(tk.title.toLowerCase().slice(0,8)));
+    if(match){ aiSplitTaskSilent(match.id); return `Додав чеклист-підзадачі до «${match.title}»: Дослідити деталі, Скласти план дій, Виконати основну роботу, Перевірити результат.`; }
+    return 'Вкажіть, будь ласка, назву задачі, яку потрібно розбити на підзадачі.';
+  }
+  if(/привіт|добрий день|вітаю/.test(text) && text.length<25) return 'Привіт! Я можу порекомендувати з чого почати, показати активні задачі, підсумувати виконане, або створити задачу з тексту. Напишіть, наприклад: «Створи задачу: подзвонити клієнту».';
+  if(/створи задачу|додай задачу|постав задачу|нагадай/.test(text)){
+    const parsed = parseQuickText(raw);
+    const task = createTaskFromParsed(parsed, 'personal');
+    return `Створив задачу «${task.title}» в просторі «Особисте». Подивитись можна на сторінці «Задачі».`;
+  }
+  return 'Я орієнтуюсь на прості команди: «рекомендація», «активні задачі», «підсумок дня» — або напишіть «створи задачу: ...», і я її додам.';
+}
+
+/* ============================= AI CHAT WIDGET ============================= */
+let aiChatState = {
+  messages: (JSON.parse(localStorage.getItem(LS_CHAT)||'null')) || [{role:'ai', text:'Привіт! Я AI-помічник. Запитайте «що зробити зараз», «активні задачі», «підсумок дня» — або опишіть задачу текстом, і я її створю.', ts:Date.now()}],
+  unread: 0,
+};
+function initAiChatWidget(){
+  const el = document.createElement('div');
+  el.id = 'aiChatWidget';
+  el.innerHTML = `
+    <div class="ai-chat-panel" id="aiChatPanel">
+      <div class="ai-chat-head"><span style="display:flex;align-items:center;gap:6px">${ICON.sparkle} AI-помічник</span><button class="icon-btn" style="width:28px;height:28px" onclick="toggleAiChat()">${ICON.x}</button></div>
+      <div class="ai-chat-messages" id="aiChatMessages"></div>
+      <div class="ai-chat-quick">
+        <button class="chip" onclick="sendAiPreset('Порекомендуй, з чого почати')">Рекомендація</button>
+        <button class="chip" onclick="sendAiPreset('Активні задачі')">Активні задачі</button>
+        <button class="chip" onclick="sendAiPreset('Підсумок дня')">Підсумок</button>
+      </div>
+      <div class="ai-chat-input-row">
+        <input id="aiChatInput" type="text" placeholder="Напишіть повідомлення..." onkeydown="if(event.key==='Enter')sendAiChat()">
+        <button class="icon-btn" onclick="sendAiChat()" title="Надіслати">${ICON.send}</button>
+      </div>
+    </div>
+    <button class="ai-fab" id="aiFab" onclick="toggleAiChat()" title="AI-помічник">${ICON.sparkle}<span class="ai-fab-badge" id="aiFabBadge">0</span></button>`;
+  document.body.appendChild(el);
+  renderAiChatMessages();
+  updateAiWidgetVisibility();
+}
+function toggleAiChat(){
+  const panel = document.getElementById('aiChatPanel');
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if(opening){ aiChatState.unread = 0; updateAiFabBadge(); const inp=document.getElementById('aiChatInput'); if(inp) inp.focus(); }
+}
+function updateAiFabBadge(){
+  const b = document.getElementById('aiFabBadge');
+  if(!b) return;
+  if(aiChatState.unread>0){ b.style.display='flex'; b.textContent=aiChatState.unread; } else b.style.display='none';
+}
+function renderAiChatMessages(){
+  const box = document.getElementById('aiChatMessages');
+  if(!box) return;
+  box.innerHTML = aiChatState.messages.map(m=>`<div class="ai-msg ${m.role}">${escapeHtml(m.text)}</div>`).join('');
+  box.scrollTop = box.scrollHeight;
+}
+function pushChatMessage(role, text){
+  aiChatState.messages.push({role, text, ts:Date.now()});
+  localStorage.setItem(LS_CHAT, JSON.stringify(aiChatState.messages));
+  renderAiChatMessages();
+  const panel = document.getElementById('aiChatPanel');
+  const panelOpen = panel && panel.classList.contains('open');
+  if(role==='ai' && !panelOpen){ aiChatState.unread++; updateAiFabBadge(); }
+}
+function sendAiChat(){
+  const inp = document.getElementById('aiChatInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  pushChatMessage('user', text);
+  inp.value = '';
+  const reply = generateAiReply(text);
+  setTimeout(()=>pushChatMessage('ai', reply), 250);
+}
+function sendAiPreset(text){
+  const inp = document.getElementById('aiChatInput');
+  inp.value = text;
+  sendAiChat();
+}
+
+/* ============================= WORKSPACE PAGE ============================= */
+function renderWorkspacePage(){
+  const wsId = state.activeWs;
+  const ws = WORKSPACES.find(w=>w.id===wsId);
+  if(!ws){ state.view='dashboard'; return renderDashboard(); }
+  const tasks = state.data.tasks.filter(t=>t.workspace===wsId);
+  const openTasks = tasks.filter(t=>!t.done);
+  const projects = state.data.projects.filter(p=>p.workspace===wsId);
+  const events = state.data.events.filter(e=>e.workspace===wsId).sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start)).slice(0,6);
+  return `
+  <div class="day-hero" style="border-left:6px solid ${ws.color}">
+    <div>
+      <button class="btn btn-sm btn-ghost" style="margin-bottom:8px;padding-left:0" onclick="switchView('dashboard')">${ICON.arrowLeft} Усі простори</button>
+      <div class="date" style="text-transform:none">${ws.name}</div>
+    </div>
+    <div class="quick-actions">
+      <button class="btn btn-primary" onclick="openTaskModal(null,{workspace:'${wsId}'})">${ICON.plus} Задача</button>
+      <button class="btn" onclick="openEventModal(null,{workspace:'${wsId}'})">${ICON.plus} Подія</button>
+      <button class="btn" onclick="openProjectModal(null,{workspace:'${wsId}'})">${ICON.plus} Проєкт</button>
+    </div>
+  </div>
+  <div class="grid-dash">
+    <div class="card">
+      <h3>${ICON.tasks} Активні задачі <span class="count">${openTasks.length}</span></h3>
+      ${openTasks.length? openTasks.map(t=>rowTask(t)).join(''): `<div class="empty-hint">Усі задачі виконано</div>`}
+    </div>
+    <div class="card">
+      <h3>${ICON.projects} Проєкти <span class="count">${projects.length}</span></h3>
+      ${projects.length? projects.map(p=>colProjRow(p)).join(''): `<div class="empty-hint">Проєктів немає</div>`}
+    </div>
+    <div class="card">
+      <h3>${ICON.calendar} Найближчі події <span class="count">${events.length}</span></h3>
+      ${events.length? events.map(e=>`
+        <div class="list-row" onclick="switchView('calendar')">
+          <span class="meta" style="width:70px">${fmtDateHuman(e.date)}</span>
+          <span class="title">${escapeHtml(e.title)}</span>
+          <span class="meta">${e.start}</span>
+        </div>`).join(''): `<div class="empty-hint">Подій не заплановано</div>`}
+    </div>
+  </div>`;
+}
+
+/* ============================= TASKS (three direction columns) ============================= */
+function renderTasks(){
+  return `
+  ${renderWsFilters()}
+  <div class="dir-columns">
+    ${DIR_ORDER.filter(w=> state.wsFilter==='all' || state.wsFilter===w).map(w=>renderTaskColumn(w)).join('')}
+  </div>`;
+}
+function renderTaskColumn(wsId){
+  const ws = WORKSPACES.find(w=>w.id===wsId);
+  const all = state.data.tasks.filter(t=>t.workspace===wsId).slice().sort((a,b)=>(a.done===b.done)?0:(a.done?1:-1));
+  return `
+  <div class="card">
+    <div class="section-head">
+      <span class="dot" style="background:${ws.color};width:11px;height:11px"></span>
+      <h3>${ws.name}</h3><span class="count">${all.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openTaskModal(null,{workspace:'${wsId}'})">${ICON.plus}</button>
+    </div>
+    ${all.length? all.map(t=>colTaskRow(t)).join(''): `<div class="empty-hint">Задач немає</div>`}
+  </div>`;
+}
+function colTaskRow(t){
+  const cl = t.checklist.length;
+  const clDone = t.checklist.filter(c=>c.done).length;
+  return `
+  <div class="col-task-row" onclick="openTaskModal('${t.id}')">
+    <input type="checkbox" ${t.done?'checked':''} onclick="event.stopPropagation();toggleTaskDone('${t.id}')">
+    <span class="col-task-title ${t.done?'done-text':''}">${escapeHtml(t.title)}</span>
+    <span class="col-task-meta">
+      ${cl? `${ICON.tasks} ${clDone}/${cl}`:''}
+      ${t.attachments.length? ` ${ICON.paperclip} ${t.attachments.length}`:''}
+    </span>
+  </div>`;
+}
+
+/* ---- Task modal (simplified: title, description, workspace, checklist, attachments) ---- */
+function openTaskModal(id, opts){
+  opts = opts || {};
+  const t = id? getTask(id) : null;
+  const isNew = !t;
+  const wsVal = t? t.workspace : (opts.workspace || 'personal');
+  const html = `
+  <div class="modal-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="modal" style="width:560px">
+      <div class="modal-head"><h3>${isNew?'Нова задача':'Задача'}</h3><span style="flex:1"></span>
+        <button class="icon-btn" onclick="closeModal()">${ICON.x}</button>
+      </div>
+      <div class="modal-body">
+        <label>Назва</label>
+        <input id="f_title" type="text" value="${t?escapeHtml(t.title):escapeHtml(opts.title||'')}" placeholder="Назва задачі">
+        <label>Опис</label>
+        <textarea id="f_desc" rows="2" placeholder="Опис задачі">${t?escapeHtml(t.description||''):''}</textarea>
+        <label>Робочий простір</label>
+        ${renderCustomSelect('f_ws', WORKSPACES.map(w=>({value:w.id,label:w.name,dot:w.color})), wsVal, null)}
+
+        <label style="display:flex;align-items:center;gap:8px">Чеклист
+          ${!isNew?`<button class="btn btn-sm" style="margin-left:auto" onclick="aiSplitTask('${t.id}')">${ICON.sparkle} AI: розбити на підзадачі</button>`:''}
+        </label>
+        <div id="checklistBox">
+          ${t? t.checklist.map((c,i)=>`
+            <div class="checklist-item ${c.done?'done':''}">
+              <input type="checkbox" ${c.done?'checked':''} onchange="toggleChecklist('${t.id}',${i})">
+              <span class="txt">${escapeHtml(c.text)}</span>
+              <button class="mini-x" onclick="removeChecklist('${t.id}',${i})">${ICON.x}</button>
+            </div>`).join('') : `<div class="empty-hint">Збережіть задачу, щоб додати пункти чеклиста.</div>`}
+        </div>
+        ${!isNew? `<div style="display:flex;gap:8px;margin-top:6px">
+          <input id="newChecklistItem" type="text" placeholder="Новий пункт...">
+          <button class="btn btn-sm" onclick="addChecklist('${t.id}')">Додати</button>
+        </div>`:''}
+
+        ${!isNew? `
+        <label>Вкладення</label>
+        <div>${t.attachments.map((a,i)=>`<span class="link-chip">${ICON.paperclip}${escapeHtml(a)}<button class="mini-x" onclick="removeAttachment('${t.id}',${i})">${ICON.x}</button></span>`).join('') || ''}</div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input id="newAttachment" type="text" placeholder="Назва файлу або посилання Google Drive">
+          <button class="btn btn-sm" onclick="addAttachment('${t.id}')">Додати</button>
+        </div>
+        `:''}
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteTask('${t.id}')">Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveTaskForm(${isNew?'null':`'${t.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveTaskForm(id){
+  const title = document.getElementById('f_title').value.trim();
+  if(!title){ toast('Вкажіть назву задачі'); return; }
+  const vals = {
+    title,
+    description: document.getElementById('f_desc').value,
+    workspace: document.getElementById('f_ws').value,
+  };
+  if(id){
+    const t = getTask(id);
+    Object.assign(t, vals);
+    toast('Задачу збережено');
+  } else {
+    state.data.tasks.unshift(Object.assign({
+      id:uid(), checklist:[], attachments:[], done:false, completedAt:null, createdAt:Date.now(),
+    }, vals));
+    toast('Задачу створено');
+    if(pendingInboxSourceId){
+      state.data.inbox = state.data.inbox.filter(i=>i.id!==pendingInboxSourceId);
+      pendingInboxSourceId = null;
+    }
+  }
+  saveData(); closeModal(); render();
+}
+function deleteTask(id){
+  confirmAction('Видалити цю задачу? Дію не можна скасувати.', ()=>{
+    state.data.tasks = state.data.tasks.filter(t=>t.id!==id);
+    saveData(); closeModal(); toast('Задачу видалено'); render();
+  });
+}
+function toggleChecklist(taskId, idx){
+  const t = getTask(taskId); t.checklist[idx].done = !t.checklist[idx].done; saveData(); openTaskModal(taskId);
+}
+function removeChecklist(taskId, idx){
+  const t = getTask(taskId); t.checklist.splice(idx,1); saveData(); openTaskModal(taskId);
+}
+function addChecklist(taskId){
+  const inp = document.getElementById('newChecklistItem');
+  if(!inp.value.trim()) return;
+  getTask(taskId).checklist.push({text:inp.value.trim(), done:false});
+  saveData(); openTaskModal(taskId);
+}
+function addAttachment(taskId){
+  const inp = document.getElementById('newAttachment');
+  if(!inp.value.trim()) return;
+  getTask(taskId).attachments.push(inp.value.trim());
+  saveData(); openTaskModal(taskId);
+}
+function removeAttachment(taskId, idx){ getTask(taskId).attachments.splice(idx,1); saveData(); openTaskModal(taskId); }
+
+/* ============================= PROJECTS (three direction columns) ============================= */
+function renderProjects(){
+  return `
+  ${renderWsFilters()}
+  <div class="dir-columns">
+    ${DIR_ORDER.filter(w=> state.wsFilter==='all' || state.wsFilter===w).map(w=>renderProjectColumn(w)).join('')}
+  </div>`;
+}
+function renderProjectColumn(wsId){
+  const ws = WORKSPACES.find(w=>w.id===wsId);
+  const projects = state.data.projects.filter(p=>p.workspace===wsId);
+  return `
+  <div class="card">
+    <div class="section-head">
+      <span class="dot" style="background:${ws.color};width:11px;height:11px"></span>
+      <h3>${ws.name}</h3><span class="count">${projects.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openProjectModal(null,{workspace:'${wsId}'})">${ICON.plus}</button>
+    </div>
+    ${projects.length? projects.map(p=>colProjRow(p)).join(''): `<div class="empty-hint">Проєктів немає</div>`}
+  </div>`;
+}
+function colProjRow(p){
+  return `
+  <div class="col-proj-row" onclick="openProjectDetail('${p.id}')">
+    <div class="col-proj-top">
+      <span class="col-task-title">${escapeHtml(p.name)}</span>
+      <span class="status-pill">${STATUS_LABEL[p.status]||p.status}</span>
+    </div>
+    <span class="col-task-meta">Дедлайн: ${fmtDateHuman(p.deadline)}</span>
+  </div>`;
+}
+function openProjectModal(id, opts){
+  opts = opts || {};
+  const p = id? getProject(id): null;
+  const isNew = !p;
+  const wsOptions = WORKSPACES.map(w=>({value:w.id,label:w.name,dot:w.color}));
+  const wsVal = p? p.workspace : (opts.workspace || 'kykil');
+  const html = `
+  <div class="modal-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-head"><h3>${isNew?'Новий проєкт':'Редагувати проєкт'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <label>Назва</label><input id="p_name" type="text" value="${p?escapeHtml(p.name):escapeHtml(opts.title||'')}">
+        <label>Опис</label><textarea id="p_desc" rows="2">${p?escapeHtml(p.description||''):''}</textarea>
+        <div class="row2">
+          <div><label>Напрямок</label>${renderCustomSelect('p_ws', wsOptions, wsVal, null)}</div>
+          <div><label>Назва компанії</label><input id="p_company" type="text" value="${p?escapeHtml(p.company||''):''}" placeholder="напр. Kykil LLC"></div>
+        </div>
+        <div class="row2">
+          <div><label>Дедлайн</label><input id="p_deadline" type="date" value="${p?p.deadline||'':''}"></div>
+          <div><label>Статус</label>${renderCustomSelect('p_status', STATUSES.map(s=>({value:s,label:STATUS_LABEL[s]})), p?p.status:'todo', null)}</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteProject('${p.id}')">Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveProjectForm(${isNew?'null':`'${p.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveProjectForm(id){
+  const name = document.getElementById('p_name').value.trim();
+  if(!name){ toast('Вкажіть назву проєкту'); return; }
+  const vals = {
+    name, description:document.getElementById('p_desc').value,
+    workspace:document.getElementById('p_ws').value,
+    company:document.getElementById('p_company').value,
+    deadline:document.getElementById('p_deadline').value,
+    status:document.getElementById('p_status').value,
+  };
+  if(id){
+    const p = getProject(id); Object.assign(p, vals);
+    p.activity.push({ts:Date.now(), text:'Проєкт оновлено'});
+    toast('Проєкт збережено');
+  } else {
+    state.data.projects.unshift(Object.assign({id:uid(), fileIds:[], activity:[{ts:Date.now(), text:'Проєкт створено'}]}, vals));
+    toast('Проєкт створено');
+    if(pendingInboxSourceId){
+      state.data.inbox = state.data.inbox.filter(i=>i.id!==pendingInboxSourceId);
+      pendingInboxSourceId = null;
+    }
+  }
+  saveData(); closeModal(); render();
+}
+function deleteProject(id){
+  confirmAction('Видалити цей проєкт? Дію не можна скасувати.', ()=>{
+    state.data.projects = state.data.projects.filter(p=>p.id!==id);
+    saveData(); closeModal(); toast('Проєкт видалено'); render();
+  });
+}
+function openProjectDetail(id){
+  const p = getProject(id); if(!p) return;
+  const html = `
+  <div class="modal-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="modal" style="width:600px">
+      <div class="modal-head"><h3>${escapeHtml(p.name)}</h3><span style="flex:1"></span>
+        <button class="icon-btn" onclick="closeModal();openProjectModal('${p.id}')" title="Редагувати">✎</button>
+        <button class="icon-btn" onclick="closeModal()">${ICON.x}</button>
+      </div>
+      <div class="modal-body">
+        <div style="color:var(--text-dim);font-size:13px;margin-bottom:10px">${escapeHtml(p.description||'')}</div>
+        <div class="row2" style="margin-bottom:10px">
+          <div><b>Компанія:</b> ${escapeHtml(p.company||'—')}</div>
+          <div><b>Дедлайн:</b> ${fmtDateHuman(p.deadline)}</div>
+        </div>
+
+        <label>Файли</label>
+        <div>${(p.fileIds||[]).map((f,i)=>`<span class="link-chip">${ICON.paperclip}${escapeHtml(f)}<button class="mini-x" onclick="removeProjectFile('${p.id}',${i})">${ICON.x}</button></span>`).join('') || '<span class="empty-hint">Файлів немає</span>'}</div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input id="newProjFile" type="text" placeholder="Назва файлу або посилання Google Drive">
+          <button class="btn btn-sm" onclick="addProjectFile('${p.id}')">Додати</button>
+        </div>
+
+        <label>Історія активності</label>
+        ${p.activity.slice().reverse().map(a=>`<div class="empty-hint" style="border-bottom:1px dashed var(--border);padding:6px 0">${new Date(a.ts).toLocaleString('uk-UA')} — ${escapeHtml(a.text)}</div>`).join('')}
+      </div>
+      <div class="modal-foot"><button class="btn" onclick="closeModal()">Закрити</button></div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function addProjectFile(projId){
+  const inp = document.getElementById('newProjFile');
+  if(!inp.value.trim()) return;
+  const p = getProject(projId);
+  p.fileIds = p.fileIds||[]; p.fileIds.push(inp.value.trim());
+  p.activity.push({ts:Date.now(), text:`Додано файл «${inp.value.trim()}»`});
+  saveData(); openProjectDetail(projId);
+}
+function removeProjectFile(projId, idx){
+  const p = getProject(projId); p.fileIds.splice(idx,1); saveData(); openProjectDetail(projId);
+}
+
+/* ============================= INBOX ============================= */
+function renderInbox(){
+  const items = state.data.inbox;
+  return `
+  <div class="card" style="margin-bottom:14px">
+    <div class="empty-hint" style="padding:0 0 12px">Записуйте сюди будь-які ідеї, щоб не тримати їх у голові. Кожен запис можна перетворити на задачу, проєкт або подію — або просто видалити, якщо він більше не потрібен.</div>
+    <div class="quick-capture" style="margin-bottom:0">
+      <input id="inboxInput" type="text" placeholder="Записати нову ідею..." onkeydown="if(event.key==='Enter')addInboxItem()">
+      <button class="btn btn-primary" onclick="addInboxItem()">${ICON.plus} Додати</button>
+    </div>
+  </div>
+  <div class="card">
+    ${items.length? items.map(it=>`
+      <div class="inbox-row">
+        <div>
+          <div class="inbox-text">${escapeHtml(it.text)}</div>
+          <div class="inbox-time">${timeAgo(it.createdAt)}</div>
+        </div>
+        <span style="flex:1"></span>
+        <div class="inbox-menu-wrap">
+          <button class="btn btn-sm" onclick="event.stopPropagation();toggleInboxMenu('${it.id}')">Перетворити ${ICON.chevronDown}</button>
+          <div class="inbox-menu" id="inboxmenu_${it.id}">
+            <button onclick="convertInboxTo('${it.id}','task')">→ Задача</button>
+            <button onclick="convertInboxTo('${it.id}','project')">→ Проєкт</button>
+            <button onclick="convertInboxTo('${it.id}','event')">→ Подія</button>
+          </div>
+        </div>
+        <button class="mini-x" title="Видалити" onclick="removeInbox('${it.id}')">${ICON.x}</button>
+      </div>`).join('') : `<div class="empty-state">Inbox порожній. Записуйте сюди будь-які ідеї, щоб не тримати їх у голові.</div>`}
+  </div>`;
+}
+function addInboxItem(){
+  const inp = document.getElementById('inboxInput');
+  if(!inp.value.trim()) return;
+  state.data.inbox.unshift({id:uid(), text:inp.value.trim(), createdAt:Date.now()});
+  saveData(); render();
+}
+function removeInbox(id){
+  confirmAction('Видалити цю ідею з Inbox?', ()=>{
+    state.data.inbox = state.data.inbox.filter(i=>i.id!==id); saveData(); toast('Ідею видалено'); render();
+  });
+}
+function toggleInboxMenu(id){
+  const menu = document.getElementById('inboxmenu_'+id);
+  if(!menu) return;
+  const isOpen = menu.classList.contains('open');
+  document.querySelectorAll('.inbox-menu.open').forEach(m=>m.classList.remove('open'));
+  document.querySelectorAll('.custom-select-panel.open').forEach(p=>p.classList.remove('open'));
+  if(!isOpen) menu.classList.add('open');
+}
+function convertInboxTo(id, type){
+  const item = state.data.inbox.find(i=>i.id===id); if(!item) return;
+  pendingInboxSourceId = id;
+  if(type==='task') openTaskModal(null, {title:item.text});
+  else if(type==='project') openProjectModal(null, {title:item.text});
+  else openEventModal(null, {title:item.text});
+}
+
+/* ============================= CALENDAR ============================= */
+function calNav(dir){
+  const d = new Date(state.calendarDate);
+  if(state.calendarMode==='day') d.setDate(d.getDate()+dir);
+  else if(state.calendarMode==='week') d.setDate(d.getDate()+dir*7);
+  else d.setMonth(d.getMonth()+dir);
+  state.calendarDate = d; render();
+}
+function calToday(){ state.calendarDate = new Date(); render(); }
+function setCalMode(m){ state.calendarMode = m; render(); }
+
+function eventsForDate(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  return filteredEvents().filter(e=> e.date===dateStr || (e.recurring==='weekly' && e.date<=dateStr && new Date(e.date+'T00:00:00').getDay()===d.getDay()));
+}
+
+function renderCalendar(){
+  const d = state.calendarDate;
+  let title = '';
+  if(state.calendarMode==='month') title = `${MONTHS_NOM[d.getMonth()]} ${d.getFullYear()}`;
+  else if(state.calendarMode==='week'){
+    const start = addDays(d, -((d.getDay()+6)%7));
+    const end = addDays(start,6);
+    title = `${start.getDate()} ${MONTHS[start.getMonth()]} — ${end.getDate()} ${MONTHS[end.getMonth()]}`;
+  } else title = fmtFullDate(d);
+
+  return `
+  <div class="cal-head">
+    <div class="cal-nav">
+      <button class="icon-btn" onclick="calNav(-1)">${ICON.chevronL}</button>
+      <button class="icon-btn" onclick="calNav(1)">${ICON.chevronR}</button>
+    </div>
+    <button class="btn btn-sm" onclick="calToday()">Сьогодні</button>
+    <div class="cal-title">${title}</div>
+    <span style="flex:1"></span>
+    <div class="modes">
+      <button class="${state.calendarMode==='day'?'active':''}" onclick="setCalMode('day')">День</button>
+      <button class="${state.calendarMode==='week'?'active':''}" onclick="setCalMode('week')">Тиждень</button>
+      <button class="${state.calendarMode==='month'?'active':''}" onclick="setCalMode('month')">Місяць</button>
+    </div>
+  </div>
+  ${renderWsFilters()}
+  ${state.calendarMode==='month'? renderMonthView(d): state.calendarMode==='week'? renderWeekView(d): renderDayView(d)}
+  `;
+}
+
+function renderMonthView(d){
+  const first = new Date(d.getFullYear(), d.getMonth(), 1);
+  const startOffset = (first.getDay()+6)%7;
+  const gridStart = addDays(first, -startOffset);
+  const cells = [];
+  for(let i=0;i<42;i++) cells.push(addDays(gridStart,i));
+  return `
+  <div class="month-grid">
+    ${DOW.slice(1).concat(DOW[0]).map(x=>`<div class="month-dow">${x}</div>`).join('')}
+    ${cells.map(c=>{
+      const ds = dstr(c);
+      const evts = eventsForDate(ds);
+      const isOther = c.getMonth()!==d.getMonth();
+      const isToday = ds===todayStr();
+      return `<div class="month-cell ${isOther?'other':''} ${isToday?'today':''}" onclick="state.calendarDate=new Date('${ds}T00:00:00');setCalMode('day')">
+        <div class="dnum">${c.getDate()}</div>
+        ${evts.slice(0,4).map(e=>`<div class="month-evt" style="background:${wsColor(e.workspace)}" onclick="event.stopPropagation();openEventModal('${e.id}')">${escapeHtml(e.title)}</div>`).join('')}
+        ${evts.length>4? `<div style="font-size:10px;color:var(--text-dim)">ще ${evts.length-4}...</div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+const CAL_HOURS = Array.from({length:18},(_, i)=>i+6); // 6:00 - 23:00
+function renderWeekView(d){
+  const start = addDays(d, -((d.getDay()+6)%7));
+  const days = Array.from({length:7},(_, i)=>addDays(start,i));
+  return `
+  <div class="week-grid">
+    <div class="week-dow-head"></div>
+    ${days.map(day=>`<div class="week-dow-head ${dstr(day)===todayStr()?'today':''}">${DOW[day.getDay()]} ${day.getDate()}</div>`).join('')}
+    ${CAL_HOURS.map(h=>`
+      <div class="hour-label">${pad(h)}:00</div>
+      ${days.map(day=>{
+        const ds = dstr(day);
+        const evts = eventsForDate(ds).filter(e=>parseInt(e.start)===h);
+        return `<div class="week-cell" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})">
+          ${evts.map(e=>`<div class="week-evt" style="background:${wsColor(e.workspace)}" draggable="true" ondragstart="onDragStartEvent(event,'${e.id}')" onclick="event.stopPropagation();openEventModal('${e.id}')">${e.start} ${escapeHtml(e.title)}</div>`).join('')}
+        </div>`;
+      }).join('')}
+    `).join('')}
+  </div>`;
+}
+function renderDayView(d){
+  const ds = dstr(d);
+  const evts = eventsForDate(ds);
+  return `
+  <div class="week-grid" style="grid-template-columns:56px 1fr">
+    <div class="week-dow-head"></div>
+    <div class="week-dow-head today">${DOW_FULL[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}</div>
+    ${CAL_HOURS.map(h=>`
+      <div class="hour-label">${pad(h)}:00</div>
+      <div class="week-cell day-list" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})">
+        ${evts.filter(e=>parseInt(e.start)===h).map(e=>`<div class="week-evt" style="background:${wsColor(e.workspace)}" draggable="true" ondragstart="onDragStartEvent(event,'${e.id}')" onclick="event.stopPropagation();openEventModal('${e.id}')">${e.start}–${e.end} ${escapeHtml(e.title)}</div>`).join('')}
+      </div>
+    `).join('')}
+  </div>`;
+}
+let dragEventId = null;
+function onDragStartEvent(ev,id){ dragEventId = id; }
+function onDropCalendar(ev, dateStr, hour){
+  ev.preventDefault();
+  if(!dragEventId) return;
+  const e = state.data.events.find(x=>x.id===dragEventId);
+  if(e){
+    const durationH = (parseInt(e.end)||hour+1) - (parseInt(e.start)||hour);
+    e.date = dateStr;
+    e.start = `${pad(hour)}:00`;
+    e.end = `${pad(Math.min(23,hour+Math.max(1,durationH)))}:00`;
+    saveData(); toast('Подію перенесено');
+  }
+  dragEventId = null; render();
+}
+
+function openEventModal(id, opts){
+  opts = opts || {};
+  const e = id? state.data.events.find(x=>x.id===id) : null;
+  const isNew = !e;
+  const dateVal = e? e.date : (opts.date || dstr(state.calendarDate));
+  const startVal = e? e.start : (opts.start || '10:00');
+  const endVal = e? e.end : (opts.end || addHourStr(startVal));
+  const wsVal = e? e.workspace : (opts.workspace || 'personal');
+  const html = `
+  <div class="modal-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-head"><h3>${isNew?'Нова подія':'Подія'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <label>Назва</label><input id="e_title" type="text" value="${e?escapeHtml(e.title):escapeHtml(opts.title||'')}">
+        <label>Опис</label><textarea id="e_desc" rows="2">${e?escapeHtml(e.description||''):''}</textarea>
+        <div><label>Робочий простір</label>${renderCustomSelect('e_ws', WORKSPACES.map(w=>({value:w.id,label:w.name,dot:w.color})), wsVal, null)}</div>
+        <div class="row2">
+          <div><label>Дата</label><input id="e_date" type="date" value="${dateVal}"></div>
+          <div><label>Повторення</label>${renderCustomSelect('e_recurring', [{value:'none',label:'Не повторюється'},{value:'weekly',label:'Щотижня'}], e?e.recurring:'none', null)}</div>
+        </div>
+        <div class="row2">
+          <div><label>Початок</label><input id="e_start" type="time" value="${startVal}"></div>
+          <div><label>Кінець</label><input id="e_end" type="time" value="${endVal}"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteEvent('${e.id}')">Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveEventForm(${isNew?'null':`'${e.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveEventForm(id){
+  const title = document.getElementById('e_title').value.trim();
+  if(!title){ toast('Вкажіть назву події'); return; }
+  const vals = {
+    title, description: document.getElementById('e_desc').value,
+    workspace: document.getElementById('e_ws').value,
+    date: document.getElementById('e_date').value,
+    recurring: document.getElementById('e_recurring').value,
+    start: document.getElementById('e_start').value,
+    end: document.getElementById('e_end').value,
+  };
+  if(id){ Object.assign(state.data.events.find(x=>x.id===id), vals); toast('Подію оновлено'); }
+  else{
+    state.data.events.unshift(Object.assign({id:uid()}, vals));
+    toast('Подію створено (синхронізовано б з Google Calendar)');
+    if(pendingInboxSourceId){
+      state.data.inbox = state.data.inbox.filter(i=>i.id!==pendingInboxSourceId);
+      pendingInboxSourceId = null;
+    }
+  }
+  saveData(); closeModal(); render();
+}
+function deleteEvent(id){
+  confirmAction('Видалити цю подію?', ()=>{
+    state.data.events = state.data.events.filter(e=>e.id!==id);
+    saveData(); closeModal(); toast('Подію видалено'); render();
+  });
+}
+
+/* ============================= MODAL HELPERS ============================= */
+function openModal(html){
+  const existing = document.getElementById('modalRoot');
+  if(existing) existing.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'modalRoot';
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+  document.addEventListener('keydown', escCloseHandler);
+}
+function confirmAction(message, onConfirm){
+  const old = document.getElementById('confirmRoot');
+  if(old) old.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'confirmRoot';
+  wrap.innerHTML = `
+  <div class="modal-overlay" style="z-index:200" onmousedown="if(event.target===this)closeConfirm()">
+    <div class="modal" style="width:380px">
+      <div class="modal-body" style="padding-top:22px">
+        <div style="font-size:14px;line-height:1.5">${escapeHtml(message)}</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeConfirm()">Скасувати</button>
+        <span style="flex:1"></span>
+        <button class="btn btn-primary" style="background:var(--pr-critical);border-color:var(--pr-critical)" id="confirmActionBtn">Видалити</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(wrap);
+  document.getElementById('confirmActionBtn').onclick = () => { closeConfirm(); onConfirm(); };
+}
+function closeConfirm(){
+  const el = document.getElementById('confirmRoot');
+  if(el) el.remove();
+}
+function closeModal(){
+  const el = document.getElementById('modalRoot');
+  if(el) el.remove();
+  document.removeEventListener('keydown', escCloseHandler);
+  pendingInboxSourceId = null;
+}
+function escCloseHandler(ev){ if(ev.key==='Escape') closeModal(); }
+
+/* ============================= РЕЗЕРВНЕ КОПІЮВАННЯ ============================= */
+const LS_BACKUPS = 'personalCrmBackups_v1';
+function snapshotData(){
+  try{
+    const list = JSON.parse(localStorage.getItem(LS_BACKUPS)||'[]');
+    list.push({ts:Date.now(), data:state.data});
+    while(list.length>24) list.shift();
+    localStorage.setItem(LS_BACKUPS, JSON.stringify(list));
+  }catch(e){}
+}
+function downloadBackupFile(){
+  const blob = new Blob([JSON.stringify(state.data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const stamp = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
+  a.href = url; a.download = `crm-backup-${stamp}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+function exportBackupManual(){
+  downloadBackupFile();
+  toast('Резервну копію завантажено');
+  state.profileOpen=false; render();
+}
+function triggerImportBackup(){
+  state.profileOpen=false; render();
+  setTimeout(()=>{ const inp=document.getElementById('importFileInput'); if(inp) inp.click(); }, 0);
+}
+function handleImportFile(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!parsed || !Array.isArray(parsed.tasks)){ toast('Файл не схожий на резервну копію'); return; }
+      state.data = parsed;
+      saveData();
+      snapshotData();
+      toast('Дані відновлено з резервної копії');
+      render();
+    }catch(e){ toast('Не вдалося прочитати файл'); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+/* ============================= INIT ============================= */
+applyAccent(loadAccent());
+render();
+initAiChatWidget();
+snapshotData();
+setInterval(snapshotData, 3600000);
+
+</script>
+</body>
+</html>
