@@ -561,6 +561,7 @@ function captureGcalToken(result){
       state.gcalToken = cred.accessToken;
       state.gcalTokenAt = Date.now();
       state.gcalConnected = true;
+      toast('Google Calendar підключено');
       syncGoogleCalendar(false);
     } else {
       toast('Google не повернув доступ до календаря — спробуйте ще раз');
@@ -577,9 +578,8 @@ function doLogin(){
 }
 function requestGcalToken(){
   if(!fbReady || !auth.currentUser){ toast('Спершу увійдіть у застосунок'); return; }
-  auth.currentUser.reauthenticateWithPopup(googleProviderWithCalendar()).then(result=>{
+  auth.signInWithPopup(googleProviderWithCalendar()).then(result=>{
     captureGcalToken(result);
-    toast('Google Calendar підключено');
   }).catch(err=>{
     toast('Не вдалося підключити Google Calendar: ' + (err && err.message ? err.message : 'помилка'));
   });
