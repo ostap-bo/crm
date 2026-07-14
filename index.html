@@ -561,9 +561,11 @@ function captureGcalToken(result){
       state.gcalToken = cred.accessToken;
       state.gcalTokenAt = Date.now();
       state.gcalConnected = true;
-      syncGoogleCalendar(true);
+      syncGoogleCalendar(false);
+    } else {
+      toast('Google не повернув доступ до календаря — спробуйте ще раз');
     }
-  }catch(e){}
+  }catch(e){ toast('Помилка отримання доступу: ' + (e && e.message ? e.message : 'невідома')); }
 }
 function doLogin(){
   if(!fbReady){ toast('Firebase не налаштовано — встав конфіг у коді'); return; }
@@ -697,11 +699,14 @@ function syncGoogleCalendar(silent){
     saveData(); render();
     if(!silent) toast('Google Calendar синхронізовано');
   }).catch(err=>{
+    console.error('Google Calendar sync error', err);
     if(err && err.code===401){
       state.gcalToken = null;
       if(!silent) toast('Доступ до Google Calendar прострочено — натисніть кнопку підключення ще раз');
-      else render();
-    } else if(!silent){ toast('Помилка синхронізації з Google Calendar'); }
+    } else {
+      if(!silent) toast('Помилка синхронізації: ' + (err && err.message ? err.message : 'невідома помилка'));
+    }
+    render();
   }).finally(()=>{ state.gcalSyncing = false; });
 }
 
