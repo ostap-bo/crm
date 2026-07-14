@@ -277,6 +277,8 @@
   .day-list .week-evt{font-size:12px;padding:8px 10px;}
   .now-line{position:absolute;height:2px;background:#ea4335;z-index:6;pointer-events:none;display:none;}
   .now-line .now-dot{position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:#ea4335;box-shadow:0 0 0 2px var(--surface);}
+  .events-layer{position:absolute;top:0;left:0;right:0;bottom:0;z-index:4;pointer-events:none;}
+  .events-layer .cal-evt{position:absolute;pointer-events:auto;color:#fff;font-size:10.5px;line-height:1.3;padding:3px 6px;overflow:hidden;border-radius:4px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.2);white-space:nowrap;text-overflow:ellipsis;}
 
   /* side panel (Notion-style) modals */
   .panel-overlay{position:fixed;inset:0;background:var(--overlay);z-index:100;display:flex;justify-content:flex-end;align-items:stretch;}
@@ -493,6 +495,19 @@ const LS_CHAT = 'personalCrmChat_v1';
 const LS_PROFILE = 'personalCrmProfile_v1';
 const LS_ACCENT = 'personalCrmAccent_v1';
 const LS_BACKUPS = 'personalCrmBackups_v1';
+const LS_GCAL_TOKEN = 'personalCrmGcalToken_v1';
+const GCAL_TOKEN_TTL = 55*60*1000; // trust a saved token for 55 min (Google tokens last ~1h)
+function saveGcalToken(token){
+  try{ localStorage.setItem(LS_GCAL_TOKEN, JSON.stringify({token, at:Date.now()})); }catch(e){}
+}
+function loadGcalToken(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(LS_GCAL_TOKEN)||'null');
+    if(raw && raw.token && (Date.now()-raw.at) < GCAL_TOKEN_TTL) return raw;
+  }catch(e){}
+  return null;
+}
+function clearGcalToken(){ try{ localStorage.removeItem(LS_GCAL_TOKEN); }catch(e){} }
 
 function emptyData(){ return {tasks:[], projects:[], events:[], inbox:[]}; }
 
@@ -591,6 +606,7 @@ function captureGcalToken(result){
       state.gcalToken = cred.accessToken;
       state.gcalTokenAt = Date.now();
       state.gcalConnected = true;
+      saveGcalToken(cred.accessToken);
       toast('Google Calendar підключено');
       syncGoogleCalendar(false);
     } else {
@@ -619,6 +635,7 @@ function doLogout(){
   state.profileOpen = false;
   state.gcalToken = null;
   state.gcalConnected = false;
+  clearGcalToken();
   if(auth) auth.signOut();
 }
 function toggleTheme(){
@@ -637,6 +654,13 @@ if(fbReady){
       if(!state.profile.avatar) state.profile.avatar = state.user.avatar;
       saveProfile();
       subscribeToData(user.uid);
+      const saved = loadGcalToken();
+      if(saved){
+        state.gcalToken = saved.token;
+        state.gcalTokenAt = saved.at;
+        state.gcalConnected = true;
+        syncGoogleCalendar(true);
+      }
     } else {
       state.authed = false;
       state.user = null;
@@ -735,6 +759,7 @@ function syncGoogleCalendar(silent){
     console.error('Google Calendar sync error', err);
     if(err && err.code===401){
       state.gcalToken = null;
+      clearGcalToken();
       if(!silent) toast('Доступ до Google Calendar прострочено — натисніть кнопку підключення ще раз');
     } else {
       if(!silent) toast('Помилка синхронізації: ' + (err && err.message ? err.message : 'невідома помилка'));
@@ -933,7 +958,7 @@ function render(){
   if(newViewEl) newViewEl.scrollTop = scrollTop;
   lastRenderedView = state.view;
   updateAiWidgetVisibility();
-  requestAnimationFrame(positionNowLine);
+  requestAnimationFrame(()=>{ positionCalendarEvents(); positionNowLine(); });
 }
 function updateAiWidgetVisibility(){
   const w = document.getElementById('aiChatWidget');
@@ -1915,30 +1940,77 @@ function renderWeekView(d){
       <div class="hour-label">${pad(h)}:00</div>
       ${days.map(day=>{
         const ds = dstr(day);
-        const evts = eventsForDate(ds).filter(e=>parseInt(e.start)===h);
-        return `<div class="week-cell ${isWorkHour(h,day)?'work-hour':''}" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})">
-          ${evts.map(e=>`<div class="week-evt" style="background:${wsColor(e.workspace)}" draggable="true" ondragstart="onDragStartEvent(event,'${e.id}')" onclick="event.stopPropagation();openEventModal('${e.id}')">${e.start} ${escapeHtml(e.title)}</div>`).join('')}
-        </div>`;
+        return `<div class="week-cell ${isWorkHour(h,day)?'work-hour':''}" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})"></div>`;
       }).join('')}
     `).join('')}
+    <div class="events-layer" id="eventsLayer"></div>
     <div class="now-line" id="nowLine"><span class="now-dot"></span></div>
   </div>`;
 }
 function renderDayView(d){
   const ds = dstr(d);
-  const evts = eventsForDate(ds);
   return `
   <div class="week-grid" style="grid-template-columns:56px 1fr">
     <div class="week-dow-head"></div>
     <div class="week-dow-head today">${DOW_FULL[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}</div>
     ${CAL_HOURS.map(h=>`
       <div class="hour-label">${pad(h)}:00</div>
-      <div class="week-cell day-list ${isWorkHour(h,d)?'work-hour':''}" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})">
-        ${evts.filter(e=>parseInt(e.start)===h).map(e=>`<div class="week-evt" style="background:${wsColor(e.workspace)}" draggable="true" ondragstart="onDragStartEvent(event,'${e.id}')" onclick="event.stopPropagation();openEventModal('${e.id}')">${e.start}–${e.end} ${escapeHtml(e.title)}</div>`).join('')}
-      </div>
+      <div class="week-cell day-list ${isWorkHour(h,d)?'work-hour':''}" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})"></div>
     `).join('')}
+    <div class="events-layer" id="eventsLayer"></div>
     <div class="now-line" id="nowLine"><span class="now-dot"></span></div>
   </div>`;
+}
+function timeToMinutes(t){ const parts=(t||'0:0').split(':'); return (parseInt(parts[0])||0)*60 + (parseInt(parts[1])||0); }
+function positionCalendarEvents(){
+  const layer = document.getElementById('eventsLayer');
+  if(!layer) return;
+  const grid = layer.closest('.week-grid');
+  if(!grid) return;
+  layer.innerHTML = '';
+  const firstLabel = grid.querySelector('.hour-label');
+  if(!firstLabel) return;
+  const rowH = firstLabel.offsetHeight;
+  const gridTop = firstLabel.offsetTop;
+  const startHourMin = CAL_HOURS[0]*60;
+  let dayCols;
+  if(state.calendarMode==='day'){
+    dayCols = [{ds: dstr(state.calendarDate), left:56, width: grid.offsetWidth-56}];
+  } else {
+    const start = addDays(state.calendarDate, -((state.calendarDate.getDay()+6)%7));
+    const days = Array.from({length:7},(_, i)=>addDays(start,i));
+    const headers = grid.querySelectorAll('.week-dow-head');
+    dayCols = days.map((day,i)=>({ds:dstr(day), left: headers[i+1]?headers[i+1].offsetLeft:0, width: headers[i+1]?headers[i+1].offsetWidth:0}));
+  }
+  dayCols.forEach(col=>{
+    const evts = eventsForDate(col.ds).slice().sort((a,b)=>timeToMinutes(a.start)-timeToMinutes(b.start));
+    const lanesEnd = [];
+    const placed = evts.map(e=>{
+      const sM = timeToMinutes(e.start), eM = Math.max(sM+15, timeToMinutes(e.end||e.start));
+      let lane = 0;
+      while(lanesEnd[lane] !== undefined && lanesEnd[lane] > sM) lane++;
+      lanesEnd[lane] = eM;
+      return {e, sM, eM, lane};
+    });
+    const laneCount = Math.max(1, ...placed.map(p=>p.lane+1));
+    placed.forEach(p=>{
+      const top = gridTop + ((p.sM - startHourMin)/60)*rowH;
+      const height = Math.max(18, ((p.eM-p.sM)/60)*rowH - 2);
+      const laneWidth = col.width/laneCount;
+      const left = col.left + p.lane*laneWidth;
+      const el = document.createElement('div');
+      el.className = 'cal-evt';
+      el.style.top = top+'px'; el.style.left = left+'px';
+      el.style.width = Math.max(20,laneWidth-2)+'px'; el.style.height = height+'px';
+      el.style.background = wsColor(p.e.workspace);
+      el.draggable = true;
+      el.title = `${p.e.start}–${p.e.end} ${p.e.title}`;
+      el.textContent = height>26 ? `${p.e.start} ${p.e.title}` : p.e.title;
+      el.ondragstart = (ev)=>onDragStartEvent(ev, p.e.id);
+      el.onclick = (ev)=>{ ev.stopPropagation(); openEventModal(p.e.id); };
+      layer.appendChild(el);
+    });
+  });
 }
 function positionNowLine(){
   const line = document.getElementById('nowLine');
@@ -2062,7 +2134,7 @@ function deleteEvent(id){
     if(gid && state.gcalToken){
       gcalPendingDeletes.add(gid);
       gcalDelete(gid).catch(err=>{
-        if(err && err.code===401){ state.gcalToken = null; toast('Подію видалено локально, але доступ до Google Calendar прострочено — підключіть його знову, щоб видалити й там'); }
+        if(err && err.code===401){ state.gcalToken = null; clearGcalToken(); toast('Подію видалено локально, але доступ до Google Calendar прострочено — підключіть його знову, щоб видалити й там'); }
         else toast('Подію видалено локально, але не вдалося видалити з Google Calendar');
       }).finally(()=>{
         setTimeout(()=>gcalPendingDeletes.delete(gid), 20000);
