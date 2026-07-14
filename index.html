@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Особистий Workspace — CRM</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f6b45'/%3E%3Cpath d='M16 6l2.6 7.4L26 16l-7.4 2.6L16 26l-2.6-7.4L6 16l7.4-2.6z' fill='%23ffffff'/%3E%3C/svg%3E">
 <style>
   :root{
     --accent:#1f6b45;
@@ -264,14 +265,18 @@
   html[data-theme="dark"] .month-cell.today{background:#1a2c1f;}
   .month-cell .dnum{font-size:12px;font-weight:700;margin-bottom:4px;}
   .month-evt{font-size:10.5px;padding:2px 5px;color:#fff;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;border-radius:3px;}
-  .week-grid{display:grid;grid-template-columns:56px repeat(7,1fr);border:1px solid var(--border-strong);background:var(--surface);border-radius:var(--radius);overflow:hidden;}
+  .week-grid{display:grid;grid-template-columns:56px repeat(7,1fr);border:1px solid var(--border-strong);background:var(--surface);border-radius:var(--radius);overflow:hidden;position:relative;}
   .week-dow-head{padding:8px 4px;text-align:center;font-size:11px;font-weight:700;color:var(--text-dim);border-bottom:1px solid var(--border);border-left:1px solid var(--border);background:var(--surface-2);}
   .week-dow-head.today{color:var(--accent-dark);}
   .hour-label{font-size:10px;color:var(--text-dim);padding:4px;text-align:right;border-top:1px solid var(--border);}
   .week-cell{border-top:1px solid var(--border);border-left:1px solid var(--border);min-height:44px;position:relative;padding:1px;cursor:pointer;}
+  .week-cell.work-hour{background:rgba(52,168,83,.07);}
+  [data-theme="dark"] .week-cell.work-hour{background:rgba(52,168,83,.14);}
   .week-cell:hover{background:var(--surface-2);}
-  .week-evt{background:var(--ws-personal);color:#fff;font-size:10.5px;padding:3px 6px;margin-bottom:2px;cursor:grab;overflow:hidden;border-radius:3px;}
+  .week-evt{background:var(--ws-personal);color:#fff;font-size:10.5px;padding:3px 6px;margin-bottom:2px;cursor:grab;overflow:hidden;border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.15);}
   .day-list .week-evt{font-size:12px;padding:8px 10px;}
+  .now-line{position:absolute;height:2px;background:#ea4335;z-index:6;pointer-events:none;display:none;}
+  .now-line .now-dot{position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:#ea4335;box-shadow:0 0 0 2px var(--surface);}
 
   /* side panel (Notion-style) modals */
   .panel-overlay{position:fixed;inset:0;background:var(--overlay);z-index:100;display:flex;justify-content:flex-end;align-items:stretch;}
@@ -314,29 +319,50 @@
   }
 
   /* AI chat widget */
-  #aiChatWidget{position:fixed;bottom:22px;right:22px;z-index:150;}
+  #aiChatWidget{position:fixed;bottom:22px;right:22px;z-index:90;}
+  @keyframes aiPulse{0%{box-shadow:0 0 0 0 rgba(31,107,69,.35);}70%{box-shadow:0 0 0 10px rgba(31,107,69,0);}100%{box-shadow:0 0 0 0 rgba(31,107,69,0);}}
   .ai-fab{
-    border-radius:var(--radius);
-    width:54px;height:54px;background:var(--accent);color:#fff;border:1.5px solid var(--accent-dark);
+    border-radius:50%;
+    width:58px;height:58px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;border:none;
     display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);position:relative;
+    transition:transform .18s ease;
   }
-  .ai-fab:hover{background:var(--accent-dark);}
-  .ai-fab-badge{position:absolute;top:-5px;right:-5px;background:var(--pr-critical);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;padding:0 4px;display:none;align-items:center;justify-content:center;border:2px solid var(--bg);border-radius:50%;}
+  .ai-fab:hover{transform:scale(1.07) rotate(-4deg);}
+  .ai-fab.pulse{animation:aiPulse 1.8s ease-out infinite;}
+  .ai-fab-badge{position:absolute;top:-4px;right:-4px;background:var(--pr-critical);color:#fff;font-size:10px;font-weight:800;min-width:19px;height:19px;padding:0 4px;display:none;align-items:center;justify-content:center;border:2.5px solid var(--bg);border-radius:50%;}
   .ai-chat-panel{
-    border-radius:var(--radius);overflow:hidden;
-    display:none;position:absolute;bottom:64px;right:0;width:340px;
-    background:var(--surface);border:1.5px solid var(--border-strong);box-shadow:var(--shadow);
+    border-radius:18px;overflow:hidden;
+    display:none;position:absolute;bottom:70px;right:0;width:390px;
+    background:var(--surface);border:1px solid var(--border-strong);box-shadow:0 20px 50px -12px rgba(0,0,0,.35);
     flex-direction:column;
+    animation:aiPanelIn .2s ease;
   }
+  @keyframes aiPanelIn{from{opacity:0;transform:translateY(10px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
   .ai-chat-panel.open{display:flex;}
-  .ai-chat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);font-weight:700;font-size:13.5px;gap:8px;}
-  .ai-chat-messages{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;max-height:280px;min-height:180px;}
-  .ai-msg{padding:9px 12px;font-size:12.5px;line-height:1.5;white-space:pre-line;max-width:85%;}
-  .ai-msg.ai{background:var(--surface-2);align-self:flex-start;}
-  .ai-msg.user{background:var(--accent);color:#fff;align-self:flex-end;}
-  .ai-chat-quick{display:flex;gap:6px;padding:0 14px 8px;flex-wrap:wrap;}
-  .ai-chat-input-row{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);}
-  .ai-chat-input-row input{flex:1;}
+  .ai-chat-head{display:flex;align-items:center;gap:10px;padding:16px 16px;background:linear-gradient(120deg,var(--accent),var(--accent-dark));color:#fff;}
+  .ai-chat-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex:none;}
+  .ai-chat-head-title{font-weight:700;font-size:14px;line-height:1.3;}
+  .ai-chat-head-sub{font-size:11px;opacity:.85;display:flex;align-items:center;gap:5px;margin-top:1px;}
+  .ai-online-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 2px rgba(255,255,255,.25);flex:none;}
+  .ai-chat-messages{flex:1;overflow-y:auto;padding:14px 14px 6px;display:flex;flex-direction:column;gap:10px;max-height:360px;min-height:220px;background:var(--surface-2);}
+  .ai-msg-row{display:flex;gap:8px;align-items:flex-end;animation:aiMsgIn .18s ease;}
+  .ai-msg-row.user{flex-direction:row-reverse;}
+  @keyframes aiMsgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .ai-msg-avatar{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex:none;}
+  .ai-msg-avatar svg{width:12px;height:12px;}
+  .ai-msg{padding:9px 13px;font-size:12.8px;line-height:1.55;white-space:pre-line;max-width:78%;border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.06);}
+  .ai-msg.ai{background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:4px;}
+  .ai-msg.user{background:var(--accent);color:#fff;border-bottom-right-radius:4px;}
+  .ai-typing{display:flex;gap:4px;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content;}
+  .ai-typing span{width:6px;height:6px;border-radius:50%;background:var(--text-dim);opacity:.5;animation:aiTypingBounce 1.2s infinite ease-in-out;}
+  .ai-typing span:nth-child(2){animation-delay:.15s;}
+  .ai-typing span:nth-child(3){animation-delay:.3s;}
+  @keyframes aiTypingBounce{0%,60%,100%{transform:translateY(0);opacity:.5;}30%{transform:translateY(-4px);opacity:1;}}
+  .ai-chat-quick{display:flex;gap:6px;padding:8px 14px;flex-wrap:wrap;background:var(--surface-2);border-top:1px solid var(--border);}
+  .ai-chat-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);background:var(--surface);}
+  .ai-chat-input-row input{flex:1;border-radius:20px;padding:9px 15px;}
+  .ai-chat-input-row .icon-btn{background:var(--accent);color:#fff;border-radius:50%;}
+  .ai-chat-input-row .icon-btn:hover{background:var(--accent-dark);}
 
   /* inbox */
   .inbox-row{display:flex;align-items:flex-start;gap:12px;padding:13px 6px;border-bottom:1px solid var(--border);}
@@ -656,11 +682,13 @@ function gcalFetch(url, opts){
   opts.headers = gcalHeaders();
   return fetch(url, opts).then(r=>{
     if(r.status===401){ const err = new Error('unauthorized'); err.code = 401; throw err; }
+    if(r.status===404 || r.status===410) return null;
     if(!r.ok) throw new Error('gcal request failed: ' + r.status);
     if(r.status===204) return null;
     return r.json();
   });
 }
+const gcalPendingDeletes = new Set();
 function gcalList(){
   if(!state.gcalToken) return Promise.resolve(null);
   const timeMin = new Date(Date.now()-30*86400000).toISOString();
@@ -684,6 +712,7 @@ function syncGoogleCalendar(silent){
   chain.then(()=>gcalList()).then(data=>{
     if(data && Array.isArray(data.items)){
       data.items.forEach(gev=>{
+        if(gcalPendingDeletes.has(gev.id)) return;
         if(gev.status==='cancelled'){
           const idx = events.findIndex(e=>e.googleEventId===gev.id);
           if(idx>-1) events.splice(idx,1);
@@ -904,6 +933,7 @@ function render(){
   if(newViewEl) newViewEl.scrollTop = scrollTop;
   lastRenderedView = state.view;
   updateAiWidgetVisibility();
+  requestAnimationFrame(positionNowLine);
 }
 function updateAiWidgetVisibility(){
   const w = document.getElementById('aiChatWidget');
@@ -1221,6 +1251,46 @@ function aiSummaryText(){
   const doneToday = state.data.tasks.filter(t=>t.done && t.completedAt && new Date(t.completedAt).toDateString()===today);
   return `Виконано сьогодні: ${doneToday.length} задач(і).`;
 }
+function aiOverdueText(){
+  const ds = todayStr();
+  const overdue = state.data.tasks.filter(t=>!t.done && !t.deleted && t.dueDate && t.dueDate<ds);
+  if(!overdue.length) return 'Протермінованих задач немає — усе під контролем 👍';
+  return 'Протерміновані задачі:\n' + overdue.map(t=>`• ${t.title} (дедлайн ${fmtDateHuman(t.dueDate)}, ${wsName(t.workspace)})`).join('\n');
+}
+function aiEventsForDayText(offsetDays, label){
+  const d = addDays(new Date(), offsetDays);
+  const ds = dstr(d);
+  const evts = state.data.events.filter(e=> e.date===ds || (e.recurring==='weekly' && e.date<=ds && new Date(e.date+'T00:00:00').getDay()===d.getDay()));
+  if(!evts.length) return `${label} подій немає.`;
+  return `Події (${label}):\n` + evts.sort((a,b)=>a.start.localeCompare(b.start)).map(e=>`• ${e.start}–${e.end} ${e.title} (${wsName(e.workspace)})`).join('\n');
+}
+function aiProjectsText(){
+  const projects = state.data.projects.filter(p=>!p.deleted);
+  if(!projects.length) return 'Проєктів поки немає.';
+  return 'Проєкти:\n' + projects.map(p=>`• ${p.name} — ${STATUS_LABEL[p.status]||p.status} (${wsName(p.workspace)})`).join('\n');
+}
+function aiStatsText(){
+  const tasks = state.data.tasks.filter(t=>!t.deleted);
+  const open = tasks.filter(t=>!t.done);
+  const done = tasks.filter(t=>t.done);
+  const projects = state.data.projects.filter(p=>!p.deleted);
+  const byWs = WORKSPACES.map(w=>`${w.name}: ${open.filter(t=>t.workspace===w.id).length}`).join(', ');
+  return `Статистика:\nВідкритих задач: ${open.length}\nВиконаних задач: ${done.length}\nПроєктів: ${projects.length}\n\nПо напрямках — ${byWs}`;
+}
+function detectWorkspace(text){
+  if(/kofax|кофакс/.test(text)) return 'kofax';
+  if(/kykil|кайкіл|кайкл|кикил/.test(text)) return 'kykil';
+  if(/особист/.test(text)) return 'personal';
+  return null;
+}
+function aiWorkspaceTasksText(wsId){
+  const tasks = state.data.tasks.filter(t=>!t.done && !t.deleted && t.workspace===wsId);
+  if(!tasks.length) return `Активних задач у напрямку «${wsName(wsId)}» немає.`;
+  return `Задачі («${wsName(wsId)}»):\n` + tasks.map(t=>`• ${t.title}`).join('\n');
+}
+function aiHelpText(){
+  return 'Ось що я вмію:\n• «рекомендація» — з чого почати\n• «активні задачі» — список відкритих\n• «протерміновані» — прострочені дедлайни\n• «події сьогодні» / «події завтра»\n• «проєкти» — статус усіх проєктів\n• «статистика» — загальні цифри\n• «задачі kofax / kykil / особисте» — фільтр по напрямку\n• «створи задачу: ...» — додам нову задачу\n• «підсумок дня» — що виконано сьогодні';
+}
 function parseQuickText(text){
   let t = text.trim();
   t = t.replace(/^(створи|додай|постав)\s+задачу:?/i,'').trim();
@@ -1249,7 +1319,15 @@ function aiSplitTask(taskId){
 }
 function generateAiReply(raw){
   const text = raw.toLowerCase();
+  if(/допомог|що ти вмієш|можливост|команди/.test(text)) return aiHelpText();
+  if(/протермін|прострочен|не встиг/.test(text)) return aiOverdueText();
+  if(/(поді\w*.*сьогодні|сьогодні.*поді)/.test(text)) return aiEventsForDayText(0, 'сьогодні');
+  if(/(поді\w*.*завтра|завтра.*поді)/.test(text)) return aiEventsForDayText(1, 'завтра');
+  if(/статистик|скільки задач|цифри/.test(text)) return aiStatsText();
+  if(/проєкт|проект/.test(text) && !/задач/.test(text)) return aiProjectsText();
   if(/рекоменд|що (мені )?зробити|з чого почати|найважлив/.test(text)) return aiRecommendText();
+  const ws = detectWorkspace(text);
+  if(ws && /задач/.test(text)) return aiWorkspaceTasksText(ws);
   if(/активн\w* задач|що (ще )?відкрит|список задач/.test(text)) return aiOpenTasksText();
   if(/підсумок|звіт за день|що (я )?зробив/.test(text)) return aiSummaryText();
   if(/розбий|підзадач/.test(text)){
@@ -1257,18 +1335,18 @@ function generateAiReply(raw){
     if(match){ aiSplitTaskSilent(match.id); return `Додав чеклист-підзадачі до «${match.title}»: Дослідити деталі, Скласти план дій, Виконати основну роботу, Перевірити результат.`; }
     return 'Вкажіть, будь ласка, назву задачі, яку потрібно розбити на підзадачі.';
   }
-  if(/привіт|добрий день|вітаю/.test(text) && text.length<25) return 'Привіт! Я можу порекомендувати з чого почати, показати активні задачі, підсумувати виконане, або створити задачу з тексту. Напишіть, наприклад: «Створи задачу: подзвонити клієнту».';
+  if(/привіт|добрий день|вітаю/.test(text) && text.length<25) return 'Привіт! Я можу порекомендувати з чого почати, показати активні чи протерміновані задачі, найближчі події, статистику по проєктах — або створити задачу з тексту. Напишіть «допомога», щоб побачити всі команди.';
   if(/створи задачу|додай задачу|постав задачу|нагадай/.test(text)){
     const parsed = parseQuickText(raw);
     const task = createTaskFromParsed(parsed, 'personal');
     return `Створив задачу «${task.title}» в просторі «Особисте». Подивитись можна на сторінці «Задачі».`;
   }
-  return 'Я орієнтуюсь на прості команди: «рекомендація», «активні задачі», «підсумок дня» — або напишіть «створи задачу: ...», і я її додам.';
+  return 'Я поки не зрозумів запит 🤔 Напишіть «допомога», щоб побачити список команд — або опишіть задачу текстом, і я її створю.';
 }
 
 /* ============================= AI CHAT WIDGET ============================= */
 let aiChatState = {
-  messages: (JSON.parse(localStorage.getItem(LS_CHAT)||'null')) || [{role:'ai', text:'Привіт! Я AI-помічник. Запитайте «що зробити зараз», «активні задачі», «підсумок дня» — або опишіть задачу текстом, і я її створю.', ts:Date.now()}],
+  messages: (JSON.parse(localStorage.getItem(LS_CHAT)||'null')) || [{role:'ai', text:'Привіт! Я твій AI-помічник 👋 Питай про задачі, проєкти, події чи статистику — або натисни «Що вмієш?» нижче.', ts:Date.now()}],
   unread: 0,
 };
 function initAiChatWidget(){
@@ -1276,12 +1354,22 @@ function initAiChatWidget(){
   el.id = 'aiChatWidget';
   el.innerHTML = `
     <div class="ai-chat-panel" id="aiChatPanel">
-      <div class="ai-chat-head"><span style="display:flex;align-items:center;gap:6px">${ICON.sparkle} AI-помічник</span><button class="icon-btn" style="width:28px;height:28px" onclick="toggleAiChat()">${ICON.x}</button></div>
+      <div class="ai-chat-head">
+        <div class="ai-chat-avatar">${ICON.sparkle}</div>
+        <div style="flex:1">
+          <div class="ai-chat-head-title">AI-помічник</div>
+          <div class="ai-chat-head-sub"><span class="ai-online-dot"></span>Завжди на зв'язку</div>
+        </div>
+        <button class="icon-btn" style="width:28px;height:28px;background:rgba(255,255,255,.15);color:#fff" onclick="toggleAiChat()">${ICON.x}</button>
+      </div>
       <div class="ai-chat-messages" id="aiChatMessages"></div>
       <div class="ai-chat-quick">
-        <button class="chip" onclick="sendAiPreset('Порекомендуй, з чого почати')">Рекомендація</button>
-        <button class="chip" onclick="sendAiPreset('Активні задачі')">Активні задачі</button>
-        <button class="chip" onclick="sendAiPreset('Підсумок дня')">Підсумок</button>
+        <button class="chip" onclick="sendAiPreset('Порекомендуй, з чого почати')">💡 Рекомендація</button>
+        <button class="chip" onclick="sendAiPreset('Активні задачі')">✅ Активні задачі</button>
+        <button class="chip" onclick="sendAiPreset('Протерміновані задачі')">⏰ Протерміновані</button>
+        <button class="chip" onclick="sendAiPreset('Події сьогодні')">📅 Сьогодні</button>
+        <button class="chip" onclick="sendAiPreset('Статистика')">📊 Статистика</button>
+        <button class="chip" onclick="sendAiPreset('Допомога')">❓ Що вмієш?</button>
       </div>
       <div class="ai-chat-input-row">
         <input id="aiChatInput" type="text" placeholder="Напишіть повідомлення..." onkeydown="if(event.key==='Enter')sendAiChat()">
@@ -1301,13 +1389,24 @@ function toggleAiChat(){
 }
 function updateAiFabBadge(){
   const b = document.getElementById('aiFabBadge');
+  const fab = document.getElementById('aiFab');
   if(!b) return;
-  if(aiChatState.unread>0){ b.style.display='flex'; b.textContent=aiChatState.unread; } else b.style.display='none';
+  if(aiChatState.unread>0){ b.style.display='flex'; b.textContent=aiChatState.unread; if(fab) fab.classList.add('pulse'); }
+  else { b.style.display='none'; if(fab) fab.classList.remove('pulse'); }
+}
+function aiMsgAvatar(role){
+  return role==='ai'
+    ? `<div class="ai-msg-avatar">${ICON.sparkle}</div>`
+    : `<div class="ai-msg-avatar" style="background:var(--surface-2);color:var(--text-dim)">${initials(state.profile.name)}</div>`;
 }
 function renderAiChatMessages(){
   const box = document.getElementById('aiChatMessages');
   if(!box) return;
-  box.innerHTML = aiChatState.messages.map(m=>`<div class="ai-msg ${m.role}">${escapeHtml(m.text)}</div>`).join('');
+  box.innerHTML = aiChatState.messages.map(m=>`
+    <div class="ai-msg-row ${m.role}">
+      ${aiMsgAvatar(m.role)}
+      <div class="ai-msg ${m.role}">${escapeHtml(m.text)}</div>
+    </div>`).join('');
   box.scrollTop = box.scrollHeight;
 }
 function pushChatMessage(role, text){
@@ -1318,14 +1417,29 @@ function pushChatMessage(role, text){
   const panelOpen = panel && panel.classList.contains('open');
   if(role==='ai' && !panelOpen){ aiChatState.unread++; updateAiFabBadge(); }
 }
+function showAiTyping(){
+  const box = document.getElementById('aiChatMessages');
+  if(!box) return;
+  const row = document.createElement('div');
+  row.className = 'ai-msg-row ai';
+  row.id = 'aiTypingRow';
+  row.innerHTML = `${aiMsgAvatar('ai')}<div class="ai-typing"><span></span><span></span><span></span></div>`;
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+}
+function hideAiTyping(){
+  const row = document.getElementById('aiTypingRow');
+  if(row) row.remove();
+}
 function sendAiChat(){
   const inp = document.getElementById('aiChatInput');
   const text = inp.value.trim();
   if(!text) return;
   pushChatMessage('user', text);
   inp.value = '';
+  showAiTyping();
   const reply = generateAiReply(text);
-  setTimeout(()=>pushChatMessage('ai', reply), 250);
+  setTimeout(()=>{ hideAiTyping(); pushChatMessage('ai', reply); }, 450 + Math.min(500, reply.length*4));
 }
 function sendAiPreset(text){
   const inp = document.getElementById('aiChatInput');
@@ -1788,6 +1902,8 @@ function renderMonthView(d){
 }
 
 const CAL_HOURS = Array.from({length:18},(_, i)=>i+6); // 6:00 - 23:00
+const WORK_START = 9, WORK_END = 18; // Google Calendar-style working hours highlight
+function isWorkHour(h, day){ const dow = day.getDay(); return dow>=1 && dow<=5 && h>=WORK_START && h<WORK_END; }
 function renderWeekView(d){
   const start = addDays(d, -((d.getDay()+6)%7));
   const days = Array.from({length:7},(_, i)=>addDays(start,i));
@@ -1800,11 +1916,12 @@ function renderWeekView(d){
       ${days.map(day=>{
         const ds = dstr(day);
         const evts = eventsForDate(ds).filter(e=>parseInt(e.start)===h);
-        return `<div class="week-cell" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})">
+        return `<div class="week-cell ${isWorkHour(h,day)?'work-hour':''}" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})">
           ${evts.map(e=>`<div class="week-evt" style="background:${wsColor(e.workspace)}" draggable="true" ondragstart="onDragStartEvent(event,'${e.id}')" onclick="event.stopPropagation();openEventModal('${e.id}')">${e.start} ${escapeHtml(e.title)}</div>`).join('')}
         </div>`;
       }).join('')}
     `).join('')}
+    <div class="now-line" id="nowLine"><span class="now-dot"></span></div>
   </div>`;
 }
 function renderDayView(d){
@@ -1816,12 +1933,47 @@ function renderDayView(d){
     <div class="week-dow-head today">${DOW_FULL[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}</div>
     ${CAL_HOURS.map(h=>`
       <div class="hour-label">${pad(h)}:00</div>
-      <div class="week-cell day-list" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})">
+      <div class="week-cell day-list ${isWorkHour(h,d)?'work-hour':''}" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})">
         ${evts.filter(e=>parseInt(e.start)===h).map(e=>`<div class="week-evt" style="background:${wsColor(e.workspace)}" draggable="true" ondragstart="onDragStartEvent(event,'${e.id}')" onclick="event.stopPropagation();openEventModal('${e.id}')">${e.start}–${e.end} ${escapeHtml(e.title)}</div>`).join('')}
       </div>
     `).join('')}
+    <div class="now-line" id="nowLine"><span class="now-dot"></span></div>
   </div>`;
 }
+function positionNowLine(){
+  const line = document.getElementById('nowLine');
+  if(!line) return;
+  const grid = line.closest('.week-grid');
+  if(!grid){ return; }
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  if(h < CAL_HOURS[0] || h > CAL_HOURS[CAL_HOURS.length-1]){ line.style.display='none'; return; }
+  let targetLabel = null;
+  grid.querySelectorAll('.hour-label').forEach(el=>{ if(el.textContent === pad(h)+':00') targetLabel = el; });
+  if(!targetLabel){ line.style.display='none'; return; }
+  const top = targetLabel.offsetTop + (m/60)*targetLabel.offsetHeight;
+  let left, width;
+  if(state.calendarMode==='day'){
+    const ds = dstr(state.calendarDate);
+    if(ds !== todayStr()){ line.style.display='none'; return; }
+    left = 56; width = grid.offsetWidth - 56;
+  } else {
+    const start = addDays(state.calendarDate, -((state.calendarDate.getDay()+6)%7));
+    const days = Array.from({length:7},(_, i)=>addDays(start,i));
+    const idx = days.findIndex(dd=>dstr(dd)===todayStr());
+    if(idx===-1){ line.style.display='none'; return; }
+    const headers = grid.querySelectorAll('.week-dow-head');
+    const todayHeader = headers[idx+1];
+    if(!todayHeader){ line.style.display='none'; return; }
+    left = todayHeader.offsetLeft;
+    width = grid.offsetWidth - left;
+  }
+  line.style.top = top+'px';
+  line.style.left = left+'px';
+  line.style.width = width+'px';
+  line.style.display = 'block';
+}
+setInterval(positionNowLine, 60000);
 let dragEventId = null;
 function onDragStartEvent(ev,id){ dragEventId = id; }
 function onDropCalendar(ev, dateStr, hour){
@@ -1907,7 +2059,15 @@ function deleteEvent(id){
     const gid = ev && ev.googleEventId;
     state.data.events = state.data.events.filter(e=>e.id!==id);
     saveData(); closeModal(); toast('Подію видалено'); render();
-    if(gid && state.gcalToken) gcalDelete(gid).catch(()=>{});
+    if(gid && state.gcalToken){
+      gcalPendingDeletes.add(gid);
+      gcalDelete(gid).catch(err=>{
+        if(err && err.code===401){ state.gcalToken = null; toast('Подію видалено локально, але доступ до Google Calendar прострочено — підключіть його знову, щоб видалити й там'); }
+        else toast('Подію видалено локально, але не вдалося видалити з Google Calendar');
+      }).finally(()=>{
+        setTimeout(()=>gcalPendingDeletes.delete(gid), 20000);
+      });
+    }
   });
 }
 
