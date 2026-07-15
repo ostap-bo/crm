@@ -1,37 +1,42 @@
 <!DOCTYPE html>
-<html lang="uk" data-theme="dark">
+<html lang="uk" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ostap_bo — особистий трекер</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f6b45'/%3E%3Cpath d='M16 6l2.6 7.4L26 16l-7.4 2.6L16 26l-2.6-7.4L6 16l7.4-2.6z' fill='%23ffffff'/%3E%3C/svg%3E">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* ===== Theme tokens ===== */
+:root{
+  --radius:10px;
+  --radius-sm:6px;
+}
 :root[data-theme="dark"]{
-  --bg:#12161c;
-  --surface:#1b212a;
-  --surface-2:#232b36;
-  --border:#2a3240;
-  --ink:#eef1f5;
-  --ink-dim:#9aa5b3;
-  --accent:#3ba3ff;
-  --accent-ink:#08151f;
-  --good:#5be38a;
-  --warn:#ff9f4a;
-  --shadow: 0 4px 16px rgba(0,0,0,0.35);
+  --bg:#10140f;
+  --surface:#171d18;
+  --surface-2:#1e251f;
+  --border:#2c342d;
+  --ink:#eef1ee;
+  --ink-dim:#9aa69d;
+  --accent:#1f6b45;
+  --accent-ink:#ffffff;
+  --good:#3ba86a;
+  --warn:#f97316;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
 }
 :root[data-theme="light"]{
-  --bg:#f5f7fa;
+  --bg:#f5f7f6;
   --surface:#ffffff;
-  --surface-2:#eef1f6;
-  --border:#dde3ea;
-  --ink:#1c232c;
-  --ink-dim:#68727f;
-  --accent:#1d70c9;
+  --surface-2:#eef1ef;
+  --border:#dadfdb;
+  --ink:#16201b;
+  --ink-dim:#5b665f;
+  --accent:#1f6b45;
   --accent-ink:#ffffff;
-  --good:#1e9e5b;
-  --warn:#c96a1d;
-  --shadow: 0 2px 10px rgba(20,30,45,0.08);
+  --good:#1f6b45;
+  --warn:#f97316;
+  --shadow: 0 1px 2px rgba(20,30,24,.04), 0 8px 24px rgba(20,30,24,.05);
 }
 
 *{box-sizing:border-box;}
@@ -40,7 +45,7 @@ body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
   line-height:1.5;
   min-height:100vh;
   transition:background .2s, color .2s;
@@ -66,6 +71,21 @@ body{
   color:var(--accent);
   margin-right:8px;
 }
+.back-to-crm{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  border-radius:var(--radius-sm);
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink-dim);
+  text-decoration:none;
+  flex:0 0 auto;
+  transition:background .15s, color .15s, border-color .15s;
+}
+.back-to-crm:hover{background:var(--accent); color:#fff; border-color:var(--accent);}
 .tabs{
   display:flex;
   gap:6px;
@@ -98,6 +118,9 @@ body{
   cursor:pointer;
   font-size:16px;
   flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 main{
@@ -145,7 +168,7 @@ main{
 .home-card{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:16px;
+  border-radius:var(--radius);
   padding:16px 20px;
   box-shadow:var(--shadow);
   min-height:0;
@@ -374,7 +397,7 @@ main{
 }
 .water-fill{
   position:absolute; bottom:0; left:0; width:100%; height:0%;
-  background:linear-gradient(180deg, rgba(59,163,255,0.55), rgba(59,163,255,0.85));
+  background:linear-gradient(180deg, rgba(31,107,69,0.55), rgba(31,107,69,0.85));
   transition:height .5s ease;
   overflow:visible;
 }
@@ -523,7 +546,7 @@ main{
 .exercise-card-big{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:16px;
+  border-radius:var(--radius);
   overflow:hidden;
   box-shadow:var(--shadow);
   position:relative;
@@ -667,7 +690,7 @@ main{
   z-index:50;
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:14px;
   width:280px;
@@ -740,7 +763,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
 .exercise-card{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:var(--radius);
   padding:14px;
   box-shadow:var(--shadow);
 }
@@ -811,7 +834,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
 .card-form{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:var(--radius);
   padding:16px;
   margin-bottom:20px;
   display:flex;
@@ -842,7 +865,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
 .chart-card{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:var(--radius);
   padding:16px;
   margin-bottom:20px;
   width:100%;
@@ -882,7 +905,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
 .lib-card{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:12px;
+  border-radius:var(--radius);
   overflow:hidden;
   cursor:default;
 }
@@ -923,7 +946,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
 .water-card{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:var(--radius);
   padding:16px;
   max-width:520px;
 }
@@ -955,7 +978,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
 .modal-box{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:16px;
+  border-radius:var(--radius);
   max-width:560px;
   width:100%;
   max-height:85vh;
@@ -998,14 +1021,14 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
 .stat-card-mini{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:var(--radius);
   padding:16px 18px;
   display:flex;
   align-items:center;
   gap:12px;
 }
 .stat-card-mini.highlight{
-  background:linear-gradient(135deg, var(--accent), #6b7fe8);
+  background:linear-gradient(135deg, var(--accent), #2f9e63);
   border-color:transparent;
 }
 .stat-card-mini.highlight .scm-value, .stat-card-mini.highlight .scm-label{color:#fff;}
@@ -1318,6 +1341,9 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
 <body>
 
 <header class="topbar">
+  <a class="back-to-crm" href="index.html" title="Повернутися в CRM">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </a>
   <div class="brand">ostap_bo</div>
   <nav class="tabs">
     <button class="tab-btn active" data-tab="home">Головна</button>
@@ -1328,7 +1354,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;
     <button class="tab-btn" data-tab="progress">Прогрес</button>
     <button class="tab-btn" data-tab="stats">Статистика</button>
   </nav>
-  <button id="themeToggle" class="theme-toggle" title="Змінити тему">🌙</button>
+  <button id="themeToggle" class="theme-toggle" title="Змінити тему"></button>
 </header>
 
 <main>
@@ -2030,21 +2056,24 @@ function daySub(day){
 /* ============================================================
    THEME
    ============================================================ */
+const CRM_THEME_KEY = 'personalCrmTheme_v1';
+const ICON_SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const ICON_MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
 function initTheme(){
-  const saved = localStorage.getItem('theme') || 'dark';
+  const saved = localStorage.getItem(CRM_THEME_KEY) || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   updateThemeIcon(saved);
   document.getElementById('themeToggle').addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
+    const next = current === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
+    localStorage.setItem(CRM_THEME_KEY, next);
     updateThemeIcon(next);
     if(document.getElementById('tab-progress').classList.contains('active')) renderChart('weightChart');
   });
 }
 function updateThemeIcon(theme){
-  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+  document.getElementById('themeToggle').innerHTML = theme === 'light' ? ICON_MOON : ICON_SUN;
 }
 
 /* ============================================================
