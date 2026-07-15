@@ -2211,6 +2211,17 @@ function isEffectivelyAttended(dateStr){
   return attendance.includes(nextKey);
 }
 
+/* Позначає день як "відвідано" в статистиці. Викликається щоразу, коли
+   зберігається запис тренування (навіть заднім числом) — щоб дані завжди
+   враховувались у стріку/календарі/досягненнях без ручного підтвердження. */
+function markAttendance(dateStr){
+  const att = Store.get('attendance', []);
+  if(!att.includes(dateStr)){
+    att.push(dateStr);
+    Store.set('attendance', att);
+  }
+}
+
 function getStreak(){
   let count = 0;
   const todayKeyStr = todayStr();
@@ -3118,6 +3129,7 @@ function renderExercises(){
         weight: isNaN(weight)?null:weight, sets: isNaN(sets)?null:sets, reps: isNaN(reps)?null:reps,
         rpe: selectedRpe });
       Store.set('workoutLogs', logs);
+      markAttendance(date);
       renderExercises();
       renderWorkoutHistory();
       if(isNewPR){
