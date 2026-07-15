@@ -1,0 +1,4338 @@
+<!DOCTYPE html>
+<html lang="uk" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ostap_bo — особистий трекер</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f6b45'/%3E%3Cpath d='M16 6l2.6 7.4L26 16l-7.4 2.6L16 26l-2.6-7.4L6 16l7.4-2.6z' fill='%23ffffff'/%3E%3C/svg%3E">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+/* ===== Theme tokens ===== */
+:root{
+  --radius:10px;
+  --radius-sm:6px;
+}
+:root[data-theme="dark"]{
+  --bg:#10140f;
+  --surface:#171d18;
+  --surface-2:#1e251f;
+  --border:#2c342d;
+  --ink:#eef1ee;
+  --ink-dim:#9aa69d;
+  --accent:#1f6b45;
+  --accent-ink:#ffffff;
+  --good:#3ba86a;
+  --warn:#f97316;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+}
+:root[data-theme="light"]{
+  --bg:#f5f7f6;
+  --surface:#ffffff;
+  --surface-2:#eef1ef;
+  --border:#dadfdb;
+  --ink:#16201b;
+  --ink-dim:#5b665f;
+  --accent:#1f6b45;
+  --accent-ink:#ffffff;
+  --good:#1f6b45;
+  --warn:#f97316;
+  --shadow: 0 1px 2px rgba(20,30,24,.04), 0 8px 24px rgba(20,30,24,.05);
+}
+
+*{box-sizing:border-box;}
+html, body{height:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+  line-height:1.5;
+  min-height:100vh;
+  transition:background .2s, color .2s;
+}
+
+/* ===== Top bar ===== */
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:14px 32px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:20;
+  height:66px;
+}
+.brand{
+  font-weight:800;
+  font-size:18px;
+  letter-spacing:0.3px;
+  color:var(--accent);
+  margin-right:8px;
+}
+.back-to-crm{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  border-radius:var(--radius-sm);
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink-dim);
+  text-decoration:none;
+  flex:0 0 auto;
+  transition:background .15s, color .15s, border-color .15s;
+}
+.back-to-crm:hover{background:var(--accent); color:#fff; border-color:var(--accent);}
+.tabs{
+  display:flex;
+  gap:6px;
+  flex:1;
+  overflow-x:auto;
+}
+.tab-btn{
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--ink-dim);
+  padding:8px 14px;
+  border-radius:8px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.tab-btn.active{
+  background:var(--surface-2);
+  color:var(--ink);
+  border-color:var(--border);
+}
+.theme-toggle{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink);
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:16px;
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+main{
+  width:100%;
+  margin:0 auto;
+  padding:24px 32px 60px;
+}
+
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Home tab gets no bottom padding overflow — static viewport fit */
+#tab-home.active{
+  height:calc(100vh - 66px);
+  overflow:hidden;
+  margin:-24px -32px -60px;
+  padding:18px 32px;
+}
+
+.section-title{
+  font-size:20px;
+  margin:4px 0 10px;
+}
+.section-hint{
+  color:var(--ink-dim);
+  font-size:13.5px;
+  margin:0 0 16px;
+  max-width:760px;
+}
+.divider{
+  border:none;
+  border-top:1px solid var(--border);
+  margin:32px 0;
+}
+
+/* ===== HOME DASHBOARD (2x2, compact) ===== */
+.home-grid-2x2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:16px;
+  height:100%;
+  max-height:100%;
+}
+.home-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 20px;
+  box-shadow:var(--shadow);
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+.home-card h3{margin:0 0 8px; font-size:14px; color:var(--ink-dim); font-weight:700;}
+
+.calendar-card.compact{
+  width:100%;
+}
+.calendar-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+.calendar-head h3{margin:0; font-size:16px; color:var(--ink);}
+.cal-nav{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink);
+  width:28px; height:28px;
+  border-radius:7px;
+  cursor:pointer;
+  font-size:15px;
+  line-height:1;
+  transition:background .15s, transform .1s;
+}
+.cal-nav:hover{background:var(--accent); color:var(--accent-ink);}
+.cal-nav:active{transform:scale(0.9);}
+.calendar-grid.compact{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  grid-auto-rows:1fr;
+  gap:6px;
+  flex:1;
+  min-height:0;
+}
+.cal-cell{
+  border-radius:8px;
+  background:var(--surface-2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  color:var(--ink-dim);
+  cursor:default;
+  position:relative;
+  border:1px solid transparent;
+  min-height:28px;
+  transition:transform .1s, background .15s;
+}
+.cal-cell.other-month{opacity:0.2;}
+.cal-cell.clickable{cursor:pointer;}
+.cal-cell.clickable:hover{background:var(--surface); transform:scale(1.08); box-shadow:var(--shadow);}
+.cal-cell.scheduled{border-color:var(--accent); color:var(--ink);}
+.cal-cell.done{background:var(--good); color:var(--accent-ink); border-color:var(--good);}
+.cal-cell.today{box-shadow:inset 0 0 0 2px var(--accent);}
+.cal-legend{font-size:12px; color:var(--ink-dim); margin:10px 0 0;}
+.gcal-hint{font-size:11.5px; color:var(--accent); margin:4px 0 0; cursor:pointer; text-decoration:underline;}
+.dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:2px;}
+.dot.scheduled{border:1.5px solid var(--accent);}
+.dot.done{background:var(--good);}
+
+.stat-block{justify-content:center;}
+.stat-block .big-stat{
+  font-size:36px;
+  font-weight:800;
+  color:var(--accent);
+  margin:6px 0 12px;
+}
+.goal-input, .goal-input-sm{
+  font-weight:700;
+  font-family:inherit;
+  color:var(--ink);
+  background:transparent;
+  border:1px solid transparent;
+  border-radius:6px;
+  -moz-appearance:textfield;
+  box-sizing:content-box;
+  vertical-align:baseline;
+  line-height:normal;
+}
+.goal-input::-webkit-inner-spin-button, .goal-input::-webkit-outer-spin-button,
+.goal-input-sm::-webkit-inner-spin-button, .goal-input-sm::-webkit-outer-spin-button{
+  -webkit-appearance:none; margin:0;
+}
+.goal-input{width:56px; font-size:18px;}
+.goal-input-sm{width:3ch; font-size:16px; padding:0 1px; text-align:left; margin:0; position:relative; top:-1px;}
+.progress-bar{
+  background:var(--surface-2);
+  border-radius:8px;
+  height:14px;
+  overflow:hidden;
+}
+.progress-fill{height:100%; background:linear-gradient(90deg, var(--accent), var(--good)); width:0%; transition:width .4s;}
+.stat-block .section-hint{margin-top:14px; font-size:13px;}
+
+/* Combined calories + water card (bottom-left) */
+.nutrition-combo-card{
+  flex-direction:row;
+  gap:0;
+  padding:14px 18px;
+}
+.combo-half{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+}
+.combo-divider{
+  width:1px;
+  background:var(--border);
+  margin:4px 18px;
+}
+.combo-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+.combo-head h3{margin:0;}
+.combo-head-btns{display:flex; gap:6px;}
+.reset-btn, .edit-btn{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink-dim);
+  width:24px; height:24px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:12px;
+  line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .2s, color .15s, background .15s;
+}
+.reset-btn:hover{color:var(--warn); background:var(--surface);}
+.reset-btn:active{transform:rotate(-180deg);}
+.edit-btn:hover{color:var(--accent); background:var(--surface);}
+.edit-btn:active{transform:scale(0.85);}
+.edit-btn.saving{color:var(--good); border-color:var(--good);}
+.goal-input-sm:not([readonly]){
+  background:var(--surface-2);
+  border:1px solid var(--accent);
+  border-radius:6px;
+  padding:2px 6px;
+}
+
+/* Custom number spinner — only visible while editing, sits apart from the digits */
+.spinner-wrap{display:inline-flex; align-items:center; vertical-align:middle;}
+.spinner-btns{
+  display:none;
+  flex-direction:column;
+  margin-left:8px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  overflow:hidden;
+  background:var(--surface);
+}
+.spinner-btns.visible{display:flex;}
+.spin-up, .spin-down{
+  width:22px; height:16px;
+  border:none;
+  background:transparent;
+  color:var(--ink-dim);
+  font-size:8px;
+  line-height:1;
+  cursor:pointer;
+  padding:0;
+  display:flex; align-items:center; justify-content:center;
+  transition:color .15s, background .15s;
+}
+.spin-up{border-bottom:1px solid var(--border);}
+.spin-up:hover, .spin-down:hover{color:var(--accent); background:var(--surface-2);}
+.spin-up:active, .spin-down:active{transform:scale(0.88);}
+
+/* Toast notification */
+.toast{
+  position:fixed;
+  top:18px; left:50%;
+  transform:translate(-50%, -20px);
+  background:var(--good);
+  color:var(--accent-ink);
+  font-weight:700;
+  font-size:14px;
+  padding:11px 22px;
+  border-radius:30px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.25);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  z-index:300;
+}
+.toast.show{opacity:1; transform:translate(-50%, 0);}
+
+/* Calories ring */
+.ring-row{display:flex; align-items:center; gap:16px; flex:1; justify-content:center;}
+.ring{width:104px; height:104px; transform:rotate(-90deg);}
+.ring-bg{fill:none; stroke:var(--surface-2); stroke-width:10;}
+.ring-fill{
+  fill:none; stroke:var(--accent); stroke-width:10; stroke-linecap:round;
+  stroke-dasharray:264; stroke-dashoffset:264; transition:stroke-dashoffset .4s, stroke .3s;
+}
+.ring-label{font-size:16px; font-weight:700; color:var(--ink); text-align:center;}
+.ring-label .goal-input-sm{font-size:16px; width:3ch;}
+.quick-add-row{display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; justify-content:center;}
+.quick-add-row button{
+  background:var(--surface-2); border:1px solid var(--border); color:var(--ink);
+  padding:6px 12px; border-radius:9px; font-weight:700; font-size:12px; cursor:pointer;
+  transition:transform .1s, background .15s, box-shadow .15s;
+}
+.quick-add-row button:hover{background:var(--accent); color:var(--accent-ink); box-shadow:var(--shadow);}
+.quick-add-row button:active{transform:scale(0.9);}
+@keyframes popPulse{
+  0%{transform:scale(1);}
+  40%{transform:scale(1.12);}
+  100%{transform:scale(1);}
+}
+.pulse{animation:popPulse .35s ease;}
+
+/* Water — real water glass with animated waves */
+.battery-row{display:flex; align-items:center; gap:18px; flex:1; justify-content:center;}
+.water-glass{
+  width:60px; height:110px;
+  border:3px solid var(--border);
+  border-radius:6px 6px 16px 16px;
+  position:relative;
+  overflow:hidden;
+  background:var(--surface-2);
+}
+.water-fill{
+  position:absolute; bottom:0; left:0; width:100%; height:0%;
+  background:linear-gradient(180deg, rgba(59,163,255,0.55), rgba(59,163,255,0.85));
+  transition:height .5s ease;
+  overflow:visible;
+}
+.wave{
+  position:absolute;
+  left:-50%;
+  top:-9px;
+  width:200%;
+  height:16px;
+}
+.wave path{fill:#3ba3ff;}
+.wave1{animation:waveMove 3.2s linear infinite; opacity:0.9;}
+.wave2{animation:waveMove 4.6s linear infinite reverse; opacity:0.5; top:-6px;}
+@keyframes waveMove{
+  from{transform:translateX(0);}
+  to{transform:translateX(50%);}
+}
+
+/* Today's workout card (bottom-right) */
+.today-workout-card{justify-content:center;}
+.today-workout-body{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.tw-info{flex:1; min-width:0;}
+.tw-day{font-size:22px; font-weight:800; color:var(--accent); margin:0 0 4px;}
+.tw-sub{font-size:13px; color:var(--ink-dim); margin:0;}
+.tw-status{
+  display:inline-block;
+  font-size:11.5px;
+  font-weight:700;
+  padding:3px 10px;
+  border-radius:20px;
+  margin-bottom:6px;
+}
+.tw-status.today{background:var(--accent); color:var(--accent-ink);}
+.tw-status.done{background:var(--good); color:var(--accent-ink);}
+.tw-status.upcoming{background:var(--surface-2); color:var(--ink-dim);}
+.tw-go-btn{
+  background:var(--accent);
+  color:var(--accent-ink);
+  border:none;
+  padding:10px 18px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:13.5px;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:transform .1s;
+}
+.tw-go-btn:hover{transform:scale(1.04);}
+.tw-go-btn:active{transform:scale(0.95);}
+.streak-row{
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+  font-size:14px;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.streak-count{font-weight:800; color:var(--warn); font-size:18px;}
+
+/* ===== Day switch ===== */
+.day-switch{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.day-btn{
+  flex:1;
+  min-width:160px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--ink-dim);
+  padding:10px 6px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
+.day-btn .day-sub{
+  font-size:10.5px;
+  font-weight:500;
+  color:var(--ink-dim);
+}
+.day-btn.active{
+  background:var(--accent);
+  color:var(--accent-ink);
+  border-color:var(--accent);
+}
+.day-btn.active .day-sub{color:var(--accent-ink); opacity:.85;}
+
+/* ===== Program toolbar / buttons ===== */
+.program-toolbar{display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+.btn-secondary{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink);
+  padding:9px 14px;
+  border-radius:9px;
+  font-weight:700;
+  font-size:13.5px;
+  cursor:pointer;
+}
+.edit-prog-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:var(--ink);
+  transition:background .15s, color .15s;
+}
+.edit-prog-btn svg{color:var(--ink-dim); transition:color .15s;}
+.edit-prog-btn:hover{background:var(--surface); color:var(--accent);}
+.edit-prog-btn:hover svg{color:var(--accent);}
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--ink-dim);
+  padding:9px 14px;
+  border-radius:9px;
+  font-weight:600;
+  font-size:13.5px;
+  cursor:pointer;
+}
+
+/* ===== Big exercise cards with photo carousel (Програма) ===== */
+.exercise-grid-big{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  grid-auto-rows:1fr;
+  gap:14px;
+  margin-bottom:16px;
+  height:calc(100vh - 300px);
+  min-height:400px;
+}
+.exercise-card-big{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.carousel{
+  position:relative;
+  flex:1;
+  min-height:70px;
+  background:var(--surface-2);
+}
+.carousel img{
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+.carousel-btn{
+  position:absolute;
+  top:50%; transform:translateY(-50%);
+  background:rgba(0,0,0,0.45);
+  color:#fff;
+  border:none;
+  width:32px; height:32px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:16px;
+}
+.carousel-btn.prev{left:8px;}
+.carousel-btn.next{right:8px;}
+.carousel-dots{
+  position:absolute;
+  bottom:8px; left:0; right:0;
+  display:flex;
+  justify-content:center;
+  gap:5px;
+}
+.carousel-dots span{
+  width:6px; height:6px; border-radius:50%;
+  background:rgba(255,255,255,0.5);
+}
+.carousel-dots span.active{background:#fff;}
+.exercise-card-big-body{
+  height:104px;
+  padding:8px 12px;
+  flex:0 0 104px;
+  overflow:hidden;
+}
+.exercise-card-big-body .exercise-name{
+  font-size:13.5px;
+  margin:0 0 4px;
+  line-height:1.25;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.exercise-card-big-body .exercise-tip{font-size:11.5px;}
+.remove-ex-btn{
+  position:absolute;
+  top:8px; right:8px;
+  background:rgba(20,20,20,0.7);
+  color:#ff8080;
+  border:none;
+  width:28px; height:28px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:14px;
+  z-index:2;
+}
+.drag-handle{
+  position:absolute;
+  top:8px; left:8px;
+  width:28px; height:28px;
+  background:rgba(20,20,20,0.7);
+  color:#fff;
+  border-radius:50%;
+  cursor:grab;
+  z-index:2;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px;
+  letter-spacing:-1px;
+  user-select:none;
+}
+.exercise-card-big[draggable="true"]{cursor:grab;}
+.exercise-card-big.dragging{opacity:0.4;}
+.exercise-card-big.drag-over{outline:2px dashed var(--accent); outline-offset:-2px;}
+.add-ex-btn{
+  background:var(--accent);
+  color:var(--accent-ink);
+  border:none;
+  padding:6px 12px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:12.5px;
+  cursor:pointer;
+}
+.recommendations-block{margin-bottom:24px;}
+.recommendations-block h3{font-size:15px; color:var(--ink-dim); margin-bottom:10px;}
+.history-details summary{cursor:pointer; color:var(--accent); font-weight:600; font-size:14px; margin-bottom:10px;}
+
+/* ===== Workout toolbar ===== */
+.workout-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.workout-toolbar label{
+  font-size:13px;
+  color:var(--ink-dim);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.status-pill{
+  font-size:12px;
+  font-weight:600;
+  color:var(--good);
+}
+
+/* ===== Custom date picker (Тренування) ===== */
+.date-picker-wrap{position:relative;}
+.date-picker-btn{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink);
+  padding:8px 14px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+}
+.date-picker-btn:hover{border-color:var(--accent);}
+.date-picker-dropdown{
+  display:none;
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;
+  z-index:50;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:14px;
+  width:280px;
+}
+.date-picker-dropdown.open{display:block;}
+.calendar-weekdays-sm{
+  display:grid; grid-template-columns:repeat(7,1fr);
+  text-align:center; font-size:11px; color:var(--ink-dim); margin-bottom:4px;
+}
+.calendar-grid-sm{
+  display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:10px;
+}
+.calendar-grid-sm .cal-cell{font-size:12px; min-height:30px;}
+.wd-today-btn{
+  width:100%;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--accent);
+  padding:7px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:12.5px;
+  cursor:pointer;
+}
+.wd-today-btn:hover{background:var(--accent); color:var(--accent-ink);}
+
+/* ===== Sets/reps/weight inputs (Тренування) — full width, no truncation ===== */
+
+/* ===== Workout history grouped by day ===== */
+.wh-day-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:12px 16px; cursor:pointer; transition:border-color .15s, transform .1s;
+}
+.wh-day-row:hover{border-color:var(--accent); transform:translateX(2px);}
+.wh-day-main{font-weight:700; font-size:14px;}
+.wh-day-count{font-size:12.5px; color:var(--ink-dim);}
+.wh-entry-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:8px 0; border-bottom:1px solid var(--border);
+}
+.wh-entry-row:last-child{border-bottom:none;}
+.wh-entry-name{font-weight:600; font-size:13.5px;}
+.wh-entry-stats{font-size:12.5px; color:var(--ink-dim);}
+.wh-delete-btn{
+  background:none; border:none; color:var(--warn); cursor:pointer; font-size:15px; padding:0 4px; flex:0 0 auto;
+}
+
+input, select, textarea{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink);
+  border-radius:8px;
+  padding:8px 10px;
+  font-size:14px;
+  font-family:inherit;
+}
+textarea{width:100%; min-height:60px; resize:vertical;}
+/* Hide native number spinner arrows everywhere — custom-styled inputs only */
+input[type=number]{-moz-appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;}
+
+/* ===== Exercise cards (workout log tab, small) ===== */
+.exercise-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(360px, 1fr));
+  gap:14px;
+}
+.exercise-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:var(--shadow);
+}
+.exercise-top{display:flex; gap:12px;}
+.exercise-photo{
+  flex:0 0 84px; width:84px; height:84px;
+  border-radius:10px; object-fit:cover; background:var(--surface-2);
+}
+.exercise-info{flex:1; min-width:0;}
+.exercise-name{font-weight:700; font-size:15px; margin:0 0 4px;}
+.exercise-target{
+  display:inline-block; font-size:12px; font-weight:700;
+  background:var(--surface-2); color:var(--accent);
+  padding:2px 8px; border-radius:6px; margin-bottom:6px;
+}
+.ex-record-badge{color:var(--warn) !important;}
+.exercise-tip{font-size:12.5px; color:var(--ink-dim); margin:0;}
+.exercise-log{display:flex; gap:8px; margin-top:10px; align-items:stretch;}
+.exercise-log input{flex:1; min-width:0; width:auto;}
+.exercise-log button{
+  background:var(--accent); color:var(--accent-ink); border:none;
+  padding:8px 14px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;
+  flex:1.2; white-space:nowrap;
+}
+.logged-badge-slot{display:flex; align-items:center; gap:10px; margin-top:4px; flex-wrap:wrap;}
+.logged-badge{
+  display:inline-block; font-size:11.5px; color:var(--good); font-weight:700;
+}
+.log-edit-btn, .log-delete-btn{
+  background:none; border:none; cursor:pointer;
+  font-size:11.5px; font-weight:700;
+  display:inline-flex; align-items:center; gap:4px;
+  padding:0;
+}
+.log-edit-btn{color:var(--accent);}
+.log-edit-btn.saving{color:var(--good);}
+.log-edit-btn:hover{text-decoration:underline;}
+.log-delete-btn{color:var(--warn);}
+.log-delete-btn:hover{text-decoration:underline; color:#ef4444;}
+.exercise-log input[readonly]{color:var(--ink-dim); background:var(--surface); cursor:default;}
+.exercise-log input:not([readonly]){background:var(--surface-2);}
+
+/* ===== History / logs ===== */
+.history-block{margin-top:28px;}
+.history-block h3{font-size:15px; color:var(--ink-dim); margin-bottom:10px;}
+.history-table, .log-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));
+  gap:8px;
+}
+.history-row, .log-row{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:13.5px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+}
+.log-row-main{flex:1;}
+.log-row-date{color:var(--ink-dim); font-size:12px; white-space:nowrap;}
+.empty-note{color:var(--ink-dim); font-size:13px; font-style:italic;}
+.delete-btn{background:none; border:none; color:var(--warn); cursor:pointer; font-size:16px; padding:0 4px;}
+
+/* ===== Forms ===== */
+.card-form{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-width:900px;
+}
+.card-form label{
+  display:flex; flex-direction:column; gap:4px;
+  font-size:12.5px; color:var(--ink-dim); flex:1;
+}
+.form-row{display:flex; gap:10px; flex-wrap:wrap;}
+.btn-primary{
+  background:var(--accent);
+  color:var(--accent-ink);
+  border:none;
+  padding:10px 16px;
+  border-radius:9px;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  align-self:flex-start;
+  text-decoration:none;
+  display:inline-block;
+}
+
+/* ===== Chart ===== */
+.chart-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:20px;
+  width:100%;
+}
+.chart-card h3{margin-top:0; font-size:14px; color:var(--ink-dim);}
+.history-card{max-width:none; width:100%;}
+
+/* ===== Library / recipe grid ===== */
+.filter-row{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+.filter-row input{flex:1; min-width:220px;}
+.muscle-tabs{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+.meal-filters-row{
+  display:flex; justify-content:space-between; align-items:flex-start;
+  gap:16px; flex-wrap:wrap;
+}
+.meal-filters-row .muscle-tabs{margin-bottom:18px;}
+.meal-extra-tabs{justify-content:flex-end;}
+.muscle-tab{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--ink-dim);
+  padding:8px 16px;
+  border-radius:20px;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  transition:background .15s, color .15s, border-color .15s;
+}
+.muscle-tab:hover{border-color:var(--accent); color:var(--ink);}
+.muscle-tab.active{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+.library-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:12px;
+  margin-bottom:24px;
+}
+.lib-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  cursor:default;
+}
+.lib-card img{width:100%; height:120px; object-fit:cover; background:var(--surface-2); display:block;}
+.lib-card-body{padding:10px 12px;}
+.lib-card-name{font-weight:700; font-size:13.5px; margin:0 0 6px;}
+.lib-card-muscle{
+  display:inline-block; font-size:11px; color:var(--accent);
+  background:var(--surface-2); padding:1px 7px; border-radius:5px; margin-bottom:8px;
+}
+.lib-card.clickable{cursor:pointer;}
+.lib-card.clickable:hover{border-color:var(--accent);}
+.lib-card-btns{display:flex; gap:6px;}
+.lib-card-tip{font-size:11.5px; color:var(--ink-dim); margin:0;}
+
+.tech-btn, .tech-btn-sm{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--accent);
+  padding:6px 12px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:12px;
+  cursor:pointer;
+  transition:background .15s, color .15s;
+  display:inline-block;
+  margin-top:4px;
+}
+.tech-btn:hover, .tech-btn-sm:hover{background:var(--accent); color:var(--accent-ink);}
+.tech-btn{width:100%;}
+.lib-card-btns .tech-btn-sm{flex:1;}
+
+.add-exercise-details summary{
+  cursor:pointer; color:var(--accent); font-weight:600; font-size:14px; margin-bottom:12px;
+}
+
+/* ===== Water tracker ===== */
+.water-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  max-width:520px;
+}
+.water-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+.water-head h3{margin:0; font-size:15px;}
+.water-amount{font-weight:800; color:var(--accent); font-size:17px;}
+.water-buttons{display:flex; gap:8px; margin-top:10px;}
+.water-buttons button{
+  background:var(--surface-2); border:1px solid var(--border); color:var(--ink);
+  padding:7px 12px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;
+}
+.water-goal-label{
+  display:flex; align-items:center; gap:8px; margin-top:12px;
+  font-size:12.5px; color:var(--ink-dim);
+}
+.water-goal-label input{width:80px;}
+
+/* ===== Modal ===== */
+.modal-overlay{
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.55);
+  z-index:100;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  max-width:560px;
+  width:100%;
+  max-height:85vh;
+  overflow-y:auto;
+  padding:24px;
+  position:relative;
+}
+.modal-box.compact{max-width:420px;}
+.modal-close{
+  position:absolute; top:14px; right:14px;
+  background:var(--surface-2); border:1px solid var(--border); color:var(--ink);
+  width:30px; height:30px; border-radius:50%; cursor:pointer;
+}
+
+/* Custom scrollbars everywhere (webkit + firefox) */
+*{scrollbar-width:thin; scrollbar-color:var(--border) transparent;}
+*::-webkit-scrollbar{width:8px; height:8px;}
+*::-webkit-scrollbar-track{background:transparent;}
+*::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
+*::-webkit-scrollbar-thumb:hover{background:var(--ink-dim);}
+.modal-box h2{margin-top:0;}
+.modal-box .recipe-meta{color:var(--accent); font-weight:700; font-size:13px; margin-bottom:10px;}
+.modal-box ul{padding-left:20px;}
+.modal-box .recipe-note{
+  background:var(--surface-2);
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:13px;
+  color:var(--ink-dim);
+  margin-top:12px;
+}
+
+/* ===== STATISTICS PAGE ===== */
+.stats-cards-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+.stat-card-mini{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 18px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.stat-card-mini.highlight{
+  background:linear-gradient(135deg, var(--accent), #2f9e63);
+  border-color:transparent;
+}
+.stat-card-mini.highlight .scm-value, .stat-card-mini.highlight .scm-label{color:#fff;}
+.scm-icon{
+  width:40px; height:40px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:19px;
+  background:var(--surface-2);
+  flex:0 0 auto;
+}
+.stat-card-mini.highlight .scm-icon{background:rgba(255,255,255,0.2);}
+.scm-value{font-size:22px; font-weight:800; color:var(--ink); line-height:1.1;}
+.scm-label{font-size:12.5px; color:var(--ink-dim);}
+
+.stats-mid-row{
+  display:grid;
+  grid-template-columns:1fr 1.4fr;
+  gap:16px;
+  margin-bottom:20px;
+}
+.donut-card, .week-bars-card{max-width:none;}
+.donut-wrap{position:relative; width:160px; height:160px; margin:10px auto 16px;}
+.donut{
+  width:160px; height:160px; border-radius:50%;
+  background:conic-gradient(var(--surface-2) 0deg 360deg);
+}
+.donut-center{
+  position:absolute; inset:22px; border-radius:50%; background:var(--surface);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.donut-center .dc-value{font-size:24px; font-weight:800; color:var(--ink);}
+.donut-center .dc-label{font-size:11px; color:var(--ink-dim);}
+.donut-legend{display:flex; flex-direction:column; gap:8px;}
+.donut-legend-row{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink);}
+.donut-legend-dot{width:10px; height:10px; border-radius:50%; flex:0 0 auto;}
+.donut-legend-row span.dlr-count{margin-left:auto; color:var(--ink-dim); font-weight:700;}
+
+.week-bars{display:flex; justify-content:space-between; gap:8px; align-items:flex-end; height:200px; padding-top:10px;}
+.week-day-col{display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;}
+.week-day-col.future{opacity:0.35;}
+.week-day-col.is-today .wdc-label{color:var(--accent); font-weight:700;}
+.wdc-bars{display:flex; gap:3px; align-items:flex-end; height:130px;}
+.wdc-bar{width:12px; border-radius:4px 4px 0 0; background:var(--surface-2); position:relative; min-height:4px;}
+.wdc-bar.cal{background:var(--accent);}
+.wdc-bar.water{background:#5be3c9;}
+.wdc-icon{font-size:14px; margin-top:2px;}
+.wdc-label{font-size:11px; color:var(--ink-dim); margin-top:2px;}
+
+.history-day-list{
+  display:flex; flex-direction:column; gap:8px;
+  max-height:380px; overflow-y:auto; overflow-x:hidden;
+  padding-right:4px;
+}
+.history-day-row{
+  display:flex; align-items:center; gap:14px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+  transition:border-color .15s, transform .1s;
+  min-width:0;
+}
+.history-day-row:hover{border-color:var(--accent); transform:translateX(2px);}
+.hdr-date{font-weight:700; font-size:13.5px; width:90px; flex:0 0 auto; color:var(--ink);}
+.hdr-summary{
+  flex:1; min-width:0; font-size:12.5px; color:var(--ink-dim);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.hdr-status{font-size:16px; flex:0 0 auto;}
+
+/* ===== Side panel ===== */
+.side-panel-overlay{
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.45);
+  z-index:110;
+}
+.side-panel-overlay.open{display:block;}
+.side-panel{
+  position:fixed; top:0; right:0; bottom:0;
+  width:380px; max-width:90vw;
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  padding:26px 24px;
+  overflow-y:auto;
+  transform:translateX(100%);
+  transition:transform .25s ease;
+}
+.side-panel-overlay.open .side-panel{transform:translateX(0);}
+.sp-title{font-size:19px; font-weight:800; margin:0 0 4px;}
+.sp-sub{color:var(--ink-dim); font-size:13px; margin:0 0 20px;}
+.sp-row{margin-bottom:18px;}
+.sp-row-label{font-size:13px; color:var(--ink-dim); margin-bottom:6px; display:flex; justify-content:space-between;}
+.sp-bar-track{background:var(--surface-2); border-radius:8px; height:12px; overflow:hidden;}
+.sp-bar-fill{height:100%; border-radius:8px;}
+.sp-workout-badge{
+  display:inline-block; padding:6px 14px; border-radius:20px; font-weight:700; font-size:13px;
+}
+.sp-detail-text{font-size:13.5px; color:var(--ink); line-height:1.5; margin:0;}
+
+/* ===== Review modal (previous day) ===== */
+.review-field{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;}
+.review-field label{font-size:13.5px; color:var(--ink-dim);}
+.review-field input{width:100px;}
+.review-toggle{display:flex; gap:8px;}
+.review-toggle button{
+  background:var(--surface-2); border:1px solid var(--border); color:var(--ink);
+  padding:6px 14px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;
+}
+.review-toggle button.selected.yes{background:var(--good); color:var(--accent-ink); border-color:var(--good);}
+.review-toggle button.selected.no{background:var(--warn); color:var(--accent-ink); border-color:var(--warn);}
+
+@media (max-width:900px){
+  .home-grid-2x2{grid-template-columns:1fr; grid-template-rows:repeat(4,auto);}
+  #tab-home.active{height:auto; overflow:visible; margin:0; padding:16px;}
+  .calendar-card.compact{max-width:100%;}
+  .stats-mid-row{grid-template-columns:1fr;}
+  #tab-program.active{padding:16px;}
+  .exercise-grid-big{grid-template-columns:repeat(2, 1fr); grid-auto-rows:auto; height:auto; min-height:0;}
+  .carousel{min-height:160px;}
+  .nutrition-combo-card{flex-direction:column;}
+  .combo-divider{width:auto; height:1px; margin:14px 0;}
+}
+@media (max-width:640px){
+  .brand{display:none;}
+  main{padding:16px 14px 60px;}
+  .topbar{padding:12px 16px; gap:8px;}
+  .exercise-grid-big{grid-template-columns:1fr;}
+
+  /* Nav tabs — horizontal scroll, no wrap, touch-friendly */
+  .tabs{overflow-x:auto; -webkit-overflow-scrolling:touch; flex-wrap:nowrap;}
+  .tab-btn{flex:0 0 auto;}
+
+  /* Day switch (Програма / Тренування) — stack full width */
+  .day-switch{flex-direction:column;}
+  .day-btn{min-width:0; width:100%;}
+
+  /* Program toolbar buttons wrap and shrink */
+  .program-toolbar{gap:8px;}
+  .program-toolbar button{flex:1 1 auto; font-size:12.5px; padding:9px 10px;}
+
+  /* Exercise log inputs — allow wrapping into two rows on very narrow screens */
+  .exercise-log{flex-wrap:wrap;}
+  .exercise-log input{flex:1 1 40%; min-width:70px;}
+  .exercise-log button{flex:1 1 100%; order:5;}
+
+  /* Custom date picker — never overflow the viewport */
+  .date-picker-dropdown{width:min(280px, 92vw); left:50%; transform:translateX(-50%);}
+
+  /* Today workout card — stack info and button */
+  .today-workout-body{flex-direction:column; align-items:flex-start;}
+  .tw-go-btn{width:100%;}
+
+  /* Meal / muscle filter tabs — stack the two rows, allow horizontal scroll each */
+  .meal-filters-row{flex-direction:column;}
+  .muscle-tabs{overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; padding-bottom:4px;}
+  .meal-extra-tabs{justify-content:flex-start;}
+
+  /* Weekly progress bars — allow horizontal scroll instead of squeezing */
+  .week-bars{overflow-x:auto; justify-content:flex-start; gap:14px; -webkit-overflow-scrolling:touch;}
+  .week-day-col{flex:0 0 auto; min-width:34px;}
+
+  /* Stats top cards — single column on very small screens */
+  .stats-cards-row{grid-template-columns:1fr 1fr;}
+
+  /* History rows — stack date/summary/status vertically */
+  .wh-day-row, .history-day-row{flex-wrap:wrap;}
+  .hdr-summary{white-space:normal;}
+
+  /* Combo card (calories/water) inputs and quick-add buttons wrap cleanly */
+  .quick-add-row button{flex:1 1 auto;}
+
+  /* Side panel takes full width on phones */
+  .side-panel{width:100%; max-width:100%;}
+
+  /* Modal box comfortably fits small screens */
+  .modal-box{padding:18px;}
+}
+@media (max-width:400px){
+  .stats-cards-row{grid-template-columns:1fr;}
+  .ring{width:88px; height:88px;}
+  .water-glass{width:48px; height:96px;}
+}
+
+/* ===== Rest timer ===== */
+.rest-timer{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  background:var(--surface-2); border:1px solid var(--border);
+  padding:8px 12px; border-radius:10px;
+}
+.rt-display{font-weight:800; font-size:16px; color:var(--accent); min-width:44px; text-align:center;}
+.rt-btn{
+  background:var(--surface); border:1px solid var(--border); color:var(--ink);
+  padding:6px 10px; border-radius:7px; font-weight:700; font-size:12px; cursor:pointer;
+}
+.rt-btn:hover{border-color:var(--accent);}
+.rt-btn.rt-start{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+.rt-btn.rt-active{background:var(--warn); color:var(--accent-ink); border-color:var(--warn);}
+
+/* ===== Deload banner ===== */
+.deload-banner{
+  background:linear-gradient(135deg, #f97316, #eab308);
+  color:#1a1a1a; font-weight:700; font-size:13.5px;
+  padding:12px 16px; border-radius:12px; margin-bottom:16px;
+}
+
+/* ===== Exercise progression hint ===== */
+.ex-hint{font-size:12px; color:var(--ink-dim); margin:2px 0 8px;}
+.ex-hint b{color:var(--ink);}
+.ex-pr-badge{color:var(--warn); font-weight:700;}
+
+/* ===== RPE selector ===== */
+.rpe-row{display:flex; align-items:center; gap:6px; margin-top:8px; flex-wrap:wrap;}
+.rpe-label{font-size:11.5px; color:var(--ink-dim);}
+.rpe-btn{
+  width:26px; height:26px; border-radius:50%;
+  background:var(--surface-2); border:1px solid var(--border); color:var(--ink-dim);
+  font-size:12px; font-weight:700; cursor:pointer;
+}
+.rpe-btn.selected{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+
+/* ===== Tonnage / muscle volume ===== */
+.tonnage-value{font-size:38px; font-weight:800; margin:8px 0 6px; background:linear-gradient(90deg, var(--accent), #a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; display:inline-block;}
+.tonnage-icon-row{font-size:22px; margin:6px 0; letter-spacing:4px;}
+.tonnage-milestone{margin-top:12px;}
+.tonnage-milestone-label{display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-dim); margin-bottom:4px;}
+
+/* Bar list — muscle volume, top exercises, etc. (виправлені відсутні стилі) */
+.bar-list{display:flex; flex-direction:column; gap:12px;}
+.bar-row{display:flex; align-items:center; gap:10px;}
+.bar-name{flex:0 0 100px; font-size:13px; color:var(--ink); font-weight:600;}
+.bar-track{
+  flex:1; height:16px; background:var(--surface-2); border-radius:8px; overflow:hidden; position:relative;
+}
+.bar-fill{
+  height:100%; border-radius:8px;
+  background:linear-gradient(90deg, var(--accent), #a78bfa);
+  transition:width .6s cubic-bezier(.22,1,.36,1);
+}
+.bar-count{flex:0 0 auto; font-size:12.5px; font-weight:700; color:var(--ink-dim); min-width:50px; text-align:right;}
+
+/* ===== Achievements ===== */
+.achievements-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px;
+}
+.achievement-card{
+  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+  padding:14px; text-align:center; opacity:0.35; transition:opacity .2s, transform .2s;
+}
+.achievement-card.unlocked{opacity:1; border-color:var(--accent);}
+.achievement-card:hover{transform:translateY(-2px);}
+.ach-icon{font-size:28px; margin-bottom:6px;}
+.ach-name{font-weight:700; font-size:12.5px; margin:0 0 3px;}
+.ach-desc{font-size:10.5px; color:var(--ink-dim); margin:0;}
+
+/* ===== Weekly meal plan ===== */
+.weekly-plan-grid{
+  display:grid; grid-template-columns:repeat(7, 1fr);
+  gap:10px; margin-top:14px;
+}
+.wp-day-card{
+  background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px;
+}
+.wp-day-name{font-weight:800; font-size:14px; color:var(--accent); margin:0 0 8px;}
+.wp-meal-row-wrap{display:flex; align-items:flex-start; gap:4px; margin-bottom:6px;}
+.wp-meal-row{
+  flex:1; min-width:0;
+  font-size:12.5px; color:var(--ink); line-height:1.35;
+  cursor:pointer; padding:4px 6px; margin-left:-6px; border-radius:6px;
+  transition:background .15s;
+}
+.wp-meal-row:hover{background:var(--surface);}
+.wp-meal-row b{color:var(--ink-dim); font-weight:700; display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; margin-bottom:1px;}
+.wp-reroll-btn{
+  flex:0 0 auto;
+  background:none; border:none; cursor:pointer; font-size:13px;
+  opacity:0.5; padding:4px; border-radius:6px; transition:opacity .15s, background .15s, transform .15s;
+  margin-top:2px;
+}
+.wp-reroll-btn:hover{opacity:1; background:var(--surface); transform:rotate(25deg);}
+@media (max-width:1100px){ .weekly-plan-grid{grid-template-columns:repeat(4, 1fr);} }
+@media (max-width:640px){ .weekly-plan-grid{grid-template-columns:repeat(2, 1fr);} }
+
+/* ===== Shopping list ===== */
+.modal-box.wide{max-width:1200px; max-height:92vh;}
+.shopping-list{
+  columns:4 200px; column-gap:14px;
+}
+.shopping-item{
+  break-inside:avoid; margin-bottom:8px;
+  display:flex; align-items:center; gap:10px;
+  background:var(--surface-2); border-radius:8px; padding:8px 12px; font-size:13.5px;
+}
+.shopping-item.checked{opacity:0.4; text-decoration:line-through;}
+.shopping-item input{width:auto;}
+
+/* ===== Wrapped summary ===== */
+.wrapped-stat{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 0; border-bottom:1px solid var(--border);
+}
+.wrapped-stat:last-child{border-bottom:none;}
+.wrapped-stat-label{color:var(--ink-dim); font-size:13.5px;}
+.wrapped-stat-value{font-weight:800; font-size:18px; color:var(--accent);}
+
+
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="back-to-crm" href="../index.html" title="Повернутися в CRM">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  </a>
+  <div class="brand">ostap_bo</div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="home">Головна</button>
+    <button class="tab-btn" data-tab="program">Програма</button>
+    <button class="tab-btn" data-tab="workout">Тренування</button>
+    <button class="tab-btn" data-tab="library">Вправи</button>
+    <button class="tab-btn" data-tab="nutrition">Харчування</button>
+    <button class="tab-btn" data-tab="progress">Прогрес</button>
+    <button class="tab-btn" data-tab="stats">Статистика</button>
+  </nav>
+  <button id="themeToggle" class="theme-toggle" title="Змінити тему"></button>
+</header>
+
+<main>
+
+  <!-- ================= HOME (static, no scroll) ================= -->
+  <section id="tab-home" class="tab-panel active">
+    <div class="home-grid-2x2">
+
+      <div class="home-card calendar-card compact">
+        <div class="calendar-head">
+          <button id="calPrev" class="cal-nav">‹</button>
+          <h3 id="calMonthLabel">—</h3>
+          <button id="calNext" class="cal-nav">›</button>
+        </div>
+        <div class="calendar-grid compact" id="calendarGrid"></div>
+        <p class="cal-legend"><span class="dot scheduled"></span> заплановано &nbsp; <span class="dot done"></span> відвідано</p>
+        <p id="gcalSetupHint" class="gcal-hint"></p>
+      </div>
+
+      <div class="home-card stat-block">
+        <h3>Тренувань цього місяця</h3>
+        <p class="big-stat"><span id="monthCount">0</span> / <span id="monthTotal">0</span></p>
+        <div class="progress-bar"><div class="progress-fill" id="monthProgressFill"></div></div>
+        <p class="section-hint" style="margin-top:8px;">Вт / Чт / Сб — автоматично, скидається щомісяця.</p>
+      </div>
+
+      <div class="home-card nutrition-combo-card">
+        <div class="combo-half">
+          <div class="combo-head">
+            <h3>Калорії сьогодні</h3>
+            <div class="combo-head-btns">
+              <button class="edit-btn" id="calEdit" title="Змінити денну норму">
+                <svg viewBox="0 0 20 20" width="13" height="13"><path d="M2 18l1-4.5L13.5 3 17 6.5 6.5 17 2 18z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="reset-btn" id="calReset" title="Скинути на сьогодні">↺</button>
+            </div>
+          </div>
+          <div class="ring-row">
+            <svg class="ring" viewBox="0 0 100 100">
+              <circle class="ring-bg" cx="50" cy="50" r="42"></circle>
+              <circle class="ring-fill" id="calRing" cx="50" cy="50" r="42"></circle>
+            </svg>
+            <div class="ring-label">
+              <span id="calConsumed">0</span> /
+              <span class="spinner-wrap">
+                <input type="number" id="calGoal" class="goal-input-sm" value="2400" readonly>
+                <span class="spinner-btns">
+                  <button type="button" class="spin-up" id="calGoalUp">▲</button>
+                  <button type="button" class="spin-down" id="calGoalDown">▼</button>
+                </span>
+              </span>
+              <div class="section-hint" style="margin:2px 0 0;">ккал</div>
+            </div>
+          </div>
+          <div class="quick-add-row">
+            <button data-cal-add="100">+100</button>
+            <button data-cal-add="300">+300</button>
+            <button data-cal-add="500">+500</button>
+            <button data-cal-add="-100">−100</button>
+          </div>
+        </div>
+
+        <div class="combo-divider"></div>
+
+        <div class="combo-half">
+          <div class="combo-head">
+            <h3>Вода сьогодні</h3>
+            <div class="combo-head-btns">
+              <button class="edit-btn" id="waterEdit" title="Змінити денну норму">
+                <svg viewBox="0 0 20 20" width="13" height="13"><path d="M2 18l1-4.5L13.5 3 17 6.5 6.5 17 2 18z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="reset-btn" id="waterReset" title="Скинути на сьогодні">↺</button>
+            </div>
+          </div>
+          <div class="battery-row">
+            <div class="water-glass">
+              <div class="water-fill" id="waterFill">
+                <svg class="wave wave1" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M0 10 Q 25 2 50 10 T 100 10 T 150 10 T 200 10 V20 H0 Z"></path></svg>
+                <svg class="wave wave2" viewBox="0 0 200 20" preserveAspectRatio="none"><path d="M0 10 Q 25 18 50 10 T 100 10 T 150 10 T 200 10 V20 H0 Z"></path></svg>
+              </div>
+            </div>
+            <div class="ring-label">
+              <span id="waterConsumedL">0</span> /
+              <span class="spinner-wrap">
+                <input type="number" id="waterGoalL" class="goal-input-sm" value="3.0" step="0.1" readonly>
+                <span class="spinner-btns">
+                  <button type="button" class="spin-up" id="waterGoalUp">▲</button>
+                  <button type="button" class="spin-down" id="waterGoalDown">▼</button>
+                </span>
+              </span>
+              <div class="section-hint" style="margin:2px 0 0;">літрів</div>
+            </div>
+          </div>
+          <div class="quick-add-row">
+            <button data-water-add="250">+250мл</button>
+            <button data-water-add="500">+500мл</button>
+            <button data-water-add="-250">−250мл</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-card today-workout-card">
+        <h3>Сьогоднішнє тренування</h3>
+        <div id="todayWorkoutBody" class="today-workout-body"></div>
+        <div id="streakRow" class="streak-row"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= PROGRAM (static plan + edit) ================= -->
+  <section id="tab-program" class="tab-panel">
+
+    <div class="day-switch" id="progDaySwitch"></div>
+
+    <div class="program-toolbar">
+      <button id="editProgramBtn" class="btn-secondary edit-prog-btn">
+        <svg viewBox="0 0 20 20" width="14" height="14"><path d="M2 18l1-4.5L13.5 3 17 6.5 6.5 17 2 18z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Редагувати програму
+      </button>
+      <button id="saveProgramBtn" class="btn-primary" style="display:none;">Зберегти зміни</button>
+      <button id="cancelProgramBtn" class="btn-ghost" style="display:none;">Скасувати</button>
+    </div>
+
+    <div id="programExerciseList" class="exercise-grid-big"></div>
+
+    <div id="recommendationsBlock" class="recommendations-block" style="display:none;">
+      <h3>Рекомендовані вправи (додай зі своєї бібліотеки)</h3>
+      <div id="recommendationsList" class="library-grid"></div>
+    </div>
+
+    <details class="history-details">
+      <summary>Історія змін програми</summary>
+      <div id="programHistoryList" class="log-list"></div>
+    </details>
+  </section>
+
+  <!-- ================= WORKOUT LOG (база тренувань) ================= -->
+  <section id="tab-workout" class="tab-panel">
+
+    <div class="day-switch" id="daySwitch"></div>
+
+    <div class="workout-toolbar">
+      <label>Дата тренування:
+        <div class="date-picker-wrap">
+          <button type="button" id="workoutDateBtn" class="date-picker-btn">
+            <span id="workoutDateLabel">—</span> 📅
+          </button>
+          <div id="workoutDateDropdown" class="date-picker-dropdown">
+            <div class="calendar-head">
+              <button type="button" id="wdCalPrev" class="cal-nav">‹</button>
+              <h3 id="wdCalMonthLabel">—</h3>
+              <button type="button" id="wdCalNext" class="cal-nav">›</button>
+            </div>
+            <div class="calendar-weekdays-sm">
+              <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Нд</span>
+            </div>
+            <div class="calendar-grid-sm" id="wdCalendarGrid"></div>
+            <button type="button" id="wdCalToday" class="wd-today-btn">Сьогодні</button>
+          </div>
+        </div>
+      </label>
+
+      <div class="rest-timer" id="restTimer">
+        <span class="rt-display" id="rtDisplay">1:30</span>
+        <button type="button" class="rt-btn" data-preset="60">60с</button>
+        <button type="button" class="rt-btn" data-preset="90">90с</button>
+        <button type="button" class="rt-btn" data-preset="120">120с</button>
+        <button type="button" class="rt-btn rt-start" id="rtStartBtn">▶ Старт</button>
+      </div>
+    </div>
+
+    <div id="deloadBanner" class="deload-banner" style="display:none;"></div>
+
+    <div id="exerciseList" class="exercise-list"></div>
+
+    <div class="history-block">
+      <h3>Історія тренувань</h3>
+      <div id="workoutHistory" class="history-day-list"></div>
+    </div>
+  </section>
+
+  <!-- ================= EXERCISE LIBRARY ================= -->
+  <section id="tab-library" class="tab-panel">
+    <h2 class="section-title">Бібліотека вправ</h2>
+    <p class="section-hint">Тут всі доступні вправи. Додавай сюди нові — вони одразу зʼявляться як рекомендації на сторінці «Програма».</p>
+
+    <div class="muscle-tabs" id="muscleTabs"></div>
+
+    <div id="libraryGrid" class="library-grid"></div>
+
+    <details class="add-exercise-details">
+      <summary>+ Додати свою вправу в бібліотеку</summary>
+      <form id="addExerciseForm" class="card-form">
+        <div class="form-row">
+          <label>Назва вправи
+            <input type="text" id="newExName" required placeholder="Напр.: Станова тяга">
+          </label>
+          <label>Група м'язів
+            <input type="text" id="newExMuscle" required placeholder="Напр.: Спина">
+          </label>
+        </div>
+        <label>Ціль (підходи × повторення)
+          <input type="text" id="newExTarget" placeholder="Напр.: 3 × 10">
+        </label>
+        <label>URL фото (необов'язково)
+          <input type="text" id="newExPhoto" placeholder="https://...">
+        </label>
+        <label>Техніка виконання
+          <textarea id="newExTip" placeholder="Коротка підказка з техніки"></textarea>
+        </label>
+        <button type="submit" class="btn-primary">Додати в бібліотеку</button>
+      </form>
+    </details>
+  </section>
+
+  <!-- ================= NUTRITION ================= -->
+  <section id="tab-nutrition" class="tab-panel">
+    <h2 class="section-title">Харчування</h2>
+
+    <div class="chart-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <h3 style="margin:0;">🎲 План харчування на тиждень</h3>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-secondary" id="generatePlanBtn">Згенерувати план</button>
+          <button class="btn-secondary" id="showShoppingListBtn">🛒 Список покупок</button>
+        </div>
+      </div>
+      <div id="weeklyPlanGrid" class="weekly-plan-grid"></div>
+    </div>
+
+    <div class="meal-filters-row">
+      <div class="muscle-tabs" id="mealTypeTabs"></div>
+      <div class="muscle-tabs meal-extra-tabs" id="mealExtraTabs"></div>
+    </div>
+
+    <div id="recipeGrid" class="library-grid"></div>
+  </section>
+
+  <!-- ================= PROGRESS ================= -->
+  <section id="tab-progress" class="tab-panel">
+    <h2 class="section-title">Прогрес</h2>
+
+    <form id="progressForm" class="card-form">
+      <div class="form-row">
+        <label>Дата
+          <input type="date" id="progressDate" required>
+        </label>
+        <label>Вага (кг)
+          <input type="number" step="0.1" id="progressWeight" placeholder="86.5" required>
+        </label>
+        <label>Талія (см)
+          <input type="number" step="0.1" id="progressWaist" placeholder="92">
+        </label>
+      </div>
+      <button type="submit" class="btn-primary">Зберегти замір</button>
+    </form>
+
+    <div class="chart-card">
+      <h3>Динаміка ваги</h3>
+      <canvas id="weightChart" height="220"></canvas>
+    </div>
+
+    <h3>Всі заміри</h3>
+    <div id="progressList" class="log-list"></div>
+  </section>
+
+  <!-- ================= STATISTICS ================= -->
+  <section id="tab-stats" class="tab-panel">
+    <h2 class="section-title">Статистика</h2>
+    <p class="section-hint">Огляд по калоріях, воді й тренуваннях. Клікни на будь-який день в історії внизу, щоб побачити деталі.</p>
+
+    <div class="stats-cards-row" id="statsCardsRow"></div>
+
+    <div class="stats-mid-row">
+      <div class="chart-card donut-card">
+        <h3>Дні за останній тиждень — розподіл</h3>
+        <p id="weekDonutEmpty" class="empty-note" style="display:none;"></p>
+        <div class="donut-wrap" id="donutWrap">
+          <div class="donut" id="weekDonut"></div>
+          <div class="donut-center" id="weekDonutCenter"></div>
+        </div>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+
+      <div class="chart-card week-bars-card">
+        <h3>Прогрес за 7 днів — калорії / вода / тренування</h3>
+        <div class="week-bars" id="weekBars"></div>
+      </div>
+    </div>
+
+    <div class="stats-mid-row">
+      <div class="chart-card">
+        <h3>Загальний тоннаж 🏋️</h3>
+        <p class="tonnage-value" id="totalTonnage">0 кг</p>
+        <p class="section-hint" id="tonnageHint" style="margin:0;"></p>
+      </div>
+      <div class="chart-card">
+        <h3>Об'єм по групах м'язів (весь час)</h3>
+        <div id="muscleVolumeList" class="bar-list"></div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>🏆 Досягнення</h3>
+      <div id="achievementsGrid" class="achievements-grid"></div>
+    </div>
+
+    <div class="chart-card">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <h3 style="margin:0;">📊 Підсумок за весь час</h3>
+        <button class="btn-secondary" id="openWrappedBtn">Показати підсумок</button>
+      </div>
+    </div>
+
+    <div class="chart-card history-card">
+      <h3>Історія по днях</h3>
+      <div class="history-day-list" id="historyDayList"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= SIDE PANEL (день детально) ================= -->
+<div id="sidePanelOverlay" class="side-panel-overlay">
+  <div class="side-panel" id="sidePanel">
+    <button id="sidePanelClose" class="modal-close">✕</button>
+    <div id="sidePanelContent"></div>
+  </div>
+</div>
+
+<!-- ================= MODAL (recipe detail) ================= -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-box">
+    <button id="modalClose" class="modal-close">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ostap_bo — особистий трекер тренувань, харчування і прогресу.
+   Дані зберігаються локально в браузері (localStorage).
+   ============================================================ */
+
+const WIKI = (name) => `https://commons.wikimedia.org/wiki/Special:FilePath/${name.replace(/ /g, '_')}`;
+
+/* ---------- Бібліотека вправ ---------- */
+const DEFAULT_EXERCISES = [
+  { id:"ex1", name:"Жим штанги лежачи (або в Смітті)", muscle:"Груди", target:"4 × 8-10",
+    photos:[ WIKI("Bench press 1.jpg") ],
+    tip:"Лопатки зведені й притиснуті до лави, штангу опускай до середини грудей без ривка.",
+    detail:{
+      setup:"Ляж на лаву, ступні стійко на підлозі, лопатки зведи і притисни до лави, невеликий природний прогин у попереку.",
+      execution:"Візьми штангу трохи ширше плечей, зніми зі стійок, опускай до середини грудей на вдиху контрольовано (2-3 сек), торкнись грудей без відбивання, виштовхни вгору на видиху.",
+      mistakes:"Відбивання штанги від грудей, підняті лопатки, занадто широкий/вузький хват, ноги, що «гуляють».",
+      recommendation:"Починай з ваги, яку контролюєш на 8-10 повторень. Прогресуй на 2.5-5 кг, коли останні 2 повторення даються легко технічно." } },
+  { id:"ex2", name:"Жим в тренажері для грудей", muscle:"Груди", target:"3 × 10-12",
+    photos:[ WIKI("Girl doing chest press machine exercise.jpg") ],
+    tip:"Спина щільно притиснута до спинки тренажера, не до повного замку ліктів вгорі.",
+    detail:{
+      setup:"Відрегулюй сидіння так, щоб ручки були на рівні середини грудей.",
+      execution:"Штовхай ручки вперед на видиху, не до повного замку ліктів, повертай назад повільно (2-3 сек) під контролем.",
+      mistakes:"Різкий рух назад (втрата контролю), відривання спини від спинки тренажера.",
+      recommendation:"Хороша вправа для новачків — менше навантаження на стабілізатори, простіше вивчити амплітуду руху." } },
+  { id:"ex3", name:"Розведення в тренажері «Баттерфляй»", muscle:"Груди", target:"3 × 12",
+    photos:[ WIKI("Girl doing chest press machine exercise.jpg") ],
+    tip:"Лікті трохи зігнуті й зафіксовані. Зводь важелі за рахунок грудних, а не рук.",
+    detail:{
+      setup:"Сідай так, щоб плечі знаходились на рівні важелів, спина щільно притиснута до спинки.",
+      execution:"Лікті трохи зігнуті й зафіксовані протягом усього руху, зводь важелі перед собою за рахунок грудних, затримайся на секунду в зведеному положенні.",
+      mistakes:"Занадто важка вага змушує «кидати» важелі замість контрольованого руху, згинання-розгинання ліктів під час руху.",
+      recommendation:"Роби в кінці тренування грудей, коли основна сила вже витрачена на жими — це ізолююча вправа." } },
+  { id:"ex4", name:"Трицепс на блоці (канат)", muscle:"Трицепс", target:"3 × 12",
+    photos:[ WIKI("Girl double dumbbell tricep extension.jpg") ],
+    tip:"Лікті притиснуті до тулуба, повне розгинання рук вниз.",
+    detail:{
+      setup:"Стань прямо перед блоком, лікті притисни до тулуба, канат тримай нейтральним хватом.",
+      execution:"Розгинай руки вниз до повного випрямлення, в кінці амплітуди трохи розведи кінці канату в сторони, повертай повільно.",
+      mistakes:"Лікті «втікають» вперед від тулуба, розгойдування корпусом для допомоги собі.",
+      recommendation:"Тримай темп повільним (особливо на поверненні) — це ізольована вправа, вага тут другорядна порівняно з технікою." } },
+  { id:"ex5", name:"Трицепс на блоці зворотним хватом", muscle:"Трицепс", target:"3 × 12",
+    photos:[ WIKI("Girl double dumbbell tricep extension.jpg") ],
+    tip:"Долоні дивляться вгору, лікті нерухомі, рух повільний.",
+    detail:{
+      setup:"Той самий блок і рукоятка, але хват знизу — долоні дивляться вгору.",
+      execution:"Розгинай руки вниз, лікті нерухомі й притиснуті до боків, рух повільний і контрольований в обидва боки.",
+      mistakes:"Те саме, що і з прямим хватом — «втеча» ліктів вперед від тулуба.",
+      recommendation:"Чергуй прямий і зворотний хват між тренуваннями для різноманітного навантаження на голівки трицепса." } },
+  { id:"ex6", name:"Прес в тренажері (сидячи)", muscle:"Прес", target:"3 × 15-20",
+    photos:[ WIKI("Two sporty women doing exercise abdominal crunches, pumping a press on floor in gym concept training.jpg") ],
+    tip:"Скручуй корпус за рахунок преса, а не ривком ваги.",
+    detail:{
+      setup:"Відрегулюй сидіння, візьмись за верхні ручки тренажера.",
+      execution:"Скручуй корпус вперед-вниз за рахунок преса (не рук), видих на скороченні, повільно повертайся у вихідне положення.",
+      mistakes:"Тягнення ваги руками замість роботи прес, різкі ривки.",
+      recommendation:"Роби повільно, з паузою в нижній точці на 1 секунду для максимального скорочення м'яза." } },
+  { id:"ex7", name:"Тяга верхнього блоку", muscle:"Спина", target:"4 × 10",
+    photos:[ WIKI("Girl doing lat pulldown exercise.jpg") ],
+    tip:"Тягни ручку до верхньої частини грудей, лопатки зводь разом.",
+    detail:{
+      setup:"Сідай, зафіксуй стегна під валиками, візьми ручку широким хватом.",
+      execution:"Тягни ручку до верхньої частини грудей, лопатки зводь разом і опускай вниз, повертай повільно вгору.",
+      mistakes:"Тягнення за голову (травмонебезпечно), розгойдування корпусом, робота руками замість спини.",
+      recommendation:"Якщо поки не виходить підтягування — це найкраща альтернатива для розвитку широчайших м'язів." } },
+  { id:"ex8", name:"Тяга горизонтального блоку сидячи", muscle:"Спина", target:"4 × 10",
+    photos:[ WIKI("Woman using a seated cable row machine at the gym.jpg") ],
+    tip:"Спина рівна, тягни рукоятку до живота, лікті йдуть назад.",
+    detail:{
+      setup:"Сідай, ноги зігнуті в упорі в платформу, спина рівна.",
+      execution:"Тягни рукоятку до живота, лікті йдуть назад вздовж тулуба, в кінці зводь лопатки, повертай повільно.",
+      mistakes:"Кругла спина, розгойдування корпусом вперед-назад для «допомоги» собі.",
+      recommendation:"Тримай корпус нерухомим — весь рух має йти від рук і лопаток, а не від тулуба." } },
+  { id:"ex9", name:"Тяга гантелі в нахилі однією рукою", muscle:"Спина", target:"3 × 10 / руку",
+    photos:[ WIKI("Woman in a gym doing bodyweight rows.jpg") ],
+    tip:"Спина рівна (не кругла), гантель тягнеш до пояса.",
+    detail:{
+      setup:"Упор коліном і рукою на лаву, спина рівна, майже паралельна підлозі.",
+      execution:"Тягни гантель до пояса, лікоть йде вздовж тіла вгору, в верхній точці стисни лопатку.",
+      mistakes:"Кругла спина, ривок корпусом, занадто важка вага, що змушує обертати тулуб.",
+      recommendation:"Тренуй кожну сторону однаково — не компенсуй слабшу руку розгойдуванням тіла." } },
+  { id:"ex10", name:"Підйом штанги на біцепс", muscle:"Біцепс", target:"3 × 10-12",
+    photos:[ WIKI("Girl doing double dumbbell bicep curl.jpg") ],
+    tip:"Лікті нерухомі й притиснуті до боків, без розгойдування корпусом.",
+    detail:{
+      setup:"Стій прямо, хват на ширині плечей знизу (долоні вперед).",
+      execution:"Згинай руки в ліктях, піднімаючи штангу до грудей, лікті нерухомі й притиснуті до боків, опускай повільно.",
+      mistakes:"Розгойдування корпусом (читинг), лікті, що йдуть вперед від тулуба.",
+      recommendation:"Якщо доводиться сильно розгойдуватись — вага завелика, зменш і зроби більше чистих повторень." } },
+  { id:"ex11", name:"Молотки з гантелями", muscle:"Біцепс", target:"3 × 12",
+    photos:[ WIKI("Woman in a gym sitting on the floor and doing dumbbell curls.jpg") ],
+    tip:"Нейтральний хват (долоні одна на одну), лікті нерухомі.",
+    detail:{
+      setup:"Стій прямо, гантелі тримай нейтральним хватом (долоні дивляться одна на одну).",
+      execution:"Згинай лікті, піднімаючи гантелі до плечей, хват залишається нейтральним протягом усього руху.",
+      mistakes:"Обертання зап'ястя в верхній точці, розгойдування корпусом.",
+      recommendation:"Ця вправа краще навантажує плечову м'яз (brachialis) — робить руку візуально товщою, а не тільки біцепс." } },
+  { id:"ex12", name:"Кранчі на підлозі", muscle:"Прес", target:"3 × 15-20",
+    photos:[ WIKI("Girl exercising doing a plank.jpg") ],
+    tip:"Поперек притиснутий до підлоги, рух короткий.",
+    detail:{
+      setup:"Ляж на спину, коліна зігнуті, стопи на підлозі, руки за головою або схрещені на грудях.",
+      execution:"Підніми лопатки від підлоги за рахунок преса, короткий рух, видих на підйомі, повільно опускайся.",
+      mistakes:"Тягнення голови руками, різкі ривки, повне випрямлення спини знизу (втрата напруги в м'язі).",
+      recommendation:"Якість важливіша за кількість — 15 повільних повторень ефективніші за 30 швидких." } },
+  { id:"ex13", name:"Жим ногами в тренажері", muscle:"Ноги", target:"3 × 12",
+    photos:[ WIKI("Girl playing weights with legs on the exercise machine.jpg") ],
+    tip:"Ступні на ширині плечей, опускай до кута ~90° в колінах.",
+    detail:{
+      setup:"Сідай в тренажер, стопи на платформі на ширині плечей.",
+      execution:"Опускай платформу до кута ~90° в колінах, виштовхуй вгору не до повного замку колін.",
+      mistakes:"Повне замикання колін вгорі (навантаження на суглоб), відривання попереку від спинки внизу.",
+      recommendation:"Не опускай платформу нижче точки, де поперек відривається від сидіння — це ризик травми спини." } },
+  { id:"ex14", name:"Жим гантелей сидячи (плечі)", muscle:"Плечі", target:"3 × 10-12",
+    photos:[ WIKI("Girl doing dumbbell shoulder press 02.jpg") ],
+    tip:"Спина притиснута до спинки лави, без повного замку ліктів вгорі.",
+    detail:{
+      setup:"Сідай, спина притиснута до спинки лави, гантелі на рівні плечей.",
+      execution:"Жми гантелі вгору до майже повного випрямлення рук, повертай повільно вниз.",
+      mistakes:"Прогин у попереку замість опори на спинку лави, зіткнення гантелей вгорі з ривком.",
+      recommendation:"Якщо є дискомфорт у плечах — не опускай гантелі надто низько за рівень вух." } },
+  { id:"ex15", name:"Розведення гантелей в сторони", muscle:"Плечі", target:"3 × 12-15",
+    photos:[ WIKI("Girl doing lateral raises with bands.jpg") ],
+    tip:"Лікті трохи зігнуті, гантелі до рівня плечей, без ривка.",
+    detail:{
+      setup:"Стій або сідай прямо, гантелі внизу вздовж тіла.",
+      execution:"Піднімай гантелі в сторони до рівня плечей, лікті трохи зігнуті, без ривка тулубом.",
+      mistakes:"Підйом вище рівня плечей, ривок тулубом, надто важка вага для цієї ізолюючої вправи.",
+      recommendation:"Краще менша вага з ідеальною технікою, ніж важка вага з розгойдуванням корпусу." } },
+  { id:"ex16", name:"Біцепс з гантелями", muscle:"Біцепс", target:"3 × 12",
+    photos:[ WIKI("Girl doing double dumbbell bicep curl.jpg") ],
+    tip:"Лікті нерухомі, повний діапазон руху.",
+    detail:{
+      setup:"Стій прямо, гантелі в руках, лікті притиснуті до боків.",
+      execution:"Згинай руки почергово або разом, в верхній точці можна трохи розвернути зап'ястя, опускай повільно.",
+      mistakes:"Розгойдування корпусом, лікті, що йдуть вперед-вгору під час підйому.",
+      recommendation:"Повний контроль на негативній фазі (опусканні) дає кращий ріст м'яза, ніж швидкий підйом." } },
+  { id:"ex17", name:"Тяга канату на біцепс (згинання рук)", muscle:"Біцепс", target:"3 × 12",
+    photos:[ WIKI("Girl doing double dumbbell bicep curl.jpg") ],
+    tip:"Лікті притиснуті до боків, тягни канат вгору за рахунок біцепса.",
+    detail:{
+      setup:"Стань прямо перед нижнім блоком, візьми канат нейтральним хватом, лікті притисни до тулуба.",
+      execution:"Згинай руки, тягнучи канат вгору до плечей, в верхній точці стисни біцепс, опускай повільно і контрольовано.",
+      mistakes:"Розгойдування корпусом (читинг), лікті, що йдуть вперед від тулуба.",
+      recommendation:"Постійне навантаження від блоку (на відміну від гантелей) добре тримає м'яз у напрузі всю амплітуду руху." } },
+];
+
+const DEFAULT_PROGRAM_DAYS = {
+  A: { name:"Вівторок", exerciseIds:["ex13","ex7","ex3","ex4","ex17"] },
+  B: { name:"Четвер", exerciseIds:["ex7","ex8","ex9","ex10","ex11","ex12"] },
+  C: { name:"Субота", exerciseIds:["ex13","ex14","ex15","ex16","ex4","ex6"] },
+};
+
+/* ---------- База страв ---------- */
+function M(id, name, type, ingredients, steps, note){
+  return { id, name, type, ingredients, steps, note };
+}
+/* ---------- Фото страв (реальні стокові фото, Wikimedia Commons) ---------- */
+const MEAL_PHOTO_BANK = {
+  oatmeal: WIKI("Cooked oatmeal in bowl (low angle).jpg"),
+  omelette: WIKI("Egg omelette.JPG"),
+  cottageCheese: WIKI("Blueberries, bananas, sour cream and cottage cheese.jpg"),
+  yogurt: WIKI("Greek yoghurt with honey.jpg"),
+  nuts: WIKI("Liat Portal for Foodie Disorder - Mixed nuts assortment.jpg"),
+  boiledEggs: WIKI("Bowl of Eggs (Unsplash).jpg"),
+  salmon: WIKI("Fillet of salmon at restaurant Alter Ego, Tallinn, Estonia.jpg"),
+  tuna: WIKI("Tuna salad on mixed greens, with corn, carrots, tomatoes, olive oil, red vinegar, and black pepper - Massachusetts.jpg"),
+  chicken: WIKI("HotFreshGrilledChickenBowl.jpg"),
+  beef: WIKI("Ground beef, roasted broccoli, green beans, and cherry tomatoes - Massachusetts.jpg"),
+  turkey: WIKI("Sliced turkey.jpg"),
+  apple: WIKI("Red Apple.jpg"),
+  banana: WIKI("Banana (1).jpg"),
+};
+const MEAL_PHOTO_MAP = {
+  br1:'oatmeal', br2:'omelette', br3:'cottageCheese', br4:'tuna', br5:'oatmeal',
+  br6:'omelette', br7:'yogurt', br8:'yogurt', br9:'boiledEggs', br10:'cottageCheese',
+  br11:'oatmeal', br12:'omelette', br13:'salmon', br14:'banana', br15:'boiledEggs',
+  br16:'oatmeal', br17:'cottageCheese', br18:'omelette', br19:'boiledEggs', br20:'yogurt',
+  ln1:'chicken', ln2:'beef', ln3:'turkey', ln4:'tuna', ln5:'salmon',
+  ln6:'chicken', ln7:'beef', ln8:'chicken', ln9:'beef', ln10:'tuna',
+  ln11:'chicken', ln12:'turkey', ln13:'salmon', ln14:'beef', ln15:'chicken',
+  ln16:'tuna', ln17:'beef', ln18:'chicken', ln19:'turkey', ln20:'beef',
+  dn1:'chicken', dn2:'omelette', dn3:'tuna', dn4:'salmon', dn5:'turkey',
+  dn6:'cottageCheese', dn7:'chicken', dn8:'beef', dn9:'chicken', dn10:'turkey',
+  dn11:'salmon', dn12:'boiledEggs', dn13:'tuna', dn14:'chicken', dn15:'beef',
+  dn16:'cottageCheese', dn17:'turkey', dn18:'chicken', dn19:'salmon', dn20:'cottageCheese',
+  sn1:'yogurt', sn2:'nuts', sn3:'cottageCheese', sn4:'apple', sn5:'boiledEggs',
+  sn6:'yogurt', sn7:'tuna', sn8:'oatmeal', sn9:'yogurt', sn10:'banana',
+  rr1:'beef', rr2:'beef', rr3:'chicken', rr4:'chicken', rr5:'turkey',
+  rr6:'boiledEggs', rr7:'cottageCheese', rr8:'cottageCheese', rr9:'oatmeal', rr10:'oatmeal',
+  rr11:'banana', rr12:'apple',
+};
+function getMealPhoto(m){
+  const key = MEAL_PHOTO_MAP[m.id];
+  return key ? MEAL_PHOTO_BANK[key] : '';
+}
+
+const MEALS = [
+  // ---------- Сніданки (20) ----------
+  M('br1','Вівсянка з протеїном і бананом','Сніданок',['60 г вівсянки','1 мірна ложка протеїну','1 банан','200 мл молока'],'Звари вівсянку на молоці, після зняття з вогню вмішай протеїн, зверху наріж банан.','Гарний варіант перед тренуванням — швидкі й повільні вуглеводи разом з білком.'),
+  M('br2','Омлет з овочами','Сніданок',['3 яйця','пів цибулі','пів помідора','пів перцю'],'Овочі дрібно наріж, обсмаж на сухій сковороді 2 хв, залий збитими яйцями, готуй під кришкою 4-5 хв.','На сковороді з антипригарним покриттям олія не потрібна.'),
+  M('br3','Сир кисломолочний з ягодами і горіхами','Сніданок',['200 г сиру кисломолочного 5%','100 г ягід','15 г горіхів'],'Викласти сир у миску, зверху ягоди та подрібнені горіхи.','Швидкий сніданок без готування, багато білка.'),
+  M('br4','Яєчня з тунцем і тостом','Сніданок',['2 яйця','пів банки тунця у власному соку','1 шматок цільнозернового хліба'],'Тунець підігрій на сковороді, зверху розбий яйця, готуй до бажаної готовності. Тост окремо.','Тунець бери саме у власному соку, не в олії.'),
+  M('br5','Вівсянка на молоці з горіхами і медом','Сніданок',['50 г вівсянки','200 мл молока','10 г горіхів','1 ч.л. меду'],'Звари вівсянку на молоці 5 хв, додай горіхи і мед перед подачею.','Мед — по бажанню, можна прибрати для більшого дефіциту.'),
+  M('br6','Омлет з куркою і шпинатом','Сніданок',['3 яйця','80 г вареної курячої грудки','жменя шпинату'],'Курку наріж кубиками, обсмаж зі шпинатом 2 хв, залий яйцями, готуй під кришкою.','Хороший варіант, якщо готуєш курку заздалегідь на кілька днів.'),
+  M('br7','Грецький йогурт з висівками і чіа','Сніданок',['200 г грецького йогурту','15 г вівсяних висівок','10 г насіння чіа'],'Все змішати в мисці, дати постояти 5 хв, щоб чіа набубнявіло.','Багато клітковини — довше тримає ситість.'),
+  M('br8','Протеїновий смузі','Сніданок',['1 мірна ложка протеїну','1 банан','200 мл молока','1 ч.л. арахісової пасти'],'Все скласти в блендер і збити до однорідності.','Зручно, коли зранку немає часу готувати.'),
+  M('br9','Яйця пашот з авокадо на тості','Сніданок',['2 яйця','пів авокадо','1 тост цільнозерновий'],'Яйця зварити пашот (окріп з оцтом, 3 хв), авокадо розім\'яти на тості, зверху викласти яйця.','Авокадо — джерело корисних жирів, не зловживай порцією під час дефіциту.'),
+  M('br10','Сирники на сковороді без олії','Сніданок',['200 г сиру кисломолочного','1 яйце','2 ст.л. вівсяного борошна'],'Змішай усі інгредієнти, сформуй сирники, обсмаж на антипригарній сковороді по 3 хв з кожного боку.','Борошно можна замінити меленою вівсянкою.'),
+  M('br11','Вівсянка з яблуком і корицею','Сніданок',['50 г вівсянки','200 мл води або молока','1 яблуко','щіпка кориці'],'Звари вівсянку, яблуко наріж кубиками і додай в кінці варіння разом з корицею.','Без цукру — солодкість дає яблуко.'),
+  M('br12','Омлет з індичкою і томатами','Сніданок',['3 яйця','80 г вареної індички','1 помідор'],'Індичку і помідор наріж, обсмаж 2 хв, залий яйцями, готуй під кришкою 4-5 хв.','Індичка — пісне м\'ясо, добре для дефіциту калорій.'),
+  M('br13','Тост з сиром кисломолочним і лососем','Сніданок',['1 тост цільнозерновий','100 г сиру кисломолочного','50 г слабосоленого лосося'],'На тост викласти сир, зверху лосось.','Лосось дає корисні жири Омега-3.'),
+  M('br14','Протеїнові млинці','Сніданок',['1 банан','2 яйця','1 мірна ложка протеїну'],'Все збити блендером до тіста, смажити на сухій сковороді по 1-2 хв з кожного боку.','Смачна альтернатива класичним млинцям з цукром.'),
+  M('br15','Варені яйця з гречкою і овочами','Сніданок',['3 яйця варені','60 г гречки (сухої)','овочі за смаком'],'Гречку відварити, яйця зварити круто, подавати разом зі свіжими овочами.','Простий і надійний варіант, який важко зіпсувати.'),
+  M('br16','Вівсяна каша з протеїном і ягодами','Сніданок',['50 г вівсянки','1 мірна ложка протеїну','100 г ягід'],'Звари вівсянку на воді, зніми з вогню, вмішай протеїн, зверху виклади ягоди.','Якщо ягоди заморожені — розморозь заздалегідь.'),
+  M('br17','Сир кисломолочний з медом і горіхами','Сніданок',['200 г сиру кисломолочного','1 ч.л. меду','15 г волоських горіхів'],'Змішати сир з медом, зверху посипати подрібненими горіхами.','Класичний швидкий сніданок з високим вмістом білка.'),
+  M('br18','Білковий омлет з перцем','Сніданок',['5 білків + 1 жовток','пів перцю'],'Перець наріж, обсмаж 2 хв на сухій сковороді, залий збитими яйцями.','Менше жовтків — менше жиру, більше чистого білка.'),
+  M('br19','Тост з яйцем і авокадо','Сніданок',['1 тост цільнозерновий','1 яйце','пів авокадо'],'Яйце звари некруто, авокадо розім\'яти на тості, зверху викласти яйце, розрізане навпіл.','Швидкий варіант на 10 хвилин.'),
+  M('br20','Домашня гранола з йогуртом','Сніданок',['40 г вівсянки (запечена з медом)','150 г грецького йогурту','10 г горіхів'],'Вівсянку перемішати з ложкою меду, запекти 10 хв при 180°C до хрусткості, подавати з йогуртом.','Гранолу можна приготувати наперед на кілька днів.'),
+
+  // ---------- Обіди (20) ----------
+  M('ln1','Курка гриль з рисом і броколі','Обід',['150 г курячої грудки','60 г рису (сухого)','150 г броколі'],'Курку замаринувати і обсмажити на грилі/сковороді 6-7 хв з кожного боку. Рис відварити, броколі приготувати на пару.','Класична основа для набору маси з контролем жиру.'),
+  M('ln2','Яловичина з гречкою і овочевим салатом','Обід',['150 г яловичини','60 г гречки (сухої)','овочевий салат'],'Яловичину обсмажити на сухій сковороді 4-5 хв з кожного боку, гречку відварити.','Яловичина — гарне джерело заліза й білка.'),
+  M('ln3','Індичка з булгуром і огірком','Обід',['150 г філе індички','60 г булгуру (сухого)','1 огірок'],'Індичку відварити або запекти 20 хв при 200°C, булгур залити окропом на 15 хв.','Булгур не потребує довгого варіння — економить час.'),
+  M('ln4','Тунець з кус-кусом і томатами','Обід',['1 банка тунця у власному соку','60 г кус-кусу (сухого)','2 помідори'],'Кус-кус залити окропом 1:1, накрити на 5 хв. Тунець і нарізані томати додати до готового кус-кусу.','Швидкий обід без готування на плиті.'),
+  M('ln5','Лосось запечений з рисом і шпинатом','Обід',['150 г лосося','60 г рису (сухого)','жменя шпинату'],'Лосось запекти 15-18 хв при 200°C. Рис відварити, шпинат обсмажити на сухій сковороді 2 хв.','Лосось краще їсти 1-2 рази на тиждень через вартість і жирність.'),
+  M('ln6','Курка з макаронами і овочами','Обід',['150 г курячої грудки','70 г макаронів твердих сортів (сухих)','овочі за смаком'],'Макарони відварити за інструкцією, курку обсмажити скибками, змішати з овочами.','Обирай макарони з твердих сортів пшениці для повільніших вуглеводів.'),
+  M('ln7','Свинина нежирна з гречкою і капустяним салатом','Обід',['150 г нежирної свинини (вирізка)','60 г гречки (сухої)','капустяний салат'],'Свинину обсмажити 5-6 хв з кожного боку, гречку відварити окремо.','Обирай саме вирізку — вона значно пісніша за шию чи лопатку.'),
+  M('ln8','Куряча грудка з булгуром і перцем','Обід',['150 г курячої грудки','60 г булгуру (сухого)','1 перець'],'Курку і перець запекти разом 20 хв при 200°C, булгур запарити окропом.','Простий обід в один деко для запікання.'),
+  M('ln9','Яловичий фарш тушкований з рисом','Обід',['150 г яловичого фаршу (нежирного)','60 г рису (сухого)','томатний соус без цукру'],'Фарш обсмажити на сухій сковороді, додати томатний соус, тушкувати 10 хв. Рис відварити окремо.','Перевіряй склад томатного соусу — без доданого цукру та олії.'),
+  M('ln10','Тунець з рисом і кукурудзою','Обід',['1 банка тунця у власному соку','60 г рису (сухого)','3 ст.л. кукурудзи консервованої'],'Рис відварити, змішати з тунцем і кукурудзою.','Готується за 15 хвилин, зручно взяти з собою на роботу.'),
+  M('ln11','Курка з кус-кусом і салатом','Обід',['150 г курячої грудки','60 г кус-кусу (сухого)','огірково-томатний салат'],'Курку відварити або запекти, кус-кус запарити окропом на 5 хв.','Легкий у засвоєнні варіант на спекотні дні.'),
+  M('ln12','Індичі котлети запечені з гречкою','Обід',['150 г фаршу з індички','1 яйце (для котлет)','60 г гречки (сухої)'],'Фарш змішати з яйцем, сформувати котлети, запекти 20 хв при 200°C. Гречку відварити окремо.','Котлети можна приготувати на кілька днів наперед.'),
+  M('ln13','Лосось з булгуром і броколі','Обід',['150 г лосося','60 г булгуру (сухого)','150 г броколі'],'Лосось запекти 15 хв, броколі приготувати на пару, булгур запарити окропом.','Гарне поєднання Омега-3 і повільних вуглеводів.'),
+  M('ln14','Яловичина тушкована з макаронами','Обід',['150 г яловичини','70 г макаронів (сухих)','цибуля, морква за смаком'],'Яловичину тушкувати з овочами 25-30 хв на маленькому вогні з невеликою кількістю води. Макарони відварити окремо.','Довше готування, але м\'ясо виходить дуже м\'яким.'),
+  M('ln15','Курячі стегна без шкіри з рисом','Обід',['150 г курячих стегон без шкіри','60 г рису (сухого)','овочі за смаком'],'Стегна запекти 25 хв при 200°C, рис відварити окремо.','Стегна без шкіри жирніші за грудку, але все ще пісні.'),
+  M('ln16','Тунець з макаронами і зеленню','Обід',['1 банка тунця у власному соку','70 г макаронів (сухих)','зелень за смаком'],'Макарони відварити, змішати з тунцем і рубаною зеленню.','Швидкий варіант "паста з тунцем" без жирних соусів.'),
+  M('ln17','Свинина з кус-кусом і капустою','Обід',['150 г нежирної свинини','60 г кус-кусу (сухого)','тушкована капуста'],'Свинину обсмажити, капусту тушкувати 15 хв без олії з невеликою кількістю води.','Кус-кус готується миттєво — просто залий окропом.'),
+  M('ln18','Куряча грудка з гречкою і морквяним салатом','Обід',['150 г курячої грудки','60 г гречки (сухої)','морквяний салат'],'Курку відварити або запекти, гречку відварити окремо, моркву натерти для салату.','Морквяний салат без майонезу — з лимонним соком.'),
+  M('ln19','Індичка з рисом і шпинатом','Обід',['150 г філе індички','60 г рису (сухого)','жменя шпинату'],'Індичку запекти 20 хв, рис відварити, шпинат додати до готового рису в кінці.','Легка страва, добре засвоюється.'),
+  M('ln20','Яловичина з булгуром і томатами','Обід',['150 г яловичини','60 г булгуру (сухого)','2 помідори'],'Яловичину обсмажити скибками, булгур запарити окропом, подавати з нарізаними томатами.','Хороше поєднання для дня з важким тренуванням.'),
+
+  // ---------- Вечері (20) ----------
+  M('dn1','Куряча грудка з овочами на грилі','Вечеря',['150 г курячої грудки','овочі гриль (кабачок, перець, баклажан)'],'Курку і овочі обсмажити на грилі або сковороді без олії 6-8 хв.','Легка вечеря без важких вуглеводів.'),
+  M('dn2','Омлет з овочами (легка вечеря)','Вечеря',['2 яйця','овочі за смаком'],'Овочі обсмажити 2 хв, залити яйцями, готувати під кришкою 4 хв.','Хороший варіант, якщо вечеря пізня.'),
+  M('dn3','Тунець з овочевим салатом','Вечеря',['1 банка тунця у власному соку','овочевий салат (огірок, томат, зелень)'],'Просто змішати тунець зі свіжим салатом.','Дуже низькокалорійна, багата білком вечеря.'),
+  M('dn4','Лосось запечений з броколі','Вечеря',['130 г лосося','150 г броколі'],'Лосось запекти 15 хв при 200°C, броколі приготувати на пару.','Хороше джерело жирних кислот на вечір.'),
+  M('dn5','Індичка з тушкованими овочами','Вечеря',['130 г філе індички','тушковані овочі (кабачок, перець, цибуля)'],'Індичку обсмажити, овочі тушкувати 15 хв без олії з невеликою кількістю води.','Пісна страва, гарно підходить під час підсушування.'),
+  M('dn6','Сир кисломолочний з огірком і зеленню','Вечеря',['200 г сиру кисломолочного','1 огірок','зелень'],'Огірок нарізати, змішати з сиром і зеленню.','Простий варіант без готування.'),
+  M('dn7','Курка з капустяним салатом','Вечеря',['130 г курячої грудки','капустяний салат без майонезу'],'Курку відварити або запекти, капусту нашаткувати і заправити лимонним соком.','Капуста майже не містить калорій — можна їсти багато.'),
+  M('dn8','Яловичина з овочами гриль','Вечеря',['130 г яловичини','овочі гриль'],'Яловичину і овочі обсмажити на грилі 5-6 хв.','Вибирай пісні відруби яловичини для вечері.'),
+  M('dn9','Курячі биточки з овочами','Вечеря',['130 г фаршу з курки','овочі на пару'],'Сформувати биточки, запекти 20 хв при 200°C, овочі приготувати на пару.','Биточки можна заморозити про запас.'),
+  M('dn10','Індичка зі шпинатом і томатами','Вечеря',['130 г філе індички','жменя шпинату','2 томати'],'Індичку обсмажити, шпинат і томати додати в кінці готування на 2 хв.','Легко засвоюється перед сном.'),
+  M('dn11','Лосось з огірково-томатним салатом','Вечеря',['130 г лосося','огірково-томатний салат'],'Лосось запекти або обсмажити 12-15 хв, подавати зі свіжим салатом.','Один з найкращих варіантів для вечері під час дефіциту.'),
+  M('dn12','Варені яйця з овочевим салатом','Вечеря',['3 яйця варені','овочевий салат'],'Яйця зварити круто, подавати зі свіжими овочами.','Найпростіша вечеря, яку важко зіпсувати.'),
+  M('dn13','Тунець із зеленим салатом','Вечеря',['1 банка тунця у власному соку','зелений салат (латук, огірок, зелень)'],'Змішати тунець із салатом, за бажанням додати трохи лимонного соку.','Дуже низька калорійність — гарно для вечора після важкого дня їжі.'),
+  M('dn14','Курка з цукіні і перцем на грилі','Вечеря',['130 г курячої грудки','цукіні','перець'],'Все обсмажити на грилі або сковороді без олії 7-8 хв.','Цукіні майже не містить калорій, додає об\'єму страві.'),
+  M('dn15','Яловичина з броколі на пару','Вечеря',['130 г яловичини','150 г броколі'],'Яловичину обсмажити, броколі приготувати на пару 5-7 хв.','Просте і надійне поєднання білка з клітковиною.'),
+  M('dn16','Сир кисломолочний з томатами','Вечеря',['200 г сиру кисломолочного','2 помідори'],'Помідори нарізати, подавати разом із сиром.','Швидкий перекус-вечеря за 5 хвилин.'),
+  M('dn17','Індичка гриль з баклажанами','Вечеря',['130 г філе індички','баклажан'],'Баклажан нарізати кружечками, обсмажити на сухій сковороді разом з індичкою.','Баклажан вбирає багато вологи — готуй на середньому вогні, щоб не пригорів.'),
+  M('dn18','Курка з тушкованою капустою і морквою','Вечеря',['130 г курячої грудки','капуста, морква'],'Курку відварити, овочі тушкувати 15 хв з невеликою кількістю води.','Ситна, але легка вечеря.'),
+  M('dn19','Лосось зі шпинатом на пару','Вечеря',['130 г лосося','жменя шпинату'],'Лосось і шпинат приготувати на пару 12-15 хв.','Мінімум посуду для миття — все в одній пароварці.'),
+  M('dn20','Сир кисломолочний з огірком (легкий варіант)','Вечеря',['150 г сиру кисломолочного','1 огірок'],'Огірок нарізати, подавати з сиром.','Гарний варіант, якщо вечеря дуже пізня і хочеться легкого.'),
+
+  // ---------- Перекуси (10) ----------
+  M('sn1','Протеїновий коктейль','Перекус',['1 мірна ложка протеїну','250 мл молока або води'],'Збовтати у шейкері 20-30 секунд.','Найзручніший спосіб добрати денну норму білка.'),
+  M('sn2','Жменя горіхів','Перекус',['30 г мигдалю або волоських горіхів'],'Просто зважити порцію — горіхи дуже калорійні, легко переїсти.','Не більше жмені за раз під час дефіциту калорій.'),
+  M('sn3','Сир кисломолочний (порція)','Перекус',['150 г сиру кисломолочного'],'Готовий продукт, їсти як є.','Повільний білок — гарно підходить на ніч.'),
+  M('sn4','Яблуко з арахісовою пастою','Перекус',['1 яблуко','1 ст.л. арахісової пасти'],'Яблуко нарізати часточками, вмочати в пасту.','Слідкуй за порцією пасти — вона калорійна.'),
+  M('sn5','Варені яйця (2 шт)','Перекус',['2 яйця'],'Зварити круто заздалегідь, зберігати в холодильнику.','Зручно готувати одразу на кілька днів.'),
+  M('sn6','Грецький йогурт без цукру','Перекус',['150 г грецького йогурту'],'Готовий продукт.','Обирай варіант без доданого цукру — перевіряй етикетку.'),
+  M('sn7','Тунець консервований (невелика порція)','Перекус',['пів банки тунця у власному соку'],'Просто відкрити банку і злити рідину.','Швидке джерело чистого білка без готування.'),
+  M('sn8','Домашній протеїновий батончик','Перекус',['40 г вівсянки','1 мірна ложка протеїну','1 ч.л. меду'],'Змішати інгредієнти, сформувати батончик, охолодити в холодильнику 1 год.','Можна приготувати кілька штук наперед на тиждень.'),
+  M('sn9','Овочеві палички з йогуртовим соусом','Перекус',['огірок, морква','50 г йогурту без цукру'],'Овочі нарізати паличками, йогурт використати як соус.','Майже нульова калорійність від овочів.'),
+  M('sn10','Банан з горіхами','Перекус',['1 банан','15 г горіхів'],'Просто з\'їсти разом.','Гарний перекус перед тренуванням.'),
+
+  // ---------- Рідкісні продукти (для бази, не для щотижневого плану) ----------
+  M('rr1','Телятина з рисом і овочами','Обід',['150 г телятини','60 г рису (сухого)','овочі за смаком'],'Телятину обсмажити 5-6 хв з кожного боку до готовності, рис відварити окремо.','Телятина пісніша за яловичину — гарний варіант для особливого приводу.'),
+  M('rr2','Баранина тушкована з булгуром','Обід',['150 г баранини','60 г булгуру (сухого)','цибуля, морква'],'Баранину тушкувати з овочами 40-50 хв до м\'якості, булгур запарити окропом.','Баранина досить жирна — бери пісні відруби (задня нога).'),
+  M('rr3','Качина грудка з овочами гриль','Вечеря',['130 г качиної грудки','овочі гриль'],'Качину грудку обсмажити шкірою вниз до хрусткості (5-6 хв), перевернути і довести до готовності (3-4 хв), овочі приготувати на грилі.','Качка дуже жирна — знімай зайвий жир перед готуванням.'),
+  M('rr4','Кролик тушкований з гречкою','Обід',['150 г кролика','60 г гречки (сухої)'],'Кролика тушкувати з невеликою кількістю води 40 хв до м\'якості, гречку відварити окремо.','Кролятина — одне з найпісніших видів м\'яса, добре засвоюється.'),
+  M('rr5','Гусятина тушкована з яблуком','Вечеря',['130 г гусятини','1 яблуко','цибуля'],'Гусятину тушкувати з нарізаним яблуком і цибулею 45-60 хв до м\'якості.','Гусятина дуже жирна — це страва для рідкісного випадку, не для щоденного раціону.'),
+  M('rr6','Омлет з перепелиними яйцями і зеленню','Сніданок',['6 перепелиних яєць','зелень за смаком'],'Яйця збити із зеленню, вилити на сковороду, готувати під кришкою 3-4 хв.','6 перепелиних яєць приблизно відповідають 2 курячим за об\'ємом.'),
+  M('rr7','Тост з плавленим сирком і огірком','Сніданок',['1 тост цільнозерновий','1 плавлений сирок','пів огірка'],'На тост намастити сирок, зверху викласти нарізаний огірок.','Плавлений сирок жирніший за творог — не щоденний варіант.'),
+  M('rr8','Салат із сиром з пліснявою і грушею','Перекус',['30 г сиру з пліснявою','1 груша','10 г горіхів'],'Грушу нарізати часточками, викласти з шматочками сиру і горіхами.','Невелика порція — сир з пліснявою дуже насичений на смак і калорійний.'),
+  M('rr9','Манна каша з медом і горіхами','Сніданок',['50 г манної крупи','200 мл молока','1 ч.л. меду','10 г горіхів'],'Манну крупу проварити в молоці 5-7 хв до загустіння, додати мед і горіхи.','Манна каша швидко засвоюється — гарний варіант перед активним днем, але не щодня через високий глікемічний індекс.'),
+  M('rr10','Кукурудзяна каша з сиром','Сніданок',['50 г кукурудзяної крупи','150 мл води або молока','30 г твердого сиру'],'Кукурудзяну крупу варити 15-20 хв до готовності, вмішати тертий сир в кінці.','Класична мамалига-стайл каша — ситна і не буденна.'),
+  M('rr11','Манго з грецьким йогуртом','Перекус',['1 манго','100 г грецького йогурту'],'Манго нарізати кубиками, змішати з йогуртом.','Манго досить солодкий фрукт — рідкісний, але приємний перекус.'),
+  M('rr12','Слива з горіхами','Перекус',['2 сливи','15 г горіхів'],'Просто з\'їсти разом.','Сезонний фрукт — гарний варіант, коли є під рукою.'),
+];
+
+/* Продукти, які купуються дуже рідко — ці страви показуються в базі,
+   але НЕ потрапляють у автоматично згенерований план на тиждень. */
+const RARE_MEAL_IDS = ['ln3','ln12','ln19','dn5','dn10','dn17','rr1','rr2','rr3','rr4','rr5','rr6','rr7','rr8','rr9','rr10','rr11','rr12'];
+MEALS.forEach(m => { if(RARE_MEAL_IDS.includes(m.id)) m.rare = true; });
+
+/* ---------- Сховище (localStorage) ---------- */
+const Store = {
+  get(key, fallback){
+    try{
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    }catch(e){ return fallback; }
+  },
+  set(key, value){
+    try{
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    }catch(e){
+      console.error('Storage save failed', e);
+      return false;
+    }
+  }
+};
+
+const todayStr = () => new Date().toISOString().slice(0,10);
+const uid = (prefix) => prefix + '_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+
+/* ---------- Хелпери бібліотеки / програми ---------- */
+function getAllExercises(){
+  const custom = Store.get('customExercises', []).map(e => ({...e, photos: e.photos || (e.photo ? [e.photo] : [])}));
+  return DEFAULT_EXERCISES.concat(custom);
+}
+function getExerciseById(id){
+  return getAllExercises().find(e => e.id === id) || null;
+}
+function getProgramDays(){
+  let p = Store.get('programDays', null);
+  if(!p){
+    p = JSON.parse(JSON.stringify(DEFAULT_PROGRAM_DAYS));
+    Store.set('programDays', p);
+  } else {
+    // міграція старих назв "День A/B/C" (з попередньої версії) на дні тижня
+    const oldNames = { A:'День A', B:'День B', C:'День C' };
+    let changed = false;
+    ['A','B','C'].forEach(k => {
+      if(p[k] && p[k].name === oldNames[k]){
+        p[k].name = DEFAULT_PROGRAM_DAYS[k].name;
+        changed = true;
+      }
+    });
+    // Разова примусова заміна Вівторка на актуальну програму (навіть якщо він вже редагувався)
+    if(!Store.get('tuesdayForceUpdate_v2', false)){
+      p.A.exerciseIds = [...DEFAULT_PROGRAM_DAYS.A.exerciseIds];
+      Store.set('tuesdayForceUpdate_v2', true);
+      changed = true;
+    }
+    if(changed) Store.set('programDays', p);
+  }
+  return p;
+}
+function daySub(day){
+  const muscles = day.exerciseIds
+    .map(id => { const ex = getExerciseById(id); return ex ? ex.muscle : null; })
+    .filter(Boolean);
+  return [...new Set(muscles)].join(' · ') || (day.exerciseIds.length + ' вправ');
+}
+
+/* ============================================================
+   THEME
+   ============================================================ */
+const CRM_THEME_KEY = 'personalCrmTheme_v1';
+const ICON_SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const ICON_MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+function initTheme(){
+  const saved = localStorage.getItem(CRM_THEME_KEY) || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(CRM_THEME_KEY, next);
+    updateThemeIcon(next);
+    if(document.getElementById('tab-progress').classList.contains('active')) renderChart('weightChart');
+  });
+}
+function updateThemeIcon(theme){
+  document.getElementById('themeToggle').innerHTML = theme === 'light' ? ICON_MOON : ICON_SUN;
+}
+
+/* Акцентний колір підтягується з CRM (той самий колір, що обраний в профілі СРМ).
+   Той самий origin -> localStorage спільний, тому просто читаємо значення,
+   яке зберігає CRM, і слухаємо зміни, щоб оновлюватись без перезавантаження. */
+const CRM_ACCENT_KEY = 'personalCrmAccent_v1';
+const CRM_DEFAULT_ACCENT = '#1f6b45';
+function shadeColorCrm(hex, percent){
+  const f = parseInt(hex.slice(1),16);
+  const t = percent<0 ? 0 : 255;
+  const p = percent<0 ? percent*-1 : percent;
+  const R = f>>16, G = f>>8 & 0x00FF, B = f & 0x0000FF;
+  return '#'+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+}
+function applyCrmAccent(){
+  const color = localStorage.getItem(CRM_ACCENT_KEY) || CRM_DEFAULT_ACCENT;
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.style.setProperty('--accent-ink', '#ffffff');
+  document.documentElement.style.setProperty('--good', shadeColorCrm(color, -0.1));
+}
+function initCrmAccent(){
+  applyCrmAccent();
+  window.addEventListener('storage', (e) => {
+    if(e.key === CRM_ACCENT_KEY) applyCrmAccent();
+  });
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+function initTabs(){
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      if(btn.dataset.tab === 'progress') renderChart('weightChart');
+      if(btn.dataset.tab === 'library') renderLibrary();
+      if(btn.dataset.tab === 'program') { renderProgDaySwitch(); renderProgramExercises(); renderProgramHistory(); }
+      if(btn.dataset.tab === 'home') renderHome();
+      if(btn.dataset.tab === 'stats') renderStatsPage();
+    });
+  });
+}
+
+/* ============================================================
+   HOME DASHBOARD
+   ============================================================ */
+let calViewYear, calViewMonth; // 0-indexed month
+const SCHEDULE_DAYS = [2,4,6]; // Вт, Чт, Сб (JS getDay(): 0=Нд..6=Сб)
+
+/* ---- Google Calendar auto-sync (потребує власного OAuth Client ID — див. README) ---- */
+const GOOGLE_CLIENT_ID = ""; // ← встав сюди свій Client ID з Google Cloud Console
+const GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+let gcalTokenClient = null;
+let gcalAccessToken = null;
+
+function initGoogleCalendarAuth(){
+  const hint = document.getElementById('gcalSetupHint');
+  if(!GOOGLE_CLIENT_ID){
+    hint.textContent = 'Google Calendar не налаштовано (див. README)';
+    hint.style.cursor = 'default';
+    hint.style.textDecoration = 'none';
+    return;
+  }
+  if(Store.get('gcalConnected', false)){
+    hint.textContent = '';
+    return; // вже підключено — синхронізація йде автоматично у фоні
+  }
+  hint.textContent = '🔗 Підключити Google Calendar (один раз)';
+  hint.onclick = connectGoogleCalendar;
+
+  const trySetup = () => {
+    if(typeof google === 'undefined' || !google.accounts){ setTimeout(trySetup, 400); return; }
+    gcalTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: GCAL_SCOPE,
+      callback: (resp) => {
+        if(resp && resp.access_token){
+          gcalAccessToken = resp.access_token;
+          Store.set('gcalConnected', true);
+          document.getElementById('gcalSetupHint').textContent = 'Синхронізується...';
+          syncGoogleCalendar().then(() => {
+            document.getElementById('gcalSetupHint').textContent = '';
+          });
+        }
+      }
+    });
+  };
+  trySetup();
+}
+function connectGoogleCalendar(){
+  if(gcalTokenClient) gcalTokenClient.requestAccessToken();
+}
+function getUpcomingScheduledDates(daysAhead){
+  const dates = [];
+  const d = new Date();
+  for(let i=0;i<daysAhead;i++){
+    if(SCHEDULE_DAYS.includes(d.getDay())) dates.push(dateKey(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setDate(d.getDate()+1);
+  }
+  return dates;
+}
+async function createCalendarEvent(dateStr){
+  const body = {
+    summary: 'Тренування (ostap_bo)',
+    start: { dateTime: `${dateStr}T18:00:00` },
+    end: { dateTime: `${dateStr}T19:00:00` },
+  };
+  const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${gcalAccessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error('Calendar API error: ' + res.status);
+  return res.json();
+}
+async function syncGoogleCalendar(){
+  if(!gcalAccessToken) return;
+  const upcoming = getUpcomingScheduledDates(30);
+  const synced = Store.get('gcalSyncedDates', []);
+  for(const dateStr of upcoming){
+    if(synced.includes(dateStr)) continue;
+    try{
+      await createCalendarEvent(dateStr);
+      synced.push(dateStr);
+    }catch(e){ console.error('gcal sync error', e); }
+  }
+  Store.set('gcalSyncedDates', synced);
+}
+
+function initHome(){
+  const now = new Date();
+  calViewYear = now.getFullYear();
+  calViewMonth = now.getMonth();
+
+  document.getElementById('calPrev').addEventListener('click', () => {
+    calViewMonth--; if(calViewMonth < 0){ calViewMonth = 11; calViewYear--; }
+    renderCalendar();
+    renderMonthStats();
+  });
+  document.getElementById('calNext').addEventListener('click', () => {
+    calViewMonth++; if(calViewMonth > 11){ calViewMonth = 0; calViewYear++; }
+    renderCalendar();
+    renderMonthStats();
+  });
+
+  initGoogleCalendarAuth();
+  if(Store.get('gcalConnected', false)){
+    // токен доступу живе ~1 год і не зберігається між сесіями (обмеження безпеки без бекенду);
+    // якщо потрібно — з'явиться підказка "Підключити" знову при наступному відкритті.
+  }
+
+  initCaloriesWidget();
+  initWaterHomeWidget();
+  initTodayWorkoutCard();
+
+  renderHome();
+}
+
+function renderHome(){
+  renderCalendar();
+  renderMonthStats();
+  renderTodayWorkout();
+}
+
+/* ---- Сьогоднішнє тренування (bottom-right) ---- */
+const SCHEDULE_DAY_MAP = { 2:'A', 4:'B', 6:'C' }; // Вт->A, Чт->B, Сб->C
+
+function initTodayWorkoutCard(){
+  // делегування кліку на кнопку "Перейти" рендериться динамічно, обробник вішається в renderTodayWorkout
+}
+
+/* Якщо запланований день пропущено, але наступного (незапланованого) дня
+   було відвідано тренування — вважаємо запланований день "надолуженим". */
+function isEffectivelyAttended(dateStr){
+  const attendance = Store.get('attendance', []);
+  if(attendance.includes(dateStr)) return true;
+
+  const d = new Date(dateStr + 'T00:00:00');
+  const dow = d.getDay();
+  if(!SCHEDULE_DAYS.includes(dow)) return false; // надолуження стосується лише запланованих днів
+
+  const next = new Date(d);
+  next.setDate(next.getDate() + 1);
+  if(SCHEDULE_DAYS.includes(next.getDay())) return false; // наступний день сам запланований — не рахуємо як надолуження
+  const nextKey = dateKey(next.getFullYear(), next.getMonth(), next.getDate());
+  return attendance.includes(nextKey);
+}
+
+/* Позначає день як "відвідано" в статистиці. Викликається щоразу, коли
+   зберігається запис тренування (навіть заднім числом) — щоб дані завжди
+   враховувались у стріку/календарі/досягненнях без ручного підтвердження. */
+function markAttendance(dateStr){
+  const att = Store.get('attendance', []);
+  if(!att.includes(dateStr)){
+    att.push(dateStr);
+    Store.set('attendance', att);
+  }
+}
+
+function getStreak(){
+  let count = 0;
+  const todayKeyStr = todayStr();
+  let d = new Date();
+  for(let i=0; i<90; i++){
+    const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    if(SCHEDULE_DAYS.includes(d.getDay())){
+      if(key === todayKeyStr && !isEffectivelyAttended(key)){
+        // сьогодні заплановано, але ще не відмічено (і не надолужено) — не рвемо серію, просто пропускаємо
+      } else if(isEffectivelyAttended(key)){
+        count++;
+      } else {
+        break;
+      }
+    }
+    d.setDate(d.getDate()-1);
+  }
+  return count;
+}
+
+function renderTodayWorkout(){
+  const body = document.getElementById('todayWorkoutBody');
+  const streakRow = document.getElementById('streakRow');
+  const days = getProgramDays();
+  const now = new Date();
+  const todayDow = now.getDay();
+  const todayKeyStr = todayStr();
+  const attendance = Store.get('attendance', []);
+
+  let dayKey, statusHtml, subText, buttonLabel;
+
+  if(SCHEDULE_DAYS.includes(todayDow)){
+    dayKey = SCHEDULE_DAY_MAP[todayDow];
+    const done = attendance.includes(todayKeyStr);
+    statusHtml = done ? '<span class="tw-status done">✓ Виконано сьогодні</span>' : '<span class="tw-status today">Сьогодні</span>';
+    buttonLabel = 'Відкрити тренування';
+  } else {
+    // знайти наступний запланований день
+    const d = new Date(now);
+    let daysAhead = 0;
+    do{ d.setDate(d.getDate()+1); daysAhead++; } while(!SCHEDULE_DAYS.includes(d.getDay()) && daysAhead < 14);
+    dayKey = SCHEDULE_DAY_MAP[d.getDay()];
+    const weekdayNames = ['неділю','понеділок','вівторок','середу','четвер','п\'ятницю','суботу'];
+    statusHtml = `<span class="tw-status upcoming">Через ${daysAhead} дн. — ${weekdayNames[d.getDay()]}</span>`;
+    buttonLabel = 'Переглянути програму';
+  }
+
+  const day = days[dayKey];
+  const dayName = day ? day.name : dayKey;
+  const sub = day ? daySub(day) : '';
+
+  body.innerHTML = `
+    <div class="tw-info">
+      ${statusHtml}
+      <p class="tw-day">${dayName}</p>
+      <p class="tw-sub">${sub}</p>
+    </div>
+    <button class="tw-go-btn" id="twGoBtn">${buttonLabel} →</button>
+  `;
+  document.getElementById('twGoBtn').addEventListener('click', () => {
+    currentDay = dayKey;
+    document.querySelector('.tab-btn[data-tab="workout"]').click();
+    renderDaySwitch();
+    renderExercises();
+    renderWorkoutHistory();
+  });
+
+  const streak = getStreak();
+  if(streak > 0){
+    streakRow.innerHTML = `🔥 <span class="streak-count">${streak}</span> тренувань поспіль без пропусків`;
+  } else {
+    streakRow.innerHTML = `Відміть сьогоднішнє тренування, щоб почати серію 💪`;
+  }
+}
+
+function pad2(n){ return n < 10 ? '0'+n : ''+n; }
+function dateKey(y,m,d){ return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+
+function showConfirm(message, onYes){
+  document.getElementById('modalClose').style.display = 'none';
+  document.querySelector('.modal-box').classList.add('compact');
+  document.querySelector('.modal-box').classList.remove('wide');
+  document.getElementById('modalContent').innerHTML = `
+    <p style="font-size:15px; margin:6px 0 20px;">${message}</p>
+    <div style="display:flex; gap:10px;">
+      <button id="confirmYes" class="btn-primary">Так</button>
+      <button id="confirmNo" class="btn-ghost">Скасувати</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('confirmYes').onclick = () => { closeModal(); onYes(); };
+  document.getElementById('confirmNo').onclick = () => { closeModal(); };
+}
+
+function renderCalendar(){
+  const attendance = Store.get('attendance', []);
+  const monthNames = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+  document.getElementById('calMonthLabel').textContent = `${monthNames[calViewMonth]} ${calViewYear}`;
+
+  const firstOfMonth = new Date(calViewYear, calViewMonth, 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday-first index
+  const daysInMonth = new Date(calViewYear, calViewMonth+1, 0).getDate();
+  const daysInPrevMonth = new Date(calViewYear, calViewMonth, 0).getDate();
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+
+  const todayKey = todayStr();
+  let html = '';
+  for(let i=0; i<totalCells; i++){
+    const dayNum = i - startOffset + 1;
+    if(dayNum < 1){
+      const dn = daysInPrevMonth + dayNum;
+      html += `<div class="cal-cell other-month">${dn}</div>`;
+      continue;
+    } else if(dayNum > daysInMonth){
+      const dn = dayNum - daysInMonth;
+      html += `<div class="cal-cell other-month">${dn}</div>`;
+      continue;
+    }
+    const cellDate = dateKey(calViewYear, calViewMonth, dayNum);
+    const dow = new Date(calViewYear, calViewMonth, dayNum).getDay();
+    const isScheduled = SCHEDULE_DAYS.includes(dow);
+    const isDone = attendance.includes(cellDate);
+    const isToday = cellDate === todayKey;
+    let cls = 'cal-cell clickable';
+    if(isScheduled) cls += ' scheduled';
+    if(isDone) cls += ' done';
+    if(isToday) cls += ' today';
+    html += `<div class="${cls}" data-date="${cellDate}">${dayNum}</div>`;
+  }
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = html;
+
+  grid.querySelectorAll('.cal-cell.clickable').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const date = cell.dataset.date;
+      const isScheduledDay = cell.classList.contains('scheduled');
+      const att = Store.get('attendance', []);
+      const isDone = att.includes(date);
+      let msg;
+      if(isDone){
+        msg = 'Ви дійсно хочете скасувати відмітку про виконане тренування?';
+      } else if(isScheduledDay){
+        msg = 'Ви дійсно відвідали сьогодні тренування?';
+      } else {
+        msg = 'Це не запланований день, але зарахувати тренування як виконане?';
+      }
+      showConfirm(msg, () => {
+        let updated = Store.get('attendance', []);
+        if(isDone) updated = updated.filter(d => d !== date);
+        else updated.push(date);
+        Store.set('attendance', updated);
+        renderCalendar();
+        renderMonthStats();
+        renderTodayWorkout();
+      });
+    });
+  });
+}
+
+function renderMonthStats(){
+  const attendance = Store.get('attendance', []);
+  const prefix = `${calViewYear}-${pad2(calViewMonth+1)}`;
+  const count = attendance.filter(d => d.startsWith(prefix)).length;
+
+  const daysInMonth = new Date(calViewYear, calViewMonth+1, 0).getDate();
+  let total = 0;
+  for(let d=1; d<=daysInMonth; d++){
+    if(SCHEDULE_DAYS.includes(new Date(calViewYear, calViewMonth, d).getDay())) total++;
+  }
+
+  document.getElementById('monthCount').textContent = count;
+  document.getElementById('monthTotal').textContent = total;
+  const pct = total > 0 ? Math.min(100, Math.round((count/total)*100)) : 0;
+  document.getElementById('monthProgressFill').style.width = pct + '%';
+}
+
+/* ---- Калорії ---- */
+function initCaloriesWidget(){
+  const goalInput = document.getElementById('calGoal');
+  goalInput.value = Store.get('caloriesGoal', 2400);
+  sizeToContent(goalInput);
+  goalInput.addEventListener('input', () => sizeToContent(goalInput));
+
+  const saveCalGoal = () => {
+    Store.set('caloriesGoal', parseInt(goalInput.value) || 2400);
+    renderCaloriesWidget();
+  };
+  const calSpinnerBtns = document.getElementById('calGoalUp').parentElement;
+  makeGoalEditable(goalInput, document.getElementById('calEdit'), saveCalGoal, calSpinnerBtns);
+  attachSpinner(goalInput, document.getElementById('calGoalUp'), document.getElementById('calGoalDown'), 50, 0);
+
+  document.querySelectorAll('[data-cal-add]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = parseInt(btn.dataset.calAdd);
+      const log = Store.get('caloriesLog', {});
+      const key = todayStr();
+      log[key] = Math.max(0, (log[key] || 0) + delta);
+      Store.set('caloriesLog', log);
+      renderCaloriesWidget(true);
+    });
+  });
+  document.getElementById('calReset').addEventListener('click', () => {
+    const log = Store.get('caloriesLog', {});
+    log[todayStr()] = 0;
+    Store.set('caloriesLog', log);
+    renderCaloriesWidget(true);
+  });
+  renderCaloriesWidget();
+}
+function sizeToContent(el){
+  const len = (el.value || '').toString().length || 1;
+  el.style.width = (len + 1.2) + 'ch';
+}
+
+const PENCIL_ICON = `<svg viewBox="0 0 20 20" width="13" height="13"><path d="M2 18l1-4.5L13.5 3 17 6.5 6.5 17 2 18z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+const CHECK_ICON = `<svg viewBox="0 0 20 20" width="13" height="13"><path d="M3 10.5l4.5 4.5L17 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function showToast(msg){
+  let toast = document.getElementById('toastMsg');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'toastMsg';
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+function makeGoalEditable(inputEl, btnEl, onSave, spinnerBtnsEl){
+  let editing = false;
+  function enterEdit(){
+    editing = true;
+    inputEl.readOnly = false;
+    sizeToContent(inputEl);
+    inputEl.focus();
+    inputEl.select();
+    btnEl.innerHTML = CHECK_ICON;
+    btnEl.classList.add('saving');
+    btnEl.title = 'Зберегти';
+    if(spinnerBtnsEl) spinnerBtnsEl.classList.add('visible');
+  }
+  function confirmSave(){
+    editing = false;
+    inputEl.readOnly = true;
+    btnEl.innerHTML = PENCIL_ICON;
+    btnEl.classList.remove('saving');
+    btnEl.title = 'Змінити денну норму';
+    if(spinnerBtnsEl) spinnerBtnsEl.classList.remove('visible');
+    onSave();
+    showToast('✓ Дані оновлено');
+  }
+  btnEl.addEventListener('click', () => {
+    if(!editing) enterEdit();
+    else confirmSave();
+  });
+  inputEl.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') confirmSave();
+  });
+}
+function attachSpinner(inputEl, upBtn, downBtn, step, min){
+  function bump(dir){
+    const cur = parseFloat(inputEl.value) || 0;
+    let next = Math.round((cur + dir*step) * 100) / 100;
+    if(min !== undefined) next = Math.max(min, next);
+    inputEl.value = next;
+    sizeToContent(inputEl);
+  }
+  upBtn.addEventListener('mousedown', (e) => e.preventDefault()); // не втрачати фокус поля
+  downBtn.addEventListener('mousedown', (e) => e.preventDefault());
+  upBtn.addEventListener('click', () => bump(1));
+  downBtn.addEventListener('click', () => bump(-1));
+}
+function pulseEl(el){
+  if(!el) return;
+  el.classList.remove('pulse');
+  void el.offsetWidth; // restart animation
+  el.classList.add('pulse');
+}
+function renderCaloriesWidget(animate){
+  const goal = parseInt(document.getElementById('calGoal').value) || 2400;
+  const consumed = Store.get('caloriesLog', {})[todayStr()] || 0;
+  document.getElementById('calConsumed').textContent = consumed;
+  const circumference = 2 * Math.PI * 42;
+  const pct = Math.min(1, consumed / goal);
+  const ring = document.getElementById('calRing');
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference * (1 - pct);
+
+  const overPct = consumed / goal;
+  let color;
+  if(overPct <= 0.85) color = 'var(--accent)';
+  else if(overPct <= 1.0) color = 'var(--good)';
+  else if(overPct <= 1.1) color = '#eab308';   // жовтий
+  else if(overPct <= 1.25) color = '#f97316';  // оранжевий
+  else color = '#ef4444';                       // червоний
+  ring.style.stroke = color;
+
+  if(animate) pulseEl(document.querySelector('.nutrition-combo-card .ring-row'));
+}
+
+/* ---- Вода (домашній віджет, синхронний зі сторінкою «Харчування») ---- */
+function initWaterHomeWidget(){
+  const goalInput = document.getElementById('waterGoalL');
+  goalInput.value = (Store.get('waterGoal', 3000) / 1000).toFixed(1);
+  sizeToContent(goalInput);
+  goalInput.addEventListener('input', () => sizeToContent(goalInput));
+
+  const saveWaterGoal = () => {
+    const liters = parseFloat(goalInput.value) || 3.0;
+    const ml = Math.round(liters * 1000);
+    Store.set('waterGoal', ml);
+    const nutriGoal = document.getElementById('waterGoal');
+    if(nutriGoal) nutriGoal.value = ml;
+    goalInput.value = liters.toFixed(1);
+    sizeToContent(goalInput);
+    renderWaterWidgets();
+  };
+  const waterSpinnerBtns = document.getElementById('waterGoalUp').parentElement;
+  makeGoalEditable(goalInput, document.getElementById('waterEdit'), saveWaterGoal, waterSpinnerBtns);
+  attachSpinner(goalInput, document.getElementById('waterGoalUp'), document.getElementById('waterGoalDown'), 0.1, 0);
+
+  document.querySelectorAll('[data-water-add]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = parseInt(btn.dataset.waterAdd);
+      const log = Store.get('waterLog', {});
+      const key = todayStr();
+      log[key] = Math.max(0, (log[key] || 0) + delta);
+      Store.set('waterLog', log);
+      renderWaterWidgets(true);
+    });
+  });
+  document.getElementById('waterReset').addEventListener('click', () => {
+    const log = Store.get('waterLog', {});
+    log[todayStr()] = 0;
+    Store.set('waterLog', log);
+    renderWaterWidgets(true);
+  });
+  renderWaterWidgets();
+}
+function renderWaterWidgets(animate){
+  const amount = Store.get('waterLog', {})[todayStr()] || 0;
+  const goal = Store.get('waterGoal', 3000);
+
+  const homeConsumed = document.getElementById('waterConsumedL');
+  const homeGoal = document.getElementById('waterGoalL');
+  const homeFill = document.getElementById('waterFill');
+  if(homeConsumed){
+    homeConsumed.textContent = (amount/1000).toFixed(1);
+    if(homeGoal.readOnly){ homeGoal.value = (goal/1000).toFixed(1); sizeToContent(homeGoal); }
+    homeFill.style.height = Math.min(100, Math.round(amount/goal*100)) + '%';
+    if(animate) pulseEl(document.querySelector('.battery-row'));
+  }
+
+  const nutriAmount = document.getElementById('waterAmount');
+  if(nutriAmount){
+    nutriAmount.textContent = amount + ' мл';
+    document.getElementById('waterProgressFill').style.width = Math.min(100, Math.round(amount/goal*100)) + '%';
+  }
+}
+
+/* ============================================================
+   PROGRAM TAB (static + editable + history)
+   ============================================================ */
+let currentProgDay = 'A';
+let programEditMode = false;
+let programDraftIds = [];
+
+function initProgram(){
+  renderProgDaySwitch();
+  renderProgramExercises();
+  renderProgramHistory();
+
+  document.getElementById('editProgramBtn').addEventListener('click', () => {
+    programEditMode = true;
+    const days = getProgramDays();
+    programDraftIds = [...days[currentProgDay].exerciseIds];
+    document.getElementById('editProgramBtn').style.display = 'none';
+    document.getElementById('saveProgramBtn').style.display = 'inline-block';
+    document.getElementById('cancelProgramBtn').style.display = 'inline-block';
+    document.getElementById('recommendationsBlock').style.display = 'block';
+    renderProgramExercises();
+    renderRecommendations();
+  });
+
+  document.getElementById('cancelProgramBtn').addEventListener('click', () => {
+    programEditMode = false;
+    document.getElementById('editProgramBtn').style.display = 'inline-block';
+    document.getElementById('saveProgramBtn').style.display = 'none';
+    document.getElementById('cancelProgramBtn').style.display = 'none';
+    document.getElementById('recommendationsBlock').style.display = 'none';
+    renderProgramExercises();
+  });
+
+  document.getElementById('saveProgramBtn').addEventListener('click', () => {
+    const days = getProgramDays();
+    const before = days[currentProgDay].exerciseIds;
+    const added = programDraftIds.filter(id => !before.includes(id)).map(id => { const e = getExerciseById(id); return e ? e.name : null; }).filter(Boolean);
+    const removed = before.filter(id => !programDraftIds.includes(id)).map(id => { const e = getExerciseById(id); return e ? e.name : null; }).filter(Boolean);
+
+    days[currentProgDay].exerciseIds = [...programDraftIds];
+    Store.set('programDays', days);
+
+    if(added.length || removed.length){
+      const history = Store.get('programHistory', []);
+      let desc = `${days[currentProgDay].name}: `;
+      const parts = [];
+      if(added.length) parts.push('додано — ' + added.join(', '));
+      if(removed.length) parts.push('прибрано — ' + removed.join(', '));
+      desc += parts.join('; ');
+      history.unshift({ date: todayStr(), description: desc });
+      Store.set('programHistory', history);
+    }
+
+    programEditMode = false;
+    document.getElementById('editProgramBtn').style.display = 'inline-block';
+    document.getElementById('saveProgramBtn').style.display = 'none';
+    document.getElementById('cancelProgramBtn').style.display = 'none';
+    document.getElementById('recommendationsBlock').style.display = 'none';
+    renderProgDaySwitch();
+    renderProgramExercises();
+    renderProgramHistory();
+    showToast('✓ Зміни збережено');
+  });
+}
+
+function renderProgDaySwitch(){
+  const days = getProgramDays();
+  const container = document.getElementById('progDaySwitch');
+  container.innerHTML = Object.keys(days).map(key => {
+    const d = days[key];
+    const active = key === currentProgDay ? 'active' : '';
+    return `<button class="day-btn ${active}" data-day="${key}">${d.name}<span class="day-sub">${daySub(d)}</span></button>`;
+  }).join('');
+  container.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(programEditMode) return;
+      currentProgDay = btn.dataset.day;
+      renderProgDaySwitch();
+      renderProgramExercises();
+    });
+  });
+}
+
+function carouselHTML(exId, photos){
+  photos = photos && photos.length ? photos : [''];
+  const imgs = photos.map((p,i) => `<img src="${p}" loading="lazy" decoding="async" style="${i===0?'':'display:none;'}" data-idx="${i}" onerror="this.style.visibility='hidden'">`).join('');
+  const dots = photos.length > 1 ? `<div class="carousel-dots">${photos.map((_,i)=>`<span class="${i===0?'active':''}"></span>`).join('')}</div>` : '';
+  const arrows = photos.length > 1 ? `<button class="carousel-btn prev">‹</button><button class="carousel-btn next">›</button>` : '';
+  return `<div class="carousel" data-exid="${exId}" data-count="${photos.length}" data-current="0">${imgs}${arrows}${dots}</div>`;
+}
+
+function wireCarousels(container){
+  container.querySelectorAll('.carousel').forEach(car => {
+    const count = parseInt(car.dataset.count);
+    if(count <= 1) return;
+    const imgs = car.querySelectorAll('img');
+    const dots = car.querySelectorAll('.carousel-dots span');
+    function show(idx){
+      imgs.forEach((img,i) => img.style.display = i===idx ? '' : 'none');
+      dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+      car.dataset.current = idx;
+    }
+    const prevBtn = car.querySelector('.prev');
+    const nextBtn = car.querySelector('.next');
+    if(prevBtn) prevBtn.addEventListener('click', () => {
+      let cur = parseInt(car.dataset.current);
+      show((cur - 1 + count) % count);
+    });
+    if(nextBtn) nextBtn.addEventListener('click', () => {
+      let cur = parseInt(car.dataset.current);
+      show((cur + 1) % count);
+    });
+  });
+}
+
+function renderProgramExercises(){
+  const days = getProgramDays();
+  const day = days[currentProgDay];
+  const list = document.getElementById('programExerciseList');
+  const ids = programEditMode ? programDraftIds : day.exerciseIds;
+  const exercises = ids.map(id => getExerciseById(id)).filter(Boolean);
+
+  if(exercises.length === 0){
+    list.innerHTML = '<p class="empty-note">У цьому дні поки немає вправ. Увімкни редагування, щоб додати з бібліотеки.</p>';
+    return;
+  }
+
+  list.innerHTML = exercises.map((ex, idx) => `
+    <div class="exercise-card-big" ${programEditMode ? `draggable="true" data-idx="${idx}"` : ''}>
+      ${programEditMode ? `
+        <div class="drag-handle" title="Перетягни, щоб змінити порядок">⠿</div>
+        <button class="remove-ex-btn" data-id="${ex.id}" title="Прибрати з дня">✕</button>
+      ` : ''}
+      ${carouselHTML(ex.id, ex.photos)}
+      <div class="exercise-card-big-body">
+        <p class="exercise-name">${ex.name}</p>
+        <span class="exercise-target">${ex.target || '—'}</span>
+        <button class="tech-btn" data-id="${ex.id}">Техніка виконання</button>
+      </div>
+    </div>
+  `).join('');
+
+  wireCarousels(list);
+  list.querySelectorAll('.tech-btn').forEach(btn => {
+    btn.addEventListener('click', () => openExerciseDetail(btn.dataset.id));
+  });
+
+  if(programEditMode){
+    list.querySelectorAll('.remove-ex-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        programDraftIds = programDraftIds.filter(id => id !== btn.dataset.id);
+        renderProgramExercises();
+        renderRecommendations();
+      });
+    });
+    wireDragReorder(list);
+  }
+}
+
+let draggedExIdx = null;
+function wireDragReorder(list){
+  list.querySelectorAll('.exercise-card-big[draggable="true"]').forEach(card => {
+    card.addEventListener('dragstart', () => {
+      draggedExIdx = parseInt(card.dataset.idx);
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      draggedExIdx = null;
+    });
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', () => {
+      card.classList.remove('drag-over');
+    });
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const targetIdx = parseInt(card.dataset.idx);
+      if(draggedExIdx === null || draggedExIdx === targetIdx) return;
+      const moved = programDraftIds.splice(draggedExIdx, 1)[0];
+      programDraftIds.splice(targetIdx, 0, moved);
+      renderProgramExercises();
+    });
+  });
+}
+
+function renderRecommendations(){
+  const container = document.getElementById('recommendationsList');
+  const all = getAllExercises();
+  const available = all.filter(ex => !programDraftIds.includes(ex.id));
+
+  if(available.length === 0){
+    container.innerHTML = '<p class="empty-note">Всі вправи з бібліотеки вже в цьому дні.</p>';
+    return;
+  }
+
+  container.innerHTML = available.map(ex => `
+    <div class="lib-card">
+      <img src="${(ex.photos && ex.photos[0]) || ''}" alt="${ex.name}" loading="lazy" onerror="this.style.display='none'">
+      <div class="lib-card-body">
+        <p class="lib-card-name">${ex.name}</p>
+        <span class="lib-card-muscle">${ex.muscle}</span>
+        <div class="lib-card-btns">
+          <button class="tech-btn-sm" data-id="${ex.id}">Техніка</button>
+          <button class="add-ex-btn" data-id="${ex.id}">+ Додати</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.add-ex-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      programDraftIds.push(btn.dataset.id);
+      renderProgramExercises();
+      renderRecommendations();
+    });
+  });
+  container.querySelectorAll('.tech-btn-sm').forEach(btn => {
+    btn.addEventListener('click', () => openExerciseDetail(btn.dataset.id));
+  });
+}
+
+function renderProgramHistory(){
+  const history = Store.get('programHistory', []);
+  const container = document.getElementById('programHistoryList');
+  if(history.length === 0){
+    container.innerHTML = '<p class="empty-note">Ще не було змін у програмі.</p>';
+    return;
+  }
+  container.innerHTML = history.map(h => `
+    <div class="log-row">
+      <div class="log-row-main">${h.description}</div>
+      <div class="log-row-date">${h.date}</div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   WORKOUT LOG TAB (база тренувань)
+   ============================================================ */
+let currentDay = 'A';
+
+let workoutDateValue = todayStr();
+let wdCalViewYear, wdCalViewMonth;
+
+function initWorkout(){
+  const now = new Date();
+  wdCalViewYear = now.getFullYear();
+  wdCalViewMonth = now.getMonth();
+  updateWorkoutDateLabel();
+
+  const btn = document.getElementById('workoutDateBtn');
+  const dropdown = document.getElementById('workoutDateDropdown');
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+    if(dropdown.classList.contains('open')) renderWorkoutDateCalendar();
+  });
+  document.addEventListener('click', (e) => {
+    if(!dropdown.contains(e.target) && e.target !== btn) dropdown.classList.remove('open');
+  });
+  document.getElementById('wdCalPrev').addEventListener('click', () => {
+    wdCalViewMonth--; if(wdCalViewMonth < 0){ wdCalViewMonth = 11; wdCalViewYear--; }
+    renderWorkoutDateCalendar();
+  });
+  document.getElementById('wdCalNext').addEventListener('click', () => {
+    wdCalViewMonth++; if(wdCalViewMonth > 11){ wdCalViewMonth = 0; wdCalViewYear++; }
+    renderWorkoutDateCalendar();
+  });
+  document.getElementById('wdCalToday').addEventListener('click', () => {
+    workoutDateValue = todayStr();
+    const t = new Date();
+    wdCalViewYear = t.getFullYear(); wdCalViewMonth = t.getMonth();
+    updateWorkoutDateLabel();
+    dropdown.classList.remove('open');
+    renderExercises();
+    renderWorkoutHistory();
+  });
+
+  renderDaySwitch();
+  renderExercises();
+  renderWorkoutHistory();
+  initRestTimer();
+  checkDeloadReminder();
+}
+
+/* ---------- Таймер відпочинку ---------- */
+let restTimerInterval = null;
+let restTimerRemaining = 90;
+let restTimerPreset = 90;
+
+function initRestTimer(){
+  const display = document.getElementById('rtDisplay');
+  const startBtn = document.getElementById('rtStartBtn');
+  function updateDisplay(){
+    const m = Math.floor(restTimerRemaining/60);
+    const s = restTimerRemaining%60;
+    display.textContent = `${m}:${pad2(s)}`;
+  }
+  updateDisplay();
+  document.querySelectorAll('.rt-btn[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      clearInterval(restTimerInterval);
+      restTimerInterval = null;
+      restTimerPreset = parseInt(btn.dataset.preset);
+      restTimerRemaining = restTimerPreset;
+      updateDisplay();
+      startBtn.textContent = '▶ Старт';
+      startBtn.classList.remove('rt-active');
+    });
+  });
+  startBtn.addEventListener('click', () => {
+    if(restTimerInterval){
+      clearInterval(restTimerInterval);
+      restTimerInterval = null;
+      startBtn.textContent = '▶ Старт';
+      startBtn.classList.remove('rt-active');
+      return;
+    }
+    if(restTimerRemaining <= 0) restTimerRemaining = restTimerPreset;
+    startBtn.textContent = '⏸ Пауза';
+    startBtn.classList.add('rt-active');
+    restTimerInterval = setInterval(() => {
+      restTimerRemaining--;
+      updateDisplay();
+      if(restTimerRemaining <= 0){
+        clearInterval(restTimerInterval);
+        restTimerInterval = null;
+        startBtn.textContent = '▶ Старт';
+        startBtn.classList.remove('rt-active');
+        if(navigator.vibrate) navigator.vibrate([250,120,250]);
+        showToast('⏱ Час відпочинку вийшов!');
+        Store.set('restTimerUsed', true);
+        restTimerRemaining = restTimerPreset;
+        updateDisplay();
+      }
+    }, 1000);
+  });
+}
+
+/* ---------- Деload-нагадування ---------- */
+function checkDeloadReminder(){
+  const banner = document.getElementById('deloadBanner');
+  if(!banner) return;
+  const streak = getStreak();
+  if(streak > 0 && streak % 15 === 0){
+    banner.style.display = 'block';
+    banner.textContent = `😮‍💨 ${streak} тренувань поспіль без пропусків! Розглянь легкий деload-тиждень (менша вага/менше підходів) для відновлення.`;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+/* ---------- Особисті рекорди й прогресія ---------- */
+function getExerciseHistory(exerciseId){
+  return Store.get('workoutLogs', []).filter(l => l.exerciseId === exerciseId).sort((a,b) => a.date.localeCompare(b.date));
+}
+function getPersonalRecord(exerciseId){
+  const hist = getExerciseHistory(exerciseId).filter(l => l.weight != null);
+  if(hist.length === 0) return null;
+  return hist.reduce((best, l) => (l.weight > best.weight ? l : best), hist[0]);
+}
+function getLastLogBefore(exerciseId, beforeDate){
+  const hist = getExerciseHistory(exerciseId).filter(l => l.date < beforeDate);
+  return hist.length ? hist[hist.length - 1] : null;
+}
+
+function updateWorkoutDateLabel(){
+  const d = new Date(workoutDateValue + 'T00:00:00');
+  document.getElementById('workoutDateLabel').textContent = `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
+}
+
+function renderWorkoutDateCalendar(){
+  const monthNames = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+  document.getElementById('wdCalMonthLabel').textContent = `${monthNames[wdCalViewMonth]} ${wdCalViewYear}`;
+
+  const firstOfMonth = new Date(wdCalViewYear, wdCalViewMonth, 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7;
+  const daysInMonth = new Date(wdCalViewYear, wdCalViewMonth+1, 0).getDate();
+  const daysInPrevMonth = new Date(wdCalViewYear, wdCalViewMonth, 0).getDate();
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+  const todayKey = todayStr();
+
+  let html = '';
+  for(let i=0;i<totalCells;i++){
+    const dayNum = i - startOffset + 1;
+    if(dayNum < 1){
+      html += `<div class="cal-cell other-month">${daysInPrevMonth + dayNum}</div>`;
+      continue;
+    } else if(dayNum > daysInMonth){
+      html += `<div class="cal-cell other-month">${dayNum - daysInMonth}</div>`;
+      continue;
+    }
+    const cellDate = dateKey(wdCalViewYear, wdCalViewMonth, dayNum);
+    let cls = 'cal-cell clickable';
+    if(cellDate === todayKey) cls += ' today';
+    if(cellDate === workoutDateValue) cls += ' scheduled done';
+    html += `<div class="${cls}" data-date="${cellDate}">${dayNum}</div>`;
+  }
+  const grid = document.getElementById('wdCalendarGrid');
+  grid.innerHTML = html;
+  grid.querySelectorAll('.cal-cell.clickable').forEach(cell => {
+    cell.addEventListener('click', () => {
+      workoutDateValue = cell.dataset.date;
+      updateWorkoutDateLabel();
+      document.getElementById('workoutDateDropdown').classList.remove('open');
+      renderExercises();
+      renderWorkoutHistory();
+    });
+  });
+}
+
+function renderDaySwitch(){
+  const days = getProgramDays();
+  const container = document.getElementById('daySwitch');
+  container.innerHTML = Object.keys(days).map(key => {
+    const d = days[key];
+    const active = key === currentDay ? 'active' : '';
+    return `<button class="day-btn ${active}" data-day="${key}">${d.name}<span class="day-sub">${daySub(d)}</span></button>`;
+  }).join('');
+  container.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentDay = btn.dataset.day;
+      renderDaySwitch();
+      renderExercises();
+      renderWorkoutHistory();
+    });
+  });
+}
+
+function renderExercises(){
+  const list = document.getElementById('exerciseList');
+  const date = workoutDateValue;
+  const logs = Store.get('workoutLogs', []);
+  const days = getProgramDays();
+  const day = days[currentDay];
+  list.innerHTML = '';
+  if(!day) return;
+
+  const exercises = day.exerciseIds.map(id => getExerciseById(id)).filter(Boolean);
+  if(exercises.length === 0){
+    list.innerHTML = '<p class="empty-note">У цьому дні поки немає вправ.</p>';
+    return;
+  }
+
+  exercises.forEach(ex => {
+    const existing = logs.find(l => l.date === date && l.exerciseId === ex.id && l.day === currentDay);
+    const photo = (ex.photos && ex.photos[0]) || '';
+    const locked = !!existing;
+
+    const lastLog = getLastLogBefore(ex.id, date);
+    const pr = getPersonalRecord(ex.id);
+    let hintText = '';
+    if(lastLog){
+      hintText = `Минулого разу: <b>${lastLog.weight ?? '—'}кг</b> × ${lastLog.sets ?? '—'}×${lastLog.reps ?? '—'}`;
+    } else if(!pr){
+      hintText = 'Ще не виконував(ла) цю вправу.';
+    }
+    const recordBadge = pr && pr.weight
+      ? `<span class="exercise-target ex-record-badge">🏆 Рекорд: ${pr.weight}кг</span>`
+      : `<span class="exercise-target">Ще немає рекорду</span>`;
+
+    const card = document.createElement('div');
+    card.className = 'exercise-card';
+    card.innerHTML = `
+      <div class="exercise-top">
+        <img class="exercise-photo" src="${photo}" alt="${ex.name}" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="exercise-info">
+          <p class="exercise-name">${ex.name}</p>
+          ${recordBadge}
+          <div class="logged-badge-slot">
+            ${existing ? `
+              <span class="logged-badge">✓ записано</span>
+              <button class="log-edit-btn" title="Редагувати запис">${PENCIL_ICON} Редагувати</button>
+              <button class="log-delete-btn" title="Видалити запис">🗑 Видалити</button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+      <p class="ex-hint">${hintText}</p>
+      <div class="exercise-log">
+        <input type="number" step="0.5" placeholder="кг" class="log-weight" value="${existing ? (existing.weight != null ? existing.weight : '') : ''}" ${locked ? 'readonly' : ''}>
+        <input type="number" placeholder="повт." class="log-reps" value="${existing ? (existing.reps != null ? existing.reps : '') : ''}" ${locked ? 'readonly' : ''}>
+        <input type="number" placeholder="підходи" class="log-sets" value="${existing ? (existing.sets != null ? existing.sets : '') : ''}" ${locked ? 'readonly' : ''}>
+        <button class="log-save">Зберегти</button>
+      </div>
+      <div class="rpe-row">
+        <span class="rpe-label">Як важко було (RPE):</span>
+        ${[1,2,3,4,5].map(n => `<button type="button" class="rpe-btn ${existing && existing.rpe === n ? 'selected' : ''}" data-rpe="${n}">${n}</button>`).join('')}
+      </div>
+    `;
+    let selectedRpe = existing ? (existing.rpe || null) : null;
+    card.querySelectorAll('.rpe-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedRpe = parseInt(btn.dataset.rpe);
+        card.querySelectorAll('.rpe-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+    });
+    const editBtn = card.querySelector('.log-edit-btn');
+    if(editBtn){
+      let editing = false;
+      const inputs = [card.querySelector('.log-weight'), card.querySelector('.log-reps'), card.querySelector('.log-sets')];
+      editBtn.addEventListener('click', () => {
+        editing = !editing;
+        inputs.forEach(inp => inp.readOnly = !editing);
+        editBtn.innerHTML = (editing ? CHECK_ICON : PENCIL_ICON) + (editing ? ' Готово' : ' Редагувати');
+        editBtn.classList.toggle('saving', editing);
+        if(editing) inputs[0].focus();
+      });
+    }
+    const deleteBtn = card.querySelector('.log-delete-btn');
+    if(deleteBtn){
+      deleteBtn.addEventListener('click', () => {
+        showConfirm('Видалити цей запис тренування?', () => {
+          let logs = Store.get('workoutLogs', []);
+          logs = logs.filter(l => !(l.date === date && l.exerciseId === ex.id && l.day === currentDay));
+          Store.set('workoutLogs', logs);
+          renderExercises();
+          renderWorkoutHistory();
+          showToast('✓ Запис видалено');
+        });
+      });
+    }
+    card.querySelector('.log-save').addEventListener('click', () => {
+      const weight = parseFloat(card.querySelector('.log-weight').value);
+      const reps = parseInt(card.querySelector('.log-reps').value);
+      const sets = parseInt(card.querySelector('.log-sets').value);
+      if(isNaN(weight) && isNaN(reps) && isNaN(sets)) return;
+
+      const priorPR = getPersonalRecord(ex.id);
+      const isNewPR = !isNaN(weight) && (!priorPR || weight > priorPR.weight);
+
+      let logs = Store.get('workoutLogs', []);
+      logs = logs.filter(l => !(l.date === date && l.exerciseId === ex.id && l.day === currentDay));
+      logs.push({ date, day: currentDay, exerciseId: ex.id, name: ex.name,
+        weight: isNaN(weight)?null:weight, sets: isNaN(sets)?null:sets, reps: isNaN(reps)?null:reps,
+        rpe: selectedRpe });
+      Store.set('workoutLogs', logs);
+      markAttendance(date);
+      renderExercises();
+      renderWorkoutHistory();
+      if(isNewPR){
+        showToast(`🎉 Новий рекорд у "${ex.name}": ${weight}кг!`);
+      } else {
+        showToast('✓ Тренування збережено');
+      }
+    });
+    list.appendChild(card);
+  });
+}
+
+function renderWorkoutHistory(){
+  const container = document.getElementById('workoutHistory');
+  const logs = Store.get('workoutLogs', []);
+
+  const byDate = {};
+  logs.forEach(l => { (byDate[l.date] = byDate[l.date] || []).push(l); });
+  const dates = Object.keys(byDate).sort((a,b) => b.localeCompare(a));
+
+  if(dates.length === 0){
+    container.innerHTML = '<p class="empty-note">Ще немає записів тренувань.</p>';
+    return;
+  }
+
+  container.innerHTML = dates.map(date => {
+    const d = new Date(date + 'T00:00:00');
+    const weekdayNames = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+    const label = `${weekdayNames[d.getDay()]}, ${d.getDate()}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
+    return `
+      <div class="wh-day-row" data-date="${date}">
+        <span class="wh-day-main">${label}</span>
+        <span class="wh-day-count">${byDate[date].length} вправ(и) →</span>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.wh-day-row').forEach(row => {
+    row.addEventListener('click', () => openWorkoutDayDetail(row.dataset.date));
+  });
+}
+
+function openWorkoutDayDetail(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  const weekdayNames = ['неділя','понеділок','вівторок','середа','четвер','п\'ятниця','субота'];
+  const niceDate = `${weekdayNames[d.getDay()]}, ${d.getDate()}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
+  const days = getProgramDays();
+
+  function render(){
+    const logs = Store.get('workoutLogs', []).filter(l => l.date === dateStr);
+    const rows = logs.map(l => `
+      <div class="wh-entry-row">
+        <div>
+          <div class="wh-entry-name">${l.name}</div>
+          <div class="wh-entry-stats">${days[l.day] ? days[l.day].name + ' · ' : ''}${l.weight != null ? l.weight : '—'} кг × ${l.sets != null ? l.sets : '—'} підх. × ${l.reps != null ? l.reps : '—'} повт.</div>
+        </div>
+        <button class="wh-delete-btn" data-id="${l.exerciseId}" data-day="${l.day}" title="Видалити запис">✕</button>
+      </div>
+    `).join('') || '<p class="empty-note">Немає записів.</p>';
+
+    document.getElementById('sidePanelContent').innerHTML = `
+      <p class="sp-title">${niceDate}</p>
+      <p class="sp-sub">Прогрес цього тренування</p>
+      ${rows}
+    `;
+    document.querySelectorAll('.wh-delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        let logs = Store.get('workoutLogs', []);
+        logs = logs.filter(l => !(l.date === dateStr && l.day === btn.dataset.day && l.exerciseId === btn.dataset.id));
+        Store.set('workoutLogs', logs);
+        renderWorkoutHistory();
+        renderExercises();
+        showToast('✓ Запис видалено');
+        render();
+      });
+    });
+  }
+  render();
+  document.getElementById('sidePanelOverlay').classList.add('open');
+}
+
+/* ============================================================
+   LIBRARY TAB
+   ============================================================ */
+let libMuscleTab = '';
+
+function initLibrary(){
+  document.getElementById('addExerciseForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('newExName').value.trim();
+    const muscle = document.getElementById('newExMuscle').value.trim();
+    const target = document.getElementById('newExTarget').value.trim();
+    const photo = document.getElementById('newExPhoto').value.trim();
+    const tip = document.getElementById('newExTip').value.trim();
+    if(!name || !muscle) return;
+
+    const customExercises = Store.get('customExercises', []);
+    customExercises.push({ id: uid('cex'), name, muscle, target, photo, tip });
+    Store.set('customExercises', customExercises);
+
+    e.target.reset();
+    renderLibrary();
+  });
+
+  renderLibrary();
+}
+
+function renderMuscleTabs(){
+  const muscles = [...new Set(getAllExercises().map(e => e.muscle))].sort();
+  const container = document.getElementById('muscleTabs');
+  container.innerHTML = `<button class="muscle-tab ${libMuscleTab === '' ? 'active' : ''}" data-muscle="">Всі вправи</button>` +
+    muscles.map(m => `<button class="muscle-tab ${libMuscleTab === m ? 'active' : ''}" data-muscle="${m}">${m}</button>`).join('');
+  container.querySelectorAll('.muscle-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      libMuscleTab = btn.dataset.muscle;
+      renderLibrary();
+    });
+  });
+}
+
+function renderLibrary(){
+  renderMuscleTabs();
+  const grid = document.getElementById('libraryGrid');
+
+  let exercises = getAllExercises();
+  if(libMuscleTab) exercises = exercises.filter(e => e.muscle === libMuscleTab);
+
+  if(exercises.length === 0){
+    grid.innerHTML = '<p class="empty-note">Нічого не знайдено.</p>';
+    return;
+  }
+
+  grid.innerHTML = exercises.map(ex => `
+    <div class="lib-card">
+      <img src="${(ex.photos && ex.photos[0]) || ''}" alt="${ex.name}" loading="lazy" onerror="this.style.display='none'">
+      <div class="lib-card-body">
+        <p class="lib-card-name">${ex.name}</p>
+        <span class="lib-card-muscle">${ex.muscle}</span>
+        <button class="tech-btn-sm" data-id="${ex.id}">Техніка виконання</button>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.tech-btn-sm').forEach(btn => {
+    btn.addEventListener('click', () => openExerciseDetail(btn.dataset.id));
+  });
+}
+
+/* ============================================================
+   NUTRITION TAB (water + recipes + meal log)
+   ============================================================ */
+let mealTypeTab = '';
+
+function initNutrition(){
+  renderRecipes();
+  renderWeeklyPlan();
+
+  document.getElementById('generatePlanBtn').addEventListener('click', generateWeeklyPlan);
+  document.getElementById('showShoppingListBtn').addEventListener('click', openShoppingList);
+
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if(e.target.id === 'modalOverlay') closeModal();
+  });
+}
+
+/* ---------- Орієнтовне БЖУ (евристична оцінка) ---------- */
+function estimateMacros(m){
+  let protein, fat, carbs;
+  if(m.type === 'Сніданок'){ protein=22; fat=14; carbs=32; }
+  else if(m.type === 'Перекус'){ protein=14; fat=8; carbs=16; }
+  else { protein=38; fat=13; carbs=40; }
+  const tags = computeMealTags(m);
+  if(tags.includes('З протеїном')) protein += 20;
+  if(tags.includes('Складні')) carbs += 10;
+  return { protein, fat, carbs };
+}
+
+/* ---------- План харчування на тиждень ---------- */
+function generateWeeklyPlan(){
+  const days = ['Понеділок','Вівторок','Середа','Четвер','П\'ятниця','Субота','Неділя'];
+  const types = ['Сніданок','Обід','Вечеря','Перекус'];
+  const plan = days.map(day => {
+    const meals = {};
+    types.forEach(t => {
+      let options = MEALS.filter(m => m.type === t && !m.rare);
+      if(options.length === 0) options = MEALS.filter(m => m.type === t);
+      meals[t] = options[Math.floor(Math.random()*options.length)].id;
+    });
+    return { day, meals };
+  });
+  Store.set('weeklyMealPlan', plan);
+  Store.set('weeklyPlanGenCount', Store.get('weeklyPlanGenCount', 0) + 1);
+  renderWeeklyPlan();
+  showToast('✓ План на тиждень згенеровано');
+}
+function renderWeeklyPlan(){
+  const plan = Store.get('weeklyMealPlan', null);
+  const container = document.getElementById('weeklyPlanGrid');
+  if(!plan){
+    container.innerHTML = '<p class="empty-note">Ще не згенеровано план. Тисни кнопку вище.</p>';
+    return;
+  }
+  container.innerHTML = plan.map((dayPlan, dayIdx) => `
+    <div class="wp-day-card">
+      <p class="wp-day-name">${dayPlan.day}</p>
+      ${Object.entries(dayPlan.meals).map(([type, id]) => {
+        const meal = MEALS.find(m => m.id === id);
+        return `
+          <div class="wp-meal-row-wrap">
+            <div class="wp-meal-row" data-meal-id="${id}"><b>${type}</b>${meal ? meal.name : '—'}</div>
+            <button type="button" class="wp-reroll-btn" data-day="${dayIdx}" data-type="${type}" title="Замінити на іншу випадкову страву">🎲</button>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `).join('');
+  container.querySelectorAll('.wp-meal-row').forEach(row => {
+    row.addEventListener('click', () => openRecipeModal(row.dataset.mealId));
+  });
+  container.querySelectorAll('.wp-reroll-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      rerollMeal(parseInt(btn.dataset.day), btn.dataset.type);
+    });
+  });
+}
+
+function rerollMeal(dayIdx, type){
+  const plan = Store.get('weeklyMealPlan', null);
+  if(!plan || !plan[dayIdx]) return;
+  const currentId = plan[dayIdx].meals[type];
+  let options = MEALS.filter(m => m.type === type && !m.rare && m.id !== currentId);
+  if(options.length === 0) options = MEALS.filter(m => m.type === type && m.id !== currentId);
+  if(options.length === 0) options = MEALS.filter(m => m.type === type);
+  const newMeal = options[Math.floor(Math.random()*options.length)];
+  plan[dayIdx].meals[type] = newMeal.id;
+  Store.set('weeklyMealPlan', plan);
+  renderWeeklyPlan();
+  showToast(`🎲 ${type}: ${newMeal.name}`);
+}
+
+/* ---------- Список покупок ---------- */
+/* Розбирає рядок інгредієнта на кількість + одиницю + назву,
+   щоб можна було правильно підсумувати однакові позиції з різних страв. */
+function parseIngredientQty(str){
+  let s = str.trim();
+  let qty = 1, unit = 'шт';
+
+  const halfMatch = s.match(/^пів\s+(.+)$/i);
+  if(halfMatch){
+    return { qty: 0.5, unit: 'шт', name: halfMatch[1].trim().toLowerCase() };
+  }
+  const numMatch = s.match(/^(\d+(?:[.,]\d+)?)\s*(г|кг|мл|л|ч\.л\.|ст\.л\.)?\s+(.+)$/i);
+  if(numMatch){
+    qty = parseFloat(numMatch[1].replace(',', '.'));
+    unit = numMatch[2] ? numMatch[2].toLowerCase() : 'шт';
+    return { qty, unit, name: numMatch[3].trim().toLowerCase() };
+  }
+  return { qty: 1, unit: 'шт', name: s.toLowerCase() };
+}
+function formatQty(q){
+  return Number.isInteger(q) ? String(q) : q.toFixed(1).replace(/\.0$/, '');
+}
+
+function openShoppingList(){
+  const plan = Store.get('weeklyMealPlan', null);
+  if(!plan){ showToast('Спочатку згенеруй план на тиждень'); return; }
+
+  const allIngredients = [];
+  plan.forEach(dayPlan => {
+    Object.values(dayPlan.meals).forEach(id => {
+      const meal = MEALS.find(m => m.id === id);
+      if(meal) allIngredients.push(...meal.ingredients);
+    });
+  });
+
+  // Об'єднуємо однакові позиції (за назвою+одиницею), підсумовуючи кількість
+  const grouped = {};
+  allIngredients.forEach(str => {
+    const { qty, unit, name } = parseIngredientQty(str);
+    const key = name + '|' + unit;
+    if(!grouped[key]) grouped[key] = { qty: 0, unit, name };
+    grouped[key].qty += qty;
+  });
+  const items = Object.values(grouped)
+    .map(g => (g.unit === 'шт' ? `${formatQty(g.qty)} × ${g.name}` : `${formatQty(g.qty)} ${g.unit} ${g.name}`))
+    .sort();
+  const checked = Store.get('shoppingListChecked', {});
+
+  document.getElementById('modalClose').style.display = '';
+  document.querySelector('.modal-box').classList.remove('compact');
+  document.querySelector('.modal-box').classList.add('wide');
+  document.getElementById('modalContent').innerHTML = `
+    <h2>🛒 Список покупок</h2>
+    <p class="section-hint">На основі згенерованого плану на тиждень — однакові інгредієнти вже підсумовані.</p>
+    <div class="shopping-list" id="shoppingListEl">
+      ${items.map((item) => `
+        <label class="shopping-item ${checked[item] ? 'checked' : ''}">
+          <input type="checkbox" class="shop-check" data-item="${encodeURIComponent(item)}" ${checked[item] ? 'checked' : ''}>
+          ${item}
+        </label>
+      `).join('')}
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.querySelectorAll('.shop-check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const item = decodeURIComponent(cb.dataset.item);
+      const checkedState = Store.get('shoppingListChecked', {});
+      checkedState[item] = cb.checked;
+      Store.set('shoppingListChecked', checkedState);
+      cb.closest('.shopping-item').classList.toggle('checked', cb.checked);
+    });
+  });
+}
+
+const MEAL_TYPE_LABELS = { 'Сніданок':'Сніданки', 'Обід':'Обіди', 'Вечеря':'Вечері', 'Перекус':'Перекуси' };
+let mealExtraTab = '';
+
+function renderMealTypeTabs(){
+  const types = ['Сніданок','Обід','Вечеря','Перекус'];
+  const container = document.getElementById('mealTypeTabs');
+  container.innerHTML = `<button class="muscle-tab ${mealTypeTab === '' ? 'active' : ''}" data-type="">Всі страви</button>` +
+    types.map(t => `<button class="muscle-tab ${mealTypeTab === t ? 'active' : ''}" data-type="${t}">${MEAL_TYPE_LABELS[t]}</button>`).join('');
+  container.querySelectorAll('.muscle-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mealTypeTab = btn.dataset.type;
+      renderRecipes();
+    });
+  });
+}
+
+const MEAL_EXTRA_FILTERS = ['Солодкі','Солоні','З протеїном','Без протеїну','Прості','Складні'];
+function computeMealTags(m){
+  const text = (m.name + ' ' + m.ingredients.join(' ') + ' ' + m.steps).toLowerCase();
+  const sweetWords = ['мед','банан','яблуко','ягод','гранола','кориц','фрукт'];
+  const isSweet = sweetWords.some(w => text.includes(w));
+  const hasProteinPowder = text.includes('протеїн');
+  const isSimple = m.ingredients.length <= 3 && m.steps.length < 90;
+  const tags = [];
+  tags.push(isSweet ? 'Солодкі' : 'Солоні');
+  tags.push(hasProteinPowder ? 'З протеїном' : 'Без протеїну');
+  tags.push(isSimple ? 'Прості' : 'Складні');
+  return tags;
+}
+
+function renderMealExtraTabs(){
+  const container = document.getElementById('mealExtraTabs');
+  container.innerHTML = `<button class="muscle-tab ${mealExtraTab === '' ? 'active' : ''}" data-extra="">Всі</button>` +
+    MEAL_EXTRA_FILTERS.map(f => `<button class="muscle-tab ${mealExtraTab === f ? 'active' : ''}" data-extra="${f}">${f}</button>`).join('');
+  container.querySelectorAll('.muscle-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mealExtraTab = btn.dataset.extra;
+      renderRecipes();
+    });
+  });
+}
+
+function renderRecipes(){
+  renderMealTypeTabs();
+  renderMealExtraTabs();
+  let items = MEALS;
+  if(mealTypeTab) items = items.filter(m => m.type === mealTypeTab);
+  if(mealExtraTab) items = items.filter(m => computeMealTags(m).includes(mealExtraTab));
+
+  const grid = document.getElementById('recipeGrid');
+  if(items.length === 0){
+    grid.innerHTML = '<p class="empty-note">Нічого не знайдено.</p>';
+    return;
+  }
+  grid.innerHTML = items.map(m => `
+    <div class="lib-card clickable" data-id="${m.id}">
+      <img src="${getMealPhoto(m)}" alt="${m.name}" loading="lazy" decoding="async" onerror="this.style.display='none'">
+      <div class="lib-card-body">
+        <p class="lib-card-name">${m.name}</p>
+        <span class="lib-card-muscle">${m.type}</span>
+        ${m.rare ? '<span class="lib-card-muscle" style="background:var(--surface); color:var(--warn); margin-left:6px;">рідкісний продукт</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+
+  grid.querySelectorAll('.lib-card').forEach(card => {
+    card.addEventListener('click', () => openRecipeModal(card.dataset.id));
+  });
+}
+
+function openRecipeModal(id){
+  const meal = MEALS.find(m => m.id === id);
+  if(!meal) return;
+  document.getElementById('modalClose').style.display = '';
+  document.querySelector('.modal-box').classList.remove('compact');
+  document.querySelector('.modal-box').classList.remove('wide');
+  const photo = getMealPhoto(meal);
+  const macros = estimateMacros(meal);
+  document.getElementById('modalContent').innerHTML = `
+    ${photo ? `<img src="${photo}" alt="${meal.name}" style="width:100%; height:200px; object-fit:cover; border-radius:12px; margin-bottom:16px;" onerror="this.style.display='none'">` : ''}
+    <h2>${meal.name}</h2>
+    <p class="recipe-meta">${meal.type}${meal.rare ? ' · <span style="color:var(--warn);">рідкісний продукт — не входить в автоплан</span>' : ''}</p>
+    <p class="section-hint" style="margin:0 0 14px;">Орієнтовно: Б ${macros.protein}г · Ж ${macros.fat}г · В ${macros.carbs}г</p>
+    <h4>Інгредієнти (рекомендована порція)</h4>
+    <ul>${meal.ingredients.map(i => `<li>${i}</li>`).join('')}</ul>
+    <h4>Приготування</h4>
+    <p>${meal.steps}</p>
+    ${meal.note ? `<div class="recipe-note">💡 ${meal.note}</div>` : ''}
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+/* ============================================================
+   ЩОДЕННИЙ REVIEW ПОПЕРЕДНЬОГО ДНЯ
+   ============================================================ */
+function checkPreviousDayPrompt(){
+  const lastOpen = Store.get('lastOpenDate', null);
+  const today = todayStr();
+  if(lastOpen && lastOpen !== today){
+    showDailyReviewModal(lastOpen);
+  }
+  Store.set('lastOpenDate', today);
+}
+
+function showDailyReviewModal(dateStr){
+  document.getElementById('modalClose').style.display = 'none';
+  document.querySelector('.modal-box').classList.add('compact');
+  document.querySelector('.modal-box').classList.remove('wide');
+  const caloriesLog = Store.get('caloriesLog', {});
+  const waterLog = Store.get('waterLog', {});
+  const attendance = Store.get('attendance', []);
+  const dow = new Date(dateStr + 'T00:00:00').getDay();
+  const scheduled = SCHEDULE_DAYS.includes(dow);
+  const wasAttended = attendance.includes(dateStr);
+
+  const dateObj = new Date(dateStr + 'T00:00:00');
+  const weekdayNames = ['неділю','понеділок','вівторок','середу','четвер','п\'ятницю','суботу'];
+  const niceDate = `${weekdayNames[dow]}, ${dateObj.getDate()}.${pad2(dateObj.getMonth()+1)}`;
+
+  const workoutHtml = `
+    <div class="review-field">
+      <label>${scheduled ? 'Тренування було виконано?' : 'Було позапланове тренування?'}</label>
+      <div class="review-toggle">
+        <button type="button" id="revYes" class="${wasAttended ? 'selected yes' : ''}">Так</button>
+        <button type="button" id="revNo" class="${!wasAttended ? 'selected no' : ''}">Ні</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modalContent').innerHTML = `
+    <h2 style="margin-bottom:4px;">Як пройшов(ла) ${niceDate}?</h2>
+    <p class="section-hint" style="margin-bottom:18px;">Онови дані за попередній день — це піде в статистику.</p>
+    <div class="review-field">
+      <label>Калорії (ккал)</label>
+      <input type="number" id="revCalories" value="${caloriesLog[dateStr] || 0}">
+    </div>
+    <div class="review-field">
+      <label>Вода (мл)</label>
+      <input type="number" id="revWater" value="${waterLog[dateStr] || 0}">
+    </div>
+    ${workoutHtml}
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button id="revSave" class="btn-primary">Зберегти</button>
+      <button id="revSkip" class="btn-ghost">Пропустити</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+
+  let selectedAttended = wasAttended;
+  const yesBtn = document.getElementById('revYes');
+  const noBtn = document.getElementById('revNo');
+  yesBtn.addEventListener('click', () => {
+    selectedAttended = true;
+    yesBtn.classList.add('selected','yes');
+    noBtn.classList.remove('selected','no');
+  });
+  noBtn.addEventListener('click', () => {
+    selectedAttended = false;
+    noBtn.classList.add('selected','no');
+    yesBtn.classList.remove('selected','yes');
+  });
+
+  document.getElementById('revSave').addEventListener('click', () => {
+    const cal = parseInt(document.getElementById('revCalories').value) || 0;
+    const wat = parseInt(document.getElementById('revWater').value) || 0;
+    const cLog = Store.get('caloriesLog', {}); cLog[dateStr] = cal; Store.set('caloriesLog', cLog);
+    const wLog = Store.get('waterLog', {}); wLog[dateStr] = wat; Store.set('waterLog', wLog);
+    let att = Store.get('attendance', []);
+    att = att.filter(d => d !== dateStr);
+    if(selectedAttended) att.push(dateStr);
+    Store.set('attendance', att);
+    closeModal();
+    if(document.getElementById('tab-stats').classList.contains('active')) renderStatsPage();
+    if(document.getElementById('tab-home').classList.contains('active')) renderHome();
+  });
+  document.getElementById('revSkip').addEventListener('click', closeModal);
+}
+
+/* ============================================================
+   СТАТИСТИКА
+   ============================================================ */
+function computeEarliestDataDate(){
+  const dates = [];
+  Store.get('workoutLogs', []).forEach(l => { if(l.date) dates.push(l.date); });
+  Store.get('attendance', []).forEach(d => dates.push(d));
+  Object.keys(Store.get('caloriesLog', {})).forEach(d => dates.push(d));
+  Object.keys(Store.get('waterLog', {})).forEach(d => dates.push(d));
+  if(!dates.length) return null;
+  return dates.reduce((a,b) => a < b ? a : b);
+}
+function getStatsStartDate(){
+  let start = Store.get('statsStartDate', null);
+  const today = todayStr();
+  const earliest = computeEarliestDataDate();
+  if(!start || start > today){
+    // або перший запуск, або раніше було зафіксовано "завтра" — виправляємо на найранішу
+    // реальну дату з даних (якщо є заднім числом), інакше на сьогодні
+    start = (earliest && earliest <= today) ? earliest : today;
+    Store.set('statsStartDate', start);
+  } else if(earliest && earliest < start){
+    // з'явились дані заднім числом, старіші за поточний старт статистики — розширюємо назад
+    start = earliest;
+    Store.set('statsStartDate', start);
+  }
+  return start;
+}
+function formatNiceDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getDate()}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
+}
+
+function getDayStatus(dateStr){
+  const caloriesLog = Store.get('caloriesLog', {});
+  const waterLog = Store.get('waterLog', {});
+  const attendance = Store.get('attendance', []);
+  const calGoal = Store.get('caloriesGoal', 2400);
+  const waterGoal = Store.get('waterGoal', 3000);
+  const calories = caloriesLog[dateStr] || 0;
+  const water = waterLog[dateStr] || 0;
+  const dow = new Date(dateStr + 'T00:00:00').getDay();
+  const scheduled = SCHEDULE_DAYS.includes(dow);
+  const attendedRaw = attendance.includes(dateStr);
+  const coveredByCatchup = scheduled && !attendedRaw && isEffectivelyAttended(dateStr);
+  const attended = attendedRaw; // "attended" тепер завжди відображає реальну відмітку
+  const calPct = calGoal ? calories / calGoal : 0;
+  const waterPct = waterGoal ? water / waterGoal : 0;
+  const hasData = calories > 0 || water > 0 || attendedRaw;
+
+  let category;
+  if(scheduled && !attendedRaw && coveredByCatchup) category = 'covered';
+  else if(scheduled && !attendedRaw) category = 'missed';
+  else if(!hasData) category = 'nodata';
+  else if(calPct >= 0.85 && calPct <= 1.15 && waterPct >= 0.85) category = 'perfect';
+  else category = 'partial';
+
+  return { dateStr, calories, water, calGoal, waterGoal, scheduled, attended, attendedRaw, coveredByCatchup, calPct, waterPct, category, hasData };
+}
+
+function initStatsPage(){
+  document.getElementById('sidePanelClose').addEventListener('click', closeSidePanel);
+  document.getElementById('sidePanelOverlay').addEventListener('click', (e) => {
+    if(e.target.id === 'sidePanelOverlay') closeSidePanel();
+  });
+  document.getElementById('openWrappedBtn').addEventListener('click', openWrapped);
+}
+
+function renderStatsPage(){
+  renderStatsCards();
+  renderWeekDonut();
+  renderWeekBars();
+  renderTonnageAndVolume();
+  renderAchievements();
+  renderHistoryList();
+}
+
+/* ---------- Тоннаж, об'єм по м'язах ---------- */
+function calcTotalTonnage(){
+  const logs = Store.get('workoutLogs', []);
+  return logs.reduce((sum, l) => sum + ((l.weight||0) * (l.reps||0) * (l.sets||1)), 0);
+}
+function calcMuscleVolume(){
+  const logs = Store.get('workoutLogs', []);
+  const vol = {};
+  logs.forEach(l => {
+    const ex = getExerciseById(l.exerciseId);
+    const muscle = ex ? ex.muscle : 'Інше';
+    vol[muscle] = (vol[muscle]||0) + ((l.weight||0) * (l.reps||0) * (l.sets||1));
+  });
+  return vol;
+}
+const MUSCLE_EMOJI = { 'Груди':'🦾', 'Спина':'🔙', 'Ноги':'🦵', 'Плечі':'🤷', 'Біцепс':'💪', 'Трицепс':'🔱', 'Прес':'🎯' };
+const TONNAGE_COMPARISONS = [
+  { threshold: 10000, unit: 900, label: 'слонів 🐘' },
+  { threshold: 3000, unit: 180, label: 'автомобілів 🚗' },
+  { threshold: 500, unit: 90, label: 'холодильників 🧊' },
+  { threshold: 0, unit: 5, label: 'мішків картоплі 🥔' },
+];
+function renderTonnageAndVolume(){
+  const tonnage = calcTotalTonnage();
+  document.getElementById('totalTonnage').textContent = Math.round(tonnage).toLocaleString('uk-UA') + ' кг';
+
+  const hintEl = document.getElementById('tonnageHint');
+  if(tonnage <= 0){
+    hintEl.innerHTML = 'Записуй тренування з вагою — тут з\'явиться сумарний тоннаж.';
+  } else {
+    const cmp = TONNAGE_COMPARISONS.find(c => tonnage >= c.threshold);
+    const count = Math.max(1, Math.round(tonnage / cmp.unit));
+    const nextMilestone = Math.ceil((tonnage+1) / 1000) * 1000;
+    const pct = Math.min(100, Math.round((tonnage / nextMilestone) * 100));
+    hintEl.innerHTML = `
+      Це приблизно <b style="color:var(--ink);">${count} × ${cmp.label}</b>
+      <div class="tonnage-milestone">
+        <div class="tonnage-milestone-label"><span>До ${nextMilestone.toLocaleString('uk-UA')} кг</span><span>${pct}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  }
+
+  const vol = calcMuscleVolume();
+  const entries = Object.entries(vol).sort((a,b) => b[1]-a[1]);
+  const container = document.getElementById('muscleVolumeList');
+  if(entries.length === 0){
+    container.innerHTML = '<p class="empty-note">Ще немає даних.</p>';
+    return;
+  }
+  const max = entries[0][1];
+  container.innerHTML = entries.map(([muscle, val]) => `
+    <div class="bar-row">
+      <div class="bar-name">${MUSCLE_EMOJI[muscle] || '🔘'} ${muscle}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(val/max*100).toFixed(0)}%"></div></div>
+      <div class="bar-count">${Math.round(val).toLocaleString('uk-UA')} кг</div>
+    </div>
+  `).join('');
+}
+
+/* ---------- Досягнення ---------- */
+function getAchievements(){
+  const logs = Store.get('workoutLogs', []);
+  const totalWorkoutDates = new Set(logs.map(l => l.date)).size;
+  const streak = getStreak();
+  const tonnage = calcTotalTonnage();
+  const prCount = getAllExercises().filter(ex => getPersonalRecord(ex.id)).length;
+  const measurements = Store.get('measurements', []);
+  const customExercises = Store.get('customExercises', []);
+  const planGenCount = Store.get('weeklyPlanGenCount', 0);
+
+  // Підрахунок категорій днів за весь час трекінгу
+  const trackedDates = getTrackedDates(365);
+  let perfectDays = 0, waterGoalDays = 0, calorieGoalDays = 0, coveredDays = 0;
+  const waterGoal = Store.get('waterGoal', 3000);
+  const calGoal = Store.get('caloriesGoal', 2400);
+  const waterLog = Store.get('waterLog', {});
+  const caloriesLog = Store.get('caloriesLog', {});
+  trackedDates.forEach(d => {
+    const s = getDayStatus(d);
+    if(s.category === 'perfect') perfectDays++;
+    if(s.category === 'covered') coveredDays++;
+    if((waterLog[d]||0) >= waterGoal) waterGoalDays++;
+    if((caloriesLog[d]||0) > 0 && s.calPct >= 0.85 && s.calPct <= 1.15) calorieGoalDays++;
+  });
+
+  // "Універсал" — рекорд у кожній групі м'язів бібліотеки
+  const allMuscles = [...new Set(getAllExercises().map(e => e.muscle))];
+  const universal = allMuscles.length > 0 && allMuscles.every(m =>
+    getAllExercises().filter(e => e.muscle === m).some(e => getPersonalRecord(e.id))
+  );
+
+  // Поточний тиждень — усі заплановані дні виконані
+  const now = new Date();
+  const mondayOffset = (now.getDay() + 6) % 7;
+  const monday = new Date(now); monday.setDate(now.getDate() - mondayOffset);
+  let schedThis = 0, attThis = 0;
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    if(d > now) continue;
+    const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    if(SCHEDULE_DAYS.includes(d.getDay())){ schedThis++; if(isEffectivelyAttended(key)) attThis++; }
+  }
+  const perfectWeek = schedThis > 0 && attThis === schedThis;
+
+  return [
+    { icon:'🔥', name:'На старті', desc:'Перше тренування записано', unlocked: totalWorkoutDates >= 1 },
+    { icon:'💪', name:'10 тренувань', desc:'Записано 10 тренувань', unlocked: totalWorkoutDates >= 10 },
+    { icon:'🏋️', name:'50 тренувань', desc:'Записано 50 тренувань', unlocked: totalWorkoutDates >= 50 },
+    { icon:'💯', name:'100 тренувань', desc:'Записано 100 тренувань', unlocked: totalWorkoutDates >= 100 },
+    { icon:'⚡', name:'Тиждень поспіль', desc:'Серія 7+ тренувань', unlocked: streak >= 7 },
+    { icon:'🌟', name:'Місяць поспіль', desc:'Серія 30+ тренувань', unlocked: streak >= 30 },
+    { icon:'🚀', name:'100 днів поспіль', desc:'Серія 100+ тренувань', unlocked: streak >= 100 },
+    { icon:'🥇', name:'Перший рекорд', desc:'Побито перший особистий рекорд', unlocked: prCount >= 1 },
+    { icon:'🏆', name:'5 рекордів', desc:'Побито 5 особистих рекордів', unlocked: prCount >= 5 },
+    { icon:'🌍', name:'Універсал', desc:'Рекорд у кожній групі м\'язів', unlocked: universal },
+    { icon:'🐘', name:'Тонна', desc:'Загальний тоннаж 1000+ кг', unlocked: tonnage >= 1000 },
+    { icon:'🚛', name:'10 тонн', desc:'Загальний тоннаж 10 000+ кг', unlocked: tonnage >= 10000 },
+    { icon:'🚂', name:'50 тонн', desc:'Загальний тоннаж 50 000+ кг', unlocked: tonnage >= 50000 },
+    { icon:'📏', name:'Перший замір', desc:'Додано перший замір ваги', unlocked: measurements.length >= 1 },
+    { icon:'📐', name:'5 замірів', desc:'Додано 5 замірів ваги', unlocked: measurements.length >= 5 },
+    { icon:'🥗', name:'Чистий місяць', desc:'30 днів з ідеальним харчуванням', unlocked: perfectDays >= 30 },
+    { icon:'💧', name:'Гідратований', desc:'15 днів з випитою нормою води', unlocked: waterGoalDays >= 15 },
+    { icon:'🍽️', name:'Точний у калоріях', desc:'15 днів влучання в норму калорій', unlocked: calorieGoalDays >= 15 },
+    { icon:'🔄', name:'Надолужувач', desc:'3 рази надолужив(ла) пропущене тренування', unlocked: coveredDays >= 3 },
+    { icon:'🎯', name:'Ідеальний тиждень', desc:'Усі заплановані тренування цього тижня виконано', unlocked: perfectWeek },
+    { icon:'🛒', name:'Планувальник', desc:'Згенеровано план харчування на тиждень', unlocked: !!Store.get('weeklyMealPlan', null) },
+    { icon:'⏱️', name:'Терплячий', desc:'Використано таймер відпочинку', unlocked: !!Store.get('restTimerUsed', false) },
+    { icon:'🧪', name:'Новатор', desc:'Додано власну вправу в бібліотеку', unlocked: customExercises.length >= 1 },
+    { icon:'🔁', name:'Постійний плановик', desc:'Згенеровано план харчування 5+ разів', unlocked: planGenCount >= 5 },
+    { icon:'🎓', name:'Ветеран', desc:'Записано 200 тренувань', unlocked: totalWorkoutDates >= 200 },
+  ];
+}
+function renderAchievements(){
+  const achievements = getAchievements();
+  document.getElementById('achievementsGrid').innerHTML = achievements.map(a => `
+    <div class="achievement-card ${a.unlocked ? 'unlocked' : ''}">
+      <div class="ach-icon">${a.icon}</div>
+      <p class="ach-name">${a.name}</p>
+      <p class="ach-desc">${a.desc}</p>
+    </div>
+  `).join('');
+}
+
+/* ---------- Підсумок за весь час ---------- */
+function openWrapped(){
+  const logs = Store.get('workoutLogs', []);
+  const totalWorkouts = new Set(logs.map(l => l.date)).size;
+  const tonnage = calcTotalTonnage();
+  const streak = getStreak();
+  const measurements = Store.get('measurements', []).slice().sort((a,b) => a.date.localeCompare(b.date));
+  let weightChangeText = '—';
+  if(measurements.length >= 2){
+    const diff = measurements[measurements.length-1].weight - measurements[0].weight;
+    weightChangeText = (diff > 0 ? '+' : '') + diff.toFixed(1) + ' кг';
+  }
+  const counts = {};
+  logs.forEach(l => { counts[l.name] = (counts[l.name]||0) + 1; });
+  const favoriteEntry = Object.entries(counts).sort((a,b) => b[1]-a[1])[0];
+  const achievements = getAchievements();
+  const unlockedCount = achievements.filter(a => a.unlocked).length;
+
+  document.getElementById('modalClose').style.display = '';
+  document.querySelector('.modal-box').classList.remove('compact');
+  document.querySelector('.modal-box').classList.remove('wide');
+  document.getElementById('modalContent').innerHTML = `
+    <h2>📊 Твій підсумок</h2>
+    <div class="wrapped-stat"><span class="wrapped-stat-label">Всього тренувань</span><span class="wrapped-stat-value">${totalWorkouts}</span></div>
+    <div class="wrapped-stat"><span class="wrapped-stat-label">Загальний тоннаж</span><span class="wrapped-stat-value">${Math.round(tonnage).toLocaleString('uk-UA')} кг</span></div>
+    <div class="wrapped-stat"><span class="wrapped-stat-label">Найдовша серія зараз</span><span class="wrapped-stat-value">${streak} 🔥</span></div>
+    <div class="wrapped-stat"><span class="wrapped-stat-label">Улюблена вправа</span><span class="wrapped-stat-value" style="font-size:14px;">${favoriteEntry ? favoriteEntry[0] : '—'}</span></div>
+    <div class="wrapped-stat"><span class="wrapped-stat-label">Зміна ваги</span><span class="wrapped-stat-value">${weightChangeText}</span></div>
+    <div class="wrapped-stat"><span class="wrapped-stat-label">Досягнень відкрито</span><span class="wrapped-stat-value">${unlockedCount}/${achievements.length}</span></div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+/* Дати від дати старту статистики (включно) до сьогодні (включно), макс N штук з кінця */
+function getTrackedDates(maxCount){
+  const startDate = getStatsStartDate();
+  const today = todayStr();
+  if(startDate > today) return [];
+  const dates = [];
+  let d = new Date(startDate + 'T00:00:00');
+  const end = new Date(today + 'T00:00:00');
+  while(d <= end){
+    dates.push(dateKey(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setDate(d.getDate() + 1);
+  }
+  return maxCount ? dates.slice(-maxCount) : dates;
+}
+
+function renderStatsCards(){
+  const today = todayStr();
+  const s = getDayStatus(today);
+  const startDate = getStatsStartDate();
+
+  const now = new Date();
+  const mondayOffset = (now.getDay() + 6) % 7;
+  const monday = new Date(now); monday.setDate(now.getDate() - mondayOffset);
+  const attendance = Store.get('attendance', []);
+  let scheduledThisWeek = 0, attendedThisWeek = 0;
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    if(key < startDate) continue; // не рахуємо дні до старту статистики
+    if(SCHEDULE_DAYS.includes(d.getDay())){
+      scheduledThisWeek++;
+      if(isEffectivelyAttended(key)) attendedThisWeek++;
+    }
+  }
+
+  const streak = getStreak();
+  const cards = [
+    { icon:'🔥', value: streak, label: 'Днів поспіль', highlight:true },
+    { icon:'🍽️', value: `${s.calories}/${s.calGoal}`, label: 'Калорії сьогодні' },
+    { icon:'💧', value: `${(s.water/1000).toFixed(1)}/${(s.waterGoal/1000).toFixed(1)} л`, label: 'Вода сьогодні' },
+    { icon:'🏋️', value: `${attendedThisWeek}/${scheduledThisWeek}`, label: 'Тренувань цього тижня' },
+  ];
+
+  document.getElementById('statsCardsRow').innerHTML = cards.map(c => `
+    <div class="stat-card-mini ${c.highlight ? 'highlight' : ''}">
+      <div class="scm-icon">${c.icon}</div>
+      <div>
+        <div class="scm-value">${c.value}</div>
+        <div class="scm-label">${c.label}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderWeekDonut(){
+  const dates = getTrackedDates(7);
+  const emptyEl = document.getElementById('weekDonutEmpty');
+  const wrapEl = document.getElementById('donutWrap');
+  const legendEl = document.getElementById('donutLegend');
+
+  if(dates.length === 0){
+    emptyEl.textContent = `Статистика почне збиратись з ${formatNiceDate(getStatsStartDate())}.`;
+    emptyEl.style.display = 'block';
+    wrapEl.style.display = 'none';
+    legendEl.style.display = 'none';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  wrapEl.style.display = '';
+  legendEl.style.display = '';
+
+  const counts = { perfect:0, partial:0, covered:0, missed:0, nodata:0 };
+  dates.forEach(key => { counts[getDayStatus(key).category]++; });
+  const total = dates.length;
+  const colors = { perfect:'var(--good)', partial:'#eab308', covered:'var(--accent)', missed:'#ef4444', nodata:'var(--surface-2)' };
+  const labels = { perfect:'Ідеально', partial:'Частково', covered:'Надолужено', missed:'Пропущено тренування', nodata:'Немає даних' };
+
+  let cumulative = 0;
+  const stops = [];
+  ['perfect','partial','covered','missed','nodata'].forEach(cat => {
+    if(counts[cat] === 0) return;
+    const deg = (counts[cat]/total) * 360;
+    stops.push(`${colors[cat]} ${cumulative}deg ${cumulative+deg}deg`);
+    cumulative += deg;
+  });
+  document.getElementById('weekDonut').style.background = stops.length ? `conic-gradient(${stops.join(',')})` : 'var(--surface-2)';
+  document.getElementById('weekDonutCenter').innerHTML = `<div class="dc-value">${counts.perfect}/${total}</div><div class="dc-label">ідеальних днів</div>`;
+
+  legendEl.innerHTML = ['perfect','partial','covered','missed','nodata'].map(cat => `
+    <div class="donut-legend-row">
+      <span class="donut-legend-dot" style="background:${colors[cat]}"></span>
+      ${labels[cat]}
+      <span class="dlr-count">${counts[cat]}</span>
+    </div>
+  `).join('');
+}
+
+function renderWeekBars(){
+  const container = document.getElementById('weekBars');
+  const startDate = getStatsStartDate();
+  const today = todayStr();
+
+  const now = new Date();
+  const mondayOffset = (now.getDay() + 6) % 7;
+  const monday = new Date(now); monday.setDate(now.getDate() - mondayOffset);
+
+  const weekdayShort = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+  let html = '';
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    const key = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+    const isTracked = key >= startDate && key <= today;
+    const isFuture = key > today;
+    const isToday = key === today;
+
+    let calH = 0, waterH = 0, icon = '–', calTitle = '', waterTitle = '';
+    if(isTracked){
+      const s = getDayStatus(key);
+      calH = Math.min(100, Math.round(s.calPct*100));
+      waterH = Math.min(100, Math.round(s.waterPct*100));
+      if(s.category === 'covered') icon = '↪️';
+      else if(s.scheduled || s.attended) icon = s.attended ? '✅' : '❌';
+      calTitle = `Калорії: ${s.calories}/${s.calGoal}`;
+      waterTitle = `Вода: ${s.water}/${s.waterGoal} мл`;
+    }
+
+    html += `
+      <div class="week-day-col ${isFuture ? 'future' : ''} ${isToday ? 'is-today' : ''}">
+        <div class="wdc-bars">
+          <div class="wdc-bar cal" style="height:${calH}%" title="${calTitle}"></div>
+          <div class="wdc-bar water" style="height:${waterH}%" title="${waterTitle}"></div>
+        </div>
+        <div class="wdc-icon">${icon}</div>
+        <div class="wdc-label">${weekdayShort[d.getDay()]}</div>
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+function renderHistoryList(){
+  const container = document.getElementById('historyDayList');
+  const dates = getTrackedDates(60).slice().reverse(); // найновіші зверху
+
+  if(dates.length === 0){
+    container.innerHTML = `<p class="empty-note">Статистика почне збиратись з ${formatNiceDate(getStatsStartDate())} — сьогоднішній день і все, що було раніше, не враховується, щоб не показувати фейкові "пропущені" тренування.</p>`;
+    return;
+  }
+
+  const weekdayNames = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+  let html = '';
+  dates.forEach(key => {
+    const d = new Date(key + 'T00:00:00');
+    const s = getDayStatus(key);
+    const dateLabel = `${d.getDate()}.${pad2(d.getMonth()+1)}`;
+    let statusIcon = '⚪';
+    if(s.category === 'perfect') statusIcon = '🟢';
+    else if(s.category === 'partial') statusIcon = '🟡';
+    else if(s.category === 'covered') statusIcon = '🔵';
+    else if(s.category === 'missed') statusIcon = '🔴';
+    const workoutText = s.category === 'covered' ? 'надолужено'
+      : (s.scheduled || s.attended) ? (s.attended ? '✓' : '✕')
+      : null;
+    const summary = `${s.calories}/${s.calGoal} ккал · ${(s.water/1000).toFixed(1)}/${(s.waterGoal/1000).toFixed(1)} л${workoutText ? (' · Тренування: ' + workoutText) : ''}`;
+    html += `
+      <div class="history-day-row" data-date="${key}">
+        <div class="hdr-date">${weekdayNames[d.getDay()]}, ${dateLabel}</div>
+        <div class="hdr-summary">${summary}</div>
+        <div class="hdr-status">${statusIcon}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html || '<p class="empty-note">Ще немає даних.</p>';
+  container.querySelectorAll('.history-day-row').forEach(row => {
+    row.addEventListener('click', () => openDayDetail(row.dataset.date));
+  });
+}
+
+function openDayDetail(dateStr){
+  const s = getDayStatus(dateStr);
+  const d = new Date(dateStr + 'T00:00:00');
+  const weekdayNames = ['неділя','понеділок','вівторок','середа','четвер','п\'ятниця','субота'];
+  const niceDate = `${weekdayNames[d.getDay()]}, ${d.getDate()}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`;
+
+  const calColor = s.calPct > 1.25 ? '#ef4444' : s.calPct > 1.1 ? '#f97316' : s.calPct > 1.0 ? '#eab308' : (s.calPct >= 0.85 ? 'var(--good)' : 'var(--accent)');
+  const waterColor = s.waterPct >= 1 ? 'var(--good)' : 'var(--accent)';
+
+  let workoutBadge = '<span class="sp-workout-badge" style="background:var(--surface-2); color:var(--ink-dim);">Не заплановано</span>';
+  if(s.category === 'covered'){
+    workoutBadge = '<span class="sp-workout-badge" style="background:var(--accent); color:var(--accent-ink);">↪️ Надолужено наступного дня</span>';
+  } else if(s.attended){
+    workoutBadge = `<span class="sp-workout-badge" style="background:var(--good); color:var(--accent-ink);">✓ Відвідано${s.scheduled ? '' : ' (поза графіком)'}</span>`;
+  } else if(s.scheduled){
+    workoutBadge = '<span class="sp-workout-badge" style="background:var(--warn); color:var(--accent-ink);">✕ Пропущено</span>';
+  }
+
+  document.getElementById('sidePanelContent').innerHTML = `
+    <p class="sp-title">${niceDate}</p>
+    <p class="sp-sub">Деталі дня</p>
+
+    <div class="sp-row">
+      <div class="sp-row-label"><span>Калорії</span><span>${s.calories} / ${s.calGoal} ккал</span></div>
+      <div class="sp-bar-track"><div class="sp-bar-fill" style="width:${Math.min(100, s.calPct*100)}%; background:${calColor};"></div></div>
+    </div>
+
+    <div class="sp-row">
+      <div class="sp-row-label"><span>Вода</span><span>${(s.water/1000).toFixed(1)} / ${(s.waterGoal/1000).toFixed(1)} л</span></div>
+      <div class="sp-bar-track"><div class="sp-bar-fill" style="width:${Math.min(100, s.waterPct*100)}%; background:${waterColor};"></div></div>
+    </div>
+
+    <div class="sp-row">
+      <div class="sp-row-label"><span>Тренування</span></div>
+      ${workoutBadge}
+    </div>
+
+    <button class="btn-secondary" id="spEditBtn" style="margin-top:10px;">Редагувати цей день</button>
+  `;
+  document.getElementById('spEditBtn').addEventListener('click', () => {
+    closeSidePanel();
+    showDailyReviewModal(dateStr);
+  });
+  document.getElementById('sidePanelOverlay').classList.add('open');
+}
+function closeSidePanel(){
+  document.getElementById('sidePanelOverlay').classList.remove('open');
+}
+
+function openExerciseDetail(exId){
+  const ex = getExerciseById(exId);
+  if(!ex) return;
+  const photo = (ex.photos && ex.photos[0]) || '';
+  const d = ex.detail;
+
+  const sections = d ? `
+    <div class="sp-row">
+      <div class="sp-row-label"><span>Підготовка</span></div>
+      <p class="sp-detail-text">${d.setup}</p>
+    </div>
+    <div class="sp-row">
+      <div class="sp-row-label"><span>Виконання</span></div>
+      <p class="sp-detail-text">${d.execution}</p>
+    </div>
+    <div class="sp-row">
+      <div class="sp-row-label"><span>Типові помилки</span></div>
+      <p class="sp-detail-text">${d.mistakes}</p>
+    </div>
+    <div class="recipe-note">💡 ${d.recommendation}</div>
+  ` : `<p class="sp-detail-text">${ex.tip || 'Опис техніки поки не додано.'}</p>`;
+
+  document.getElementById('sidePanelContent').innerHTML = `
+    <p class="sp-title">${ex.name}</p>
+    <p class="sp-sub">${ex.muscle} · ${ex.target || ''}</p>
+    ${photo ? `<img src="${photo}" alt="${ex.name}" style="width:100%; height:160px; object-fit:cover; border-radius:12px; margin-bottom:18px;" onerror="this.style.display='none'">` : ''}
+    ${sections}
+  `;
+  document.getElementById('sidePanelOverlay').classList.add('open');
+}
+
+/* ============================================================
+   PROGRESS TAB
+   ============================================================ */
+function initProgress(){
+  document.getElementById('progressDate').value = todayStr();
+  document.getElementById('progressForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const date = document.getElementById('progressDate').value;
+    const weight = parseFloat(document.getElementById('progressWeight').value);
+    const waist = parseFloat(document.getElementById('progressWaist').value);
+    if(isNaN(weight)) return;
+    let entries = Store.get('measurements', []);
+    entries = entries.filter(m => m.date !== date);
+    entries.push({ date, weight, waist: isNaN(waist) ? null : waist });
+    Store.set('measurements', entries);
+    document.getElementById('progressWaist').value = '';
+    renderProgressList();
+    renderChart('weightChart');
+  });
+  renderProgressList();
+}
+
+function renderProgressList(){
+  const container = document.getElementById('progressList');
+  const entries = Store.get('measurements', []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  if(entries.length === 0){
+    container.innerHTML = '<p class="empty-note">Ще немає замірів.</p>';
+    return;
+  }
+  container.innerHTML = entries.map(m => `
+    <div class="log-row">
+      <div class="log-row-main"><b>${m.weight} кг</b>${m.waist ? ' · талія ' + m.waist + ' см' : ''}</div>
+      <div class="log-row-date">${m.date}</div>
+      <button class="delete-btn" data-date="${m.date}">✕</button>
+    </div>
+  `).join('');
+  container.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      let entries = Store.get('measurements', []);
+      entries = entries.filter(m => m.date !== btn.dataset.date);
+      Store.set('measurements', entries);
+      renderProgressList();
+      renderChart('weightChart');
+    });
+  });
+}
+
+function renderChart(canvasId){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const cssWidth = canvas.clientWidth || canvas.parentElement.clientWidth;
+  canvas.width = cssWidth * dpr;
+  canvas.height = 220 * dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssWidth,220);
+
+  const entries = Store.get('measurements', []).slice().sort((a,b) => a.date.localeCompare(b.date));
+  const style = getComputedStyle(document.documentElement);
+  const ink = style.getPropertyValue('--ink').trim();
+  const inkDim = style.getPropertyValue('--ink-dim').trim();
+  const accent = style.getPropertyValue('--accent').trim();
+
+  if(entries.length < 2){
+    ctx.fillStyle = inkDim;
+    ctx.font = '13px sans-serif';
+    ctx.fillText('Додай хоча б 2 заміри, щоб побачити графік', 10, 110);
+    return;
+  }
+
+  const weights = entries.map(e => e.weight);
+  const min = Math.min(...weights) - 1;
+  const max = Math.max(...weights) + 1;
+  const padL = 36, padR = 14, padT = 14, padB = 26;
+  const w = cssWidth - padL - padR;
+  const h = 220 - padT - padB;
+  const x = i => padL + (i/(entries.length-1)) * w;
+  const y = v => padT + h - ((v - min)/(max - min)) * h;
+
+  ctx.strokeStyle = inkDim;
+  ctx.globalAlpha = 0.2;
+  ctx.lineWidth = 1;
+  for(let i=0;i<=3;i++){
+    const yy = padT + (h/3)*i;
+    ctx.beginPath(); ctx.moveTo(padL, yy); ctx.lineTo(padL+w, yy); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  entries.forEach((e,i) => {
+    const px = x(i), py = y(e.weight);
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+
+  ctx.fillStyle = accent;
+  entries.forEach((e,i) => {
+    ctx.beginPath();
+    ctx.arc(x(i), y(e.weight), 3.5, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = ink;
+  ctx.font = '11px sans-serif';
+  ctx.fillText(max.toFixed(1), 2, padT+8);
+  ctx.fillText(min.toFixed(1), 2, padT+h);
+
+  ctx.fillStyle = inkDim;
+  ctx.fillText(entries[0].date, padL, 220-6);
+  ctx.fillText(entries[entries.length-1].date, padL+w-60, 220-6);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function safeInit(name, fn){
+  try{
+    fn();
+  }catch(e){
+    console.error('Init failed: ' + name, e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  safeInit('crmAccent', initCrmAccent);
+  safeInit('theme', initTheme);
+  safeInit('tabs', initTabs);
+  safeInit('home', initHome);
+  safeInit('program', initProgram);
+  safeInit('workout', initWorkout);
+  safeInit('library', initLibrary);
+  safeInit('nutrition', initNutrition);
+  safeInit('progress', initProgress);
+  safeInit('stats', initStatsPage);
+  safeInit('previousDayPrompt', checkPreviousDayPrompt);
+});
+
+  </script>
+</body>
+</html>
