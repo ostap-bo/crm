@@ -313,6 +313,7 @@
   .modal-body{padding:22px;flex:1;overflow-y:auto;}
   .modal-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex:none;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .priority-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 4px;border-radius:50%;font-size:10.5px;font-weight:800;flex:none;}
   .checklist-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;font-size:13px;}
   .checklist-item .txt{flex:1;line-height:1.4;word-break:break-word;padding-top:2px;}
   .checklist-item.done .txt{text-decoration:line-through;color:var(--text-dim);}
@@ -1223,11 +1224,27 @@ function renderDashboard(){
   </div>`;
 }
 
+function priorityColor(p){
+  p = p || 5;
+  if(p>=9) return 'var(--pr-critical)';
+  if(p>=7) return 'var(--pr-high)';
+  if(p>=4) return 'var(--pr-medium)';
+  return 'var(--pr-low)';
+}
+function priorityTextColor(p){
+  p = p || 5;
+  return (p>=4 && p<7) ? '#3f2d06' : '#fff';
+}
+function priorityBadge(p){
+  p = p || 5;
+  return `<span class="priority-badge" style="background:${priorityColor(p)};color:${priorityTextColor(p)}" title="Пріоритет ${p}/10">${p}</span>`;
+}
 function rowTask(t){
   return `
   <div class="list-row" onclick="openTaskModal('${t.id}')">
     <input type="checkbox" onclick="event.stopPropagation();toggleTaskDone('${t.id}')">
     <span class="dot" style="background:${wsColor(t.workspace)}"></span>
+    ${priorityBadge(t.priority)}
     <span class="title">${escapeHtml(t.title)}</span>
     <button class="row-trash-btn" title="У кошик" onclick="event.stopPropagation();trashTask('${t.id}')">${ICON.trash}</button>
   </div>`;
@@ -1409,7 +1426,7 @@ function parseQuickText(text){
 }
 function createTaskFromParsed(parsed, workspace){
   const task = {
-    id:uid(), title:parsed.title, description:'', workspace:workspace||'personal', dueDate:'',
+    id:uid(), title:parsed.title, description:'', workspace:workspace||'personal', dueDate:'', priority:5,
     checklist:[], attachments:[], done:false, deleted:false, completedAt:null, createdAt:Date.now(),
   };
   state.data.tasks.unshift(task);
@@ -1603,7 +1620,10 @@ function renderTasks(){
 }
 function renderTaskColumn(wsId){
   const ws = WORKSPACES.find(w=>w.id===wsId);
-  const all = state.data.tasks.filter(t=>t.workspace===wsId && !t.deleted).slice().sort((a,b)=>(a.done===b.done)?0:(a.done?1:-1));
+  const all = state.data.tasks.filter(t=>t.workspace===wsId && !t.deleted).slice().sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    return (b.priority||5)-(a.priority||5);
+  });
   return `
   <div class="card">
     <div class="section-head">
@@ -1620,6 +1640,7 @@ function colTaskRow(t){
   return `
   <div class="col-task-row" onclick="openTaskModal('${t.id}')">
     <input type="checkbox" ${t.done?'checked':''} onclick="event.stopPropagation();toggleTaskDone('${t.id}')">
+    ${priorityBadge(t.priority)}
     <span class="col-task-title ${t.done?'done-text':''}">${escapeHtml(t.title)}</span>
     <span class="col-task-meta">
       ${cl? `${ICON.tasks} ${clDone}/${cl}`:''}
@@ -1655,6 +1676,11 @@ function openTaskModal(id, opts){
             <label>Дедлайн (необов'язково)</label>
             <input id="f_duedate" type="date" value="${t?(t.dueDate||''):''}">
           </div>
+        </div>
+        <label>Пріоритет (1–10, 10 — найвищий)</label>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">
+          <input id="f_priority" type="number" min="1" max="10" style="width:70px" value="${t?(t.priority||5):5}">
+          ${priorityBadge(t?(t.priority||5):5)}
         </div>
 
         <label style="display:flex;align-items:center;gap:8px">Чеклист
@@ -1700,6 +1726,7 @@ function saveTaskForm(id){
     description: document.getElementById('f_desc').value,
     workspace: document.getElementById('f_ws').value,
     dueDate: document.getElementById('f_duedate').value,
+    priority: Math.max(1, Math.min(10, parseInt(document.getElementById('f_priority').value) || 5)),
   };
   if(id){
     const t = getTask(id);
