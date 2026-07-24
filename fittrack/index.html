@@ -4,39 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ostap_bo — особистий трекер</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f6b45'/%3E%3Cpath d='M16 6l2.6 7.4L26 16l-7.4 2.6L16 26l-2.6-7.4L6 16l7.4-2.6z' fill='%23ffffff'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232F4EF3'/%3E%3Cpath d='M16 6l2.6 7.4L26 16l-7.4 2.6L16 26l-2.6-7.4L6 16l7.4-2.6z' fill='%23ffffff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* ===== Theme tokens ===== */
 :root{
-  --radius:10px;
-  --radius-sm:6px;
+  --radius:14px;
+  --radius-sm:8px;
 }
 :root[data-theme="dark"]{
-  --bg:#10140f;
-  --surface:#171d18;
-  --surface-2:#1e251f;
-  --border:#2c342d;
-  --ink:#eef1ee;
-  --ink-dim:#9aa69d;
-  --accent:#1f6b45;
+  --bg:#0A0B12;
+  --surface:#14151F;
+  --surface-2:#1B1D2A;
+  --border:#272A3A;
+  --ink:#F2F3F8;
+  --ink-dim:#9195A8;
+  --accent:#5B78FF;
   --accent-ink:#ffffff;
   --good:#3ba86a;
-  --warn:#f97316;
+  --warn:#F5A524;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
 }
 :root[data-theme="light"]{
-  --bg:#f5f7f6;
+  --bg:#F4F6FB;
   --surface:#ffffff;
-  --surface-2:#eef1ef;
-  --border:#dadfdb;
-  --ink:#16201b;
-  --ink-dim:#5b665f;
-  --accent:#1f6b45;
+  --surface-2:#EEF0F7;
+  --border:#E2E5EF;
+  --ink:#12131C;
+  --ink-dim:#6B7080;
+  --accent:#2F4EF3;
   --accent-ink:#ffffff;
-  --good:#1f6b45;
-  --warn:#f97316;
-  --shadow: 0 1px 2px rgba(20,30,24,.04), 0 8px 24px rgba(20,30,24,.05);
+  --good:#1FAE6A;
+  --warn:#F5A524;
+  --shadow: 0 1px 2px rgba(16,24,64,.04), 0 8px 24px rgba(16,24,64,.06);
 }
 
 *{box-sizing:border-box;}
@@ -45,7 +47,7 @@ body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
   line-height:1.5;
   min-height:100vh;
   transition:background .2s, color .2s;
@@ -2080,7 +2082,7 @@ function updateThemeIcon(theme){
    Той самий origin -> localStorage спільний, тому просто читаємо значення,
    яке зберігає CRM, і слухаємо зміни, щоб оновлюватись без перезавантаження. */
 const CRM_ACCENT_KEY = 'personalCrmAccent_v1';
-const CRM_DEFAULT_ACCENT = '#1f6b45';
+const CRM_DEFAULT_ACCENT = '#2f4ef3';
 function shadeColorCrm(hex, percent){
   const f = parseInt(hex.slice(1),16);
   const t = percent<0 ? 0 : 255;
