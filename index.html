@@ -168,6 +168,20 @@
   .btn-ghost{border-color:transparent;background:transparent;box-shadow:none;}
   .btn-ghost:hover{background:var(--surface-2);}
   .btn-danger-text{color:var(--pr-critical);}
+  .btn-lg{padding:13px 24px;font-size:14.5px;border-radius:var(--radius);}
+
+  /* upwork */
+  .upwork-timer-card{text-align:center;padding:30px 18px 26px;}
+  .upwork-timer-display{font-size:54px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.5px;}
+  .upwork-timer-actions{display:flex;gap:10px;justify-content:center;}
+  .upwork-stats-row{display:flex;gap:16px;margin:16px 0;}
+  .upwork-stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow);}
+  .upwork-stat-val{font-size:22px;font-weight:800;}
+  .upwork-stat-lbl{font-size:11.5px;color:var(--text-dim);font-weight:700;margin-top:3px;}
+  .upwork-date-group:not(:first-child){margin-top:8px;}
+  .upwork-date-head{font-size:11px;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;padding:10px 6px 4px;border-top:1px solid var(--border);}
+  .upwork-date-group:first-child .upwork-date-head{border-top:none;padding-top:0;}
+  @media (max-width:700px){.upwork-stats-row{flex-direction:column;} .upwork-timer-display{font-size:42px;}}
 
   .view{flex:1;overflow-y:auto;padding:22px 26px 60px;}
   .filters-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
@@ -465,6 +479,10 @@ const ICON = {
   arrowLeft:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>`,
   search:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
   refresh:`<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.36M21 3v6h-6"/></svg>`,
+  timer:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/></svg>`,
+  play:`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`,
+  pause:`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`,
+  stop:`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`,
 };
 
 /* ============================= КОНСТАНТИ ============================= */
@@ -525,6 +543,7 @@ const LS_CHAT = 'personalCrmChat_v1';
 const LS_PROFILE = 'personalCrmProfile_v1';
 const LS_ACCENT = 'personalCrmAccent_v1';
 const LS_BACKUPS = 'personalCrmBackups_v1';
+const LS_UPWORK_TIMER = 'personalCrmUpworkTimer_v1';
 const LS_GCAL_TOKEN = 'personalCrmGcalToken_v1';
 const GCAL_TOKEN_TTL = 55*60*1000; // trust a saved token for 55 min (Google tokens last ~1h)
 function saveGcalToken(token){
@@ -560,7 +579,7 @@ function processGcalDeleteQueue(){
   });
 }
 
-function emptyData(){ return {tasks:[], projects:[], events:[], inbox:[]}; }
+function emptyData(){ return {tasks:[], projects:[], events:[], inbox:[], upworkLogs:[]}; }
 
 function saveData(){
   if(!state.user || !db) return;
@@ -576,6 +595,14 @@ function loadProfile(){
   return {name:'', email:'', phone:'', position:'', avatar:''};
 }
 function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }
+function loadUpworkTimer(){
+  try{
+    const raw = localStorage.getItem(LS_UPWORK_TIMER);
+    if(raw) return Object.assign({running:false, startedAt:null, accumulatedMs:0, note:''}, JSON.parse(raw));
+  }catch(e){}
+  return {running:false, startedAt:null, accumulatedMs:0, note:''};
+}
+function saveUpworkTimer(){ try{ localStorage.setItem(LS_UPWORK_TIMER, JSON.stringify(state.upworkTimer)); }catch(e){} }
 function initials(name){
   const parts = (name||'').trim().split(/\s+/).filter(Boolean);
   const s = parts.slice(0,2).map(w=>w[0]).join('').toUpperCase();
@@ -596,6 +623,7 @@ const state = {
   activeWs: null,
   data: emptyData(),
   profile: loadProfile(),
+  upworkTimer: loadUpworkTimer(),
   notifOpen: false,
   profileOpen: false,
   searchOpen: false,
@@ -633,6 +661,7 @@ function subscribeToData(uid){
         projects: Array.isArray(d.projects)? d.projects : [],
         events: Array.isArray(d.events)? d.events : [],
         inbox: Array.isArray(d.inbox)? d.inbox : [],
+        upworkLogs: Array.isArray(d.upworkLogs)? d.upworkLogs : [],
       };
       cleanupKykilData();
     } else {
@@ -1057,6 +1086,7 @@ function renderSidebar(){
     ['calendar','Календар','calendar'],
     ['tasks','Задачі','tasks'],
     ['projects','Проєкти','projects'],
+    ['upwork','Upwork','timer'],
     ['inbox','Inbox','inbox'],
     ['trash','Кошик','trash'],
   ];
@@ -1110,7 +1140,7 @@ function renderSidebar(){
   </div>`;
 }
 
-const VIEW_TITLES = {dashboard:'Головна', calendar:'Календар', tasks:'Задачі', projects:'Проєкти', inbox:'Inbox', trash:'Кошик', profile:'Профіль'};
+const VIEW_TITLES = {dashboard:'Головна', calendar:'Календар', tasks:'Задачі', projects:'Проєкти', upwork:'Upwork', inbox:'Inbox', trash:'Кошик', profile:'Профіль'};
 function renderTopbar(){
   const notifs = computeNotifications();
   const title = state.view==='workspace' ? wsName(state.activeWs) : (VIEW_TITLES[state.view]||'');
@@ -1148,6 +1178,7 @@ function renderViewBody(){
   if(state.view==='calendar') return renderCalendar();
   if(state.view==='tasks') return renderTasks();
   if(state.view==='projects') return renderProjects();
+  if(state.view==='upwork') return renderUpwork();
   if(state.view==='inbox') return renderInbox();
   if(state.view==='trash') return renderTrash();
   if(state.view==='workspace') return renderWorkspacePage();
@@ -1380,6 +1411,170 @@ function renderTrash(){
         <button class="icon-btn" title="Видалити назавжди" onclick="hardDeleteProject('${p.id}')">${ICON.trash}</button>
       </div>`).join('') : `<div class="empty-hint">Завершених проєктів немає</div>`}
   </div>`;
+}
+
+/* ============================= UPWORK (таймер годин) ============================= */
+let upworkTickInterval = null;
+function upworkElapsedMs(){
+  const t = state.upworkTimer;
+  return t.accumulatedMs + (t.running && t.startedAt ? (Date.now()-t.startedAt) : 0);
+}
+function fmtDuration(ms){
+  const s = Math.max(0, Math.floor(ms/1000));
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return pad(h)+':'+pad(m)+':'+pad(sec);
+}
+function fmtHours(ms){ return (ms/3600000).toFixed(1); }
+function startUpworkTicker(){
+  stopUpworkTicker();
+  upworkTickInterval = setInterval(()=>{
+    const el = document.getElementById('upworkTimerDisplay');
+    if(el) el.textContent = fmtDuration(upworkElapsedMs());
+  }, 1000);
+}
+function stopUpworkTicker(){
+  if(upworkTickInterval){ clearInterval(upworkTickInterval); upworkTickInterval = null; }
+}
+function startUpworkTimer(){
+  if(state.upworkTimer.running) return;
+  state.upworkTimer.running = true;
+  state.upworkTimer.startedAt = Date.now();
+  saveUpworkTimer();
+  startUpworkTicker();
+  render();
+}
+function pauseUpworkTimer(){
+  const t = state.upworkTimer;
+  if(!t.running) return;
+  t.accumulatedMs += Date.now()-t.startedAt;
+  t.running = false;
+  t.startedAt = null;
+  saveUpworkTimer();
+  render();
+}
+function stopUpworkTimer(){
+  const total = upworkElapsedMs();
+  if(total>=1000){
+    const note = (state.upworkTimer.note||'').trim();
+    state.data.upworkLogs.unshift({id:uid(), date:todayStr(), durationMs:total, note, createdAt:Date.now()});
+    saveData();
+    toast('Сесію збережено: '+fmtHours(total)+' год');
+  }
+  state.upworkTimer = {running:false, startedAt:null, accumulatedMs:0, note:''};
+  saveUpworkTimer();
+  stopUpworkTicker();
+  render();
+}
+function onUpworkNoteInput(val){
+  state.upworkTimer.note = val;
+  saveUpworkTimer();
+}
+function upworkStats(){
+  const logs = state.data.upworkLogs;
+  const todayS = todayStr();
+  const now = new Date();
+  const dow = (now.getDay()+6)%7;
+  const mondayS = dstr(addDays(now, -dow));
+  let todayMs=0, weekMs=0, totalMs=0;
+  logs.forEach(l=>{
+    totalMs += l.durationMs;
+    if(l.date===todayS) todayMs += l.durationMs;
+    if(l.date>=mondayS) weekMs += l.durationMs;
+  });
+  return {todayMs, weekMs, totalMs};
+}
+function groupUpworkLogsByDate(logs){
+  const map = {};
+  logs.forEach(l=>{ (map[l.date] = map[l.date]||[]).push(l); });
+  return Object.keys(map).sort((a,b)=>b.localeCompare(a)).map(date=>({
+    date, logs: map[date].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)), total: map[date].reduce((s,l)=>s+l.durationMs,0)
+  }));
+}
+function renderUpwork(){
+  const t = state.upworkTimer;
+  const stats = upworkStats();
+  const logs = state.data.upworkLogs;
+  const groups = groupUpworkLogsByDate(logs);
+  const isPaused = !t.running && t.accumulatedMs>0;
+  return `
+  <div class="card upwork-timer-card">
+    <div class="upwork-timer-display" id="upworkTimerDisplay">${fmtDuration(upworkElapsedMs())}</div>
+    <input type="text" id="upworkNoteInput" placeholder="Над чим працюєш? (необов'язково)" value="${escapeHtml(t.note||'')}" oninput="onUpworkNoteInput(this.value)" style="max-width:360px;margin:12px auto 18px">
+    <div class="upwork-timer-actions">
+      ${!t.running && !isPaused? `<button class="btn btn-primary btn-lg" onclick="startUpworkTimer()">${ICON.play} Старт</button>`:''}
+      ${t.running? `<button class="btn btn-lg" onclick="pauseUpworkTimer()">${ICON.pause} Пауза</button>`:''}
+      ${isPaused? `<button class="btn btn-primary btn-lg" onclick="startUpworkTimer()">${ICON.play} Продовжити</button>`:''}
+      ${(t.running||isPaused)? `<button class="btn btn-lg btn-danger-text" onclick="stopUpworkTimer()">${ICON.stop} Стоп</button>`:''}
+    </div>
+  </div>
+  <div class="upwork-stats-row">
+    <div class="upwork-stat"><div class="upwork-stat-val">${fmtHours(stats.todayMs)}</div><div class="upwork-stat-lbl">Сьогодні</div></div>
+    <div class="upwork-stat"><div class="upwork-stat-val">${fmtHours(stats.weekMs)}</div><div class="upwork-stat-lbl">Цей тиждень</div></div>
+    <div class="upwork-stat"><div class="upwork-stat-val">${fmtHours(stats.totalMs)}</div><div class="upwork-stat-lbl">Всього</div></div>
+  </div>
+  <div class="card">
+    <div class="section-head">
+      <h3 style="margin:0">${ICON.timer} Історія</h3>
+      <span class="count">${logs.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openUpworkManualModal()">${ICON.plus} Додати вручну</button>
+    </div>
+    ${groups.length? groups.map(g=>`
+      <div class="upwork-date-group">
+        <div class="upwork-date-head">${fmtDateHuman(g.date)}<span class="meta" style="float:right">${fmtHours(g.total)} год</span></div>
+        ${g.logs.map(l=>`
+          <div class="list-row" onclick="openUpworkManualModal('${l.id}')">
+            <span class="title">${l.note? escapeHtml(l.note) : 'Без опису'}</span>
+            <span class="meta">${fmtDuration(l.durationMs)}</span>
+            <button class="row-trash-btn" title="Видалити" onclick="event.stopPropagation();deleteUpworkLog('${l.id}')">${ICON.trash}</button>
+          </div>`).join('')}
+      </div>`).join(''): `<div class="empty-hint">Записів ще немає — запусти таймер або додай вручну</div>`}
+  </div>`;
+}
+function openUpworkManualModal(id){
+  const l = id? state.data.upworkLogs.find(x=>x.id===id) : null;
+  const isNew = !l;
+  const hoursVal = l? String(Math.round((l.durationMs/3600000)*100)/100) : '';
+  const dateVal = l? l.date : todayStr();
+  const html = `
+  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="side-panel">
+      <div class="modal-head"><h3>${isNew?'Новий запис':'Редагувати запис'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <div class="row2">
+          <div><label>Дата</label><input id="u_date" type="date" value="${dateVal}"></div>
+          <div><label>Годин</label><input id="u_hours" type="number" step="0.1" min="0" value="${hoursVal}" placeholder="напр. 2.5"></div>
+        </div>
+        <label>Опис (необов'язково)</label>
+        <textarea id="u_note" rows="3" placeholder="Над чим працював">${l?escapeHtml(l.note||''):''}</textarea>
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteUpworkLog('${l.id}')">${ICON.trash} Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveUpworkManualForm(${isNew?'null':`'${l.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveUpworkManualForm(id){
+  const hours = parseFloat(document.getElementById('u_hours').value);
+  if(!hours || hours<=0){ toast('Вкажіть кількість годин'); return; }
+  const date = document.getElementById('u_date').value || todayStr();
+  const note = document.getElementById('u_note').value.trim();
+  if(id){
+    const l = state.data.upworkLogs.find(x=>x.id===id);
+    if(l){ l.durationMs = Math.round(hours*3600000); l.date = date; l.note = note; }
+  } else {
+    state.data.upworkLogs.unshift({id:uid(), date, durationMs:Math.round(hours*3600000), note, createdAt:Date.now()});
+  }
+  saveData(); closeModal(); toast('Збережено'); render();
+}
+function deleteUpworkLog(id){
+  confirmAction('Видалити цей запис?', ()=>{
+    state.data.upworkLogs = state.data.upworkLogs.filter(l=>l.id!==id);
+    saveData(); closeModal(); toast('Запис видалено'); render();
+  });
 }
 
 /* ============================= AI (rule-based, chat-driven) ============================= */
@@ -2327,6 +2522,7 @@ function snapshotData(){
 /* ============================= INIT ============================= */
 applyAccent(loadAccent());
 render();
+if(state.upworkTimer.running) startUpworkTicker();
 initAiChatWidget();
 setInterval(snapshotData, 3600000);
 setInterval(()=>{ if(state.gcalToken) syncGoogleCalendar(true); }, 300000);
