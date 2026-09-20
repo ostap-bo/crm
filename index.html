@@ -531,6 +531,7 @@ const ICON = {
 };
 
 /* ============================= КОНСТАНТИ ============================= */
+const CATEGORY_PALETTE = ['#2F4EF3','#0EA5E9','#14B8A6','#22C55E','#EAB308','#F59E0B','#F97316','#EF4444','#EC4899','#A855F7','#6366F1','#64748B','#84CC16','#06B6D4'];
 const WORKSPACES = [
   {id:'personal', name:'Особисте', color:'var(--ws-personal)'},
   {id:'kofax', name:'Kofax', color:'var(--ws-kofax)'},
@@ -1631,7 +1632,6 @@ function deleteUpworkLog(id){
 
 /* ============================= БЮДЖЕТ: КОНСТАНТИ ТА ДАНІ ============================= */
 const BUDGET_BASE_CCY = 'PLN';
-const CATEGORY_PALETTE = ['#2F4EF3','#0EA5E9','#14B8A6','#22C55E','#EAB308','#F59E0B','#F97316','#EF4444','#EC4899','#A855F7','#6366F1','#64748B','#84CC16','#06B6D4'];
 function mkCat(id,name,icon,subs){ return {id, name, icon, subcategories:(subs||[]).map(s=>({id:id+'-'+s.id, name:s.name}))}; }
 function defaultExpenseCategories(){
   const c = [
