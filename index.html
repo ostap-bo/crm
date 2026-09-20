@@ -335,6 +335,26 @@
   .custom-select-opt:hover{background:var(--surface-2);}
   .custom-select-opt.active{font-weight:700;color:var(--accent-dark);background:var(--accent-light);}
 
+  /* custom date picker */
+  .custom-datepicker{position:relative;display:block;width:100%;}
+  .cdp-panel{
+    display:none;position:absolute;top:calc(100% + 3px);left:0;z-index:60;width:264px;
+    background:var(--surface);border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);
+    box-shadow:var(--shadow);padding:10px;
+  }
+  .cdp-panel.open{display:block;}
+  .cdp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .cdp-month-label{font-size:13px;font-weight:700;text-transform:capitalize;}
+  .cdp-dow-row{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10.5px;color:var(--text-dim);font-weight:700;margin-bottom:4px;}
+  .cdp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+  .cdp-day{aspect-ratio:1/1;border:none;background:transparent;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .cdp-day:hover{background:var(--surface-2);}
+  .cdp-day-muted{color:var(--text-dim);opacity:.4;}
+  .cdp-day-today{box-shadow:inset 0 0 0 1.5px var(--accent);}
+  .cdp-day-selected{background:var(--accent-grad);color:#fff;font-weight:800;}
+  .cdp-today-btn{width:100%;margin-top:8px;padding:7px;border:none;background:var(--surface-2);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--text-dim);cursor:pointer;}
+  .cdp-today-btn:hover{background:var(--surface-3);color:var(--text);}
+
   /* direction columns (tasks / projects) */
   .dir-columns{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;align-items:start;max-width:880px;}
   @media (max-width:1100px){.dir-columns{grid-template-columns:1fr;}}
@@ -587,6 +607,7 @@ const STATUS_LABEL = {tz:'ТЗ', proto:'Прототип', design:'Дизайн'
 
 const DOW = ['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
 const DOW_FULL = ['неділя','понеділок','вівторок','середа','четвер','п’ятниця','субота'];
+const DOW_MON = ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];
 const MONTHS = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
 const MONTHS_NOM = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 
@@ -631,44 +652,9 @@ const LS_CHAT = 'personalCrmChat_v1';
 const LS_PROFILE = 'personalCrmProfile_v1';
 const LS_ACCENT = 'personalCrmAccent_v1';
 const LS_BACKUPS = 'personalCrmBackups_v1';
-const LS_UPWORK_TIMER = 'personalCrmUpworkTimer_v1';
 const LS_BGT_DISPLAY_CCY = 'personalCrmBgtDisplayCcy_v1';
-const LS_GCAL_TOKEN = 'personalCrmGcalToken_v1';
-const GCAL_TOKEN_TTL = 55*60*1000; // trust a saved token for 55 min (Google tokens last ~1h)
-function saveGcalToken(token){
-  try{ localStorage.setItem(LS_GCAL_TOKEN, JSON.stringify({token, at:Date.now()})); }catch(e){}
-}
-function loadGcalToken(){
-  try{
-    const raw = JSON.parse(localStorage.getItem(LS_GCAL_TOKEN)||'null');
-    if(raw && raw.token && (Date.now()-raw.at) < GCAL_TOKEN_TTL) return raw;
-  }catch(e){}
-  return null;
-}
-function clearGcalToken(){ try{ localStorage.removeItem(LS_GCAL_TOKEN); }catch(e){} }
-const LS_GCAL_DELQ = 'personalCrmGcalDelQueue_v1';
-function loadDelQueue(){ try{ return JSON.parse(localStorage.getItem(LS_GCAL_DELQ)||'[]'); }catch(e){ return []; } }
-function saveDelQueue(arr){ try{ localStorage.setItem(LS_GCAL_DELQ, JSON.stringify(arr)); }catch(e){} }
-function queueGcalDelete(gid){
-  const q = loadDelQueue();
-  if(!q.includes(gid)){ q.push(gid); saveDelQueue(q); }
-  gcalPendingDeletes.add(gid);
-}
-function dequeueGcalDelete(gid){
-  saveDelQueue(loadDelQueue().filter(x=>x!==gid));
-  gcalPendingDeletes.delete(gid);
-}
-function processGcalDeleteQueue(){
-  if(!state.gcalToken) return;
-  loadDelQueue().forEach(gid=>{
-    gcalPendingDeletes.add(gid);
-    gcalDelete(gid).then(()=>{ dequeueGcalDelete(gid); }).catch(err=>{
-      if(err && err.code===401){ state.gcalToken = null; clearGcalToken(); }
-    });
-  });
-}
 
-function emptyData(){ return {tasks:[], projects:[], events:[], inbox:[], upworkLogs:[], budget: emptyBudgetData()}; }
+function emptyData(){ return {tasks:[], budget: emptyBudgetData()}; }
 
 function saveData(){
   if(!state.user || !db) return;
@@ -684,14 +670,6 @@ function loadProfile(){
   return {name:'', email:'', phone:'', position:'', avatar:''};
 }
 function saveProfile(){ localStorage.setItem(LS_PROFILE, JSON.stringify(state.profile)); }
-function loadUpworkTimer(){
-  try{
-    const raw = localStorage.getItem(LS_UPWORK_TIMER);
-    if(raw) return Object.assign({running:false, startedAt:null, accumulatedMs:0, note:''}, JSON.parse(raw));
-  }catch(e){}
-  return {running:false, startedAt:null, accumulatedMs:0, note:''};
-}
-function saveUpworkTimer(){ try{ localStorage.setItem(LS_UPWORK_TIMER, JSON.stringify(state.upworkTimer)); }catch(e){} }
 function initials(name){
   const parts = (name||'').trim().split(/\s+/).filter(Boolean);
   const s = parts.slice(0,2).map(w=>w[0]).join('').toUpperCase();
@@ -705,34 +683,23 @@ const state = {
   authed: false,
   user: null,
   view: 'dashboard',
-  calendarMode: 'week',
-  calendarDate: new Date(),
   dashboardDate: new Date(),
   wsFilter: 'all', // 'all' | 'personal' | 'kofax'
   activeWs: null,
   data: emptyData(),
   profile: loadProfile(),
-  upworkTimer: loadUpworkTimer(),
   budgetView: 'overview',
   bgtAnalyticsPeriod: 'month',
   bgtDisplayCcy: localStorage.getItem(LS_BGT_DISPLAY_CCY) || 'UAH',
   bgtFilters: {period:'month', type:'all', categoryId:'all', accountId:'all', currency:'all', search:''},
   notifOpen: false,
-  profileOpen: false,
   searchOpen: false,
   searchQuery: '',
-  gcalToken: null,
-  gcalTokenAt: 0,
-  gcalConnected: false,
-  gcalSyncing: false,
-  gcalLastSync: 0,
 };
 let lastRenderedView = null;
-let pendingInboxSourceId = null;
 let currentNotifs = [];
 
 function getTask(id){ return state.data.tasks.find(t=>t.id===id); }
-function getProject(id){ return state.data.projects.find(p=>p.id===id); }
 
 /* ============================= ТОСТИ ============================= */
 function toast(msg){
@@ -751,10 +718,6 @@ function subscribeToData(uid){
       const d = doc.data() || {};
       state.data = {
         tasks: Array.isArray(d.tasks)? d.tasks : [],
-        projects: Array.isArray(d.projects)? d.projects : [],
-        events: Array.isArray(d.events)? d.events : [],
-        inbox: Array.isArray(d.inbox)? d.inbox : [],
-        upworkLogs: Array.isArray(d.upworkLogs)? d.upworkLogs : [],
         budget: normalizeBudgetData(d.budget),
       };
       cleanupKykilData();
@@ -767,64 +730,24 @@ function subscribeToData(uid){
   }, ()=>{ toast('Помилка синхронізації даних'); });
 }
 /* Одноразове прибирання: напрямок Kykil видалено з системи —
-   переносимо його задачі/проєкти в кошик (можна остаточно видалити звідти). */
+   переносимо його задачі в кошик (можна остаточно видалити звідти). */
 function cleanupKykilData(){
   try{
     if(localStorage.getItem('personalCrmKykilCleanup_v1')) return;
     localStorage.setItem('personalCrmKykilCleanup_v1','1');
     let changed = false;
     state.data.tasks.forEach(t=>{ if(t.workspace==='kykil' && !t.deleted){ t.deleted = true; changed = true; } });
-    state.data.projects.forEach(p=>{ if(p.workspace==='kykil' && !p.deleted){ p.deleted = true; changed = true; } });
-    if(changed){ saveData(); toast('Задачі й проєкти напрямку Kykil перенесено в кошик'); }
+    if(changed){ saveData(); toast('Задачі напрямку Kykil перенесено в кошик'); }
   }catch(e){}
-}
-function googleProviderWithCalendar(){
-  const p = new firebase.auth.GoogleAuthProvider();
-  p.addScope('https://www.googleapis.com/auth/calendar.events');
-  p.setCustomParameters({ prompt: 'consent' });
-  return p;
-}
-function captureGcalToken(result){
-  try{
-    let cred = result && result.credential;
-    if(!cred || !cred.accessToken){
-      cred = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-    }
-    if(cred && cred.accessToken){
-      state.gcalToken = cred.accessToken;
-      state.gcalTokenAt = Date.now();
-      state.gcalConnected = true;
-      saveGcalToken(cred.accessToken);
-      toast('Google Calendar підключено');
-      processGcalDeleteQueue();
-      syncGoogleCalendar(false);
-    } else {
-      toast('Google не повернув доступ до календаря — спробуйте ще раз');
-    }
-  }catch(e){ toast('Помилка отримання доступу: ' + (e && e.message ? e.message : 'невідома')); }
 }
 function doLogin(){
   if(!fbReady){ toast('Firebase не налаштовано — встав конфіг у коді'); return; }
-  auth.signInWithPopup(googleProviderWithCalendar()).then(result=>{
-    captureGcalToken(result);
-  }).catch(err=>{
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err=>{
     toast('Не вдалося увійти: ' + (err && err.message ? err.message : 'помилка'));
-  });
-}
-function requestGcalToken(){
-  if(!fbReady || !auth.currentUser){ toast('Спершу увійдіть у застосунок'); return; }
-  auth.signInWithPopup(googleProviderWithCalendar()).then(result=>{
-    captureGcalToken(result);
-  }).catch(err=>{
-    toast('Не вдалося підключити Google Calendar: ' + (err && err.message ? err.message : 'помилка'));
   });
 }
 function doLogout(){
   if(dataUnsub){ dataUnsub(); dataUnsub = null; }
-  state.profileOpen = false;
-  state.gcalToken = null;
-  state.gcalConnected = false;
-  clearGcalToken();
   if(auth) auth.signOut();
 }
 function toggleTheme(){
@@ -843,14 +766,6 @@ if(fbReady){
       if(!state.profile.avatar) state.profile.avatar = state.user.avatar;
       saveProfile();
       subscribeToData(user.uid);
-      const saved = loadGcalToken();
-      if(saved){
-        state.gcalToken = saved.token;
-        state.gcalTokenAt = saved.at;
-        state.gcalConnected = true;
-        processGcalDeleteQueue();
-        syncGoogleCalendar(true);
-      }
     } else {
       state.authed = false;
       state.user = null;
@@ -861,102 +776,6 @@ if(fbReady){
   });
 } else {
   state.authReady = true;
-}
-
-/* ============================= GOOGLE CALENDAR ============================= */
-const GCAL_BASE = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
-function gcalHeaders(){ return { 'Authorization': 'Bearer '+state.gcalToken, 'Content-Type': 'application/json' }; }
-function gcalTz(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }catch(e){ return 'UTC'; } }
-
-function gcalEventToLocal(ev){
-  const s = ev.start||{}, en = ev.end||{};
-  let date, start, end;
-  if(s.date){ date = s.date; start='00:00'; end='23:59'; }
-  else if(s.dateTime){
-    const sd = new Date(s.dateTime), ed = new Date(en.dateTime||s.dateTime);
-    date = dstr(sd); start = pad(sd.getHours())+':'+pad(sd.getMinutes()); end = pad(ed.getHours())+':'+pad(ed.getMinutes());
-  } else return null;
-  return {
-    title: ev.summary || '(без назви)', description: ev.description || '',
-    workspace: 'personal', recurring: 'none',
-    date, start, end,
-    googleEventId: ev.id, gUpdated: ev.updated, source: 'google',
-  };
-}
-function localEventToGcal(e){
-  return {
-    summary: e.title,
-    description: e.description || '',
-    start: { dateTime: `${e.date}T${e.start}:00`, timeZone: gcalTz() },
-    end: { dateTime: `${e.date}T${e.end}:00`, timeZone: gcalTz() },
-  };
-}
-function gcalFetch(url, opts){
-  opts = opts || {};
-  opts.headers = gcalHeaders();
-  return fetch(url, opts).then(r=>{
-    if(r.status===401){ const err = new Error('unauthorized'); err.code = 401; throw err; }
-    if(r.status===404 || r.status===410) return null;
-    if(!r.ok) throw new Error('gcal request failed: ' + r.status);
-    if(r.status===204) return null;
-    return r.json();
-  });
-}
-const gcalPendingDeletes = new Set(loadDelQueue());
-function gcalList(){
-  if(!state.gcalToken) return Promise.resolve(null);
-  const timeMin = new Date(Date.now()-30*86400000).toISOString();
-  const timeMax = new Date(Date.now()+180*86400000).toISOString();
-  const url = `${GCAL_BASE}?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&maxResults=250`;
-  return gcalFetch(url);
-}
-function gcalCreate(e){ return gcalFetch(GCAL_BASE, {method:'POST', body: JSON.stringify(localEventToGcal(e))}); }
-function gcalUpdate(e){ return gcalFetch(`${GCAL_BASE}/${e.googleEventId}`, {method:'PATCH', body: JSON.stringify(localEventToGcal(e))}); }
-function gcalDelete(googleEventId){ return gcalFetch(`${GCAL_BASE}/${googleEventId}`, {method:'DELETE'}); }
-
-function syncGoogleCalendar(silent){
-  if(!state.gcalToken || state.gcalSyncing) return;
-  state.gcalSyncing = true;
-  processGcalDeleteQueue();
-  const events = state.data.events;
-  const toCreate = events.filter(e=>!e.googleEventId && !e.deleted);
-  const toUpdate = events.filter(e=>e.googleEventId && e.dirty);
-  let chain = Promise.resolve();
-  toCreate.forEach(e=>{ chain = chain.then(()=>gcalCreate(e)).then(res=>{ e.googleEventId=res.id; e.gUpdated=res.updated; e.source=e.source||'local'; }); });
-  toUpdate.forEach(e=>{ chain = chain.then(()=>gcalUpdate(e)).then(res=>{ e.gUpdated=res.updated; delete e.dirty; }); });
-  chain.then(()=>gcalList()).then(data=>{
-    if(data && Array.isArray(data.items)){
-      data.items.forEach(gev=>{
-        if(gcalPendingDeletes.has(gev.id)) return;
-        if(gev.status==='cancelled'){
-          const idx = events.findIndex(e=>e.googleEventId===gev.id);
-          if(idx>-1) events.splice(idx,1);
-          return;
-        }
-        const conv = gcalEventToLocal(gev);
-        if(!conv) return;
-        const local = events.find(e=>e.googleEventId===gev.id);
-        if(local){
-          if(local.gUpdated !== gev.updated && !local.dirty) Object.assign(local, conv, {id: local.id});
-        } else {
-          events.unshift(Object.assign({id:uid()}, conv));
-        }
-      });
-    }
-    state.gcalLastSync = Date.now();
-    saveData(); render();
-    if(!silent) toast('Google Calendar синхронізовано');
-  }).catch(err=>{
-    console.error('Google Calendar sync error', err);
-    if(err && err.code===401){
-      state.gcalToken = null;
-      clearGcalToken();
-      if(!silent) toast('Доступ до Google Calendar прострочено — натисніть кнопку підключення ще раз');
-    } else {
-      if(!silent) toast('Помилка синхронізації: ' + (err && err.message ? err.message : 'невідома помилка'));
-    }
-    render();
-  }).finally(()=>{ state.gcalSyncing = false; });
 }
 
 /* ============================= ПРОФІЛЬ ============================= */
@@ -1074,13 +893,17 @@ function renderProfile(){
       <input type="color" value="${curAccent}" onchange="setAccentColor(this.value)" title="Свій колір">
     </div>
     <button class="btn btn-sm btn-ghost" style="margin-top:10px" onclick="resetAccent()">Скинути на типовий</button>
+  </div>
+  <div class="card" style="max-width:520px;margin-top:16px">
+    <div style="font-size:10.5px;color:var(--text-dim);margin-bottom:10px">Дані синхронізуються автоматично, резервні копії — теж</div>
+    <button class="btn btn-ghost btn-danger-text" onclick="doLogout()">${ICON.logout} Вийти</button>
   </div>`;
 }
 
 /* ============================= НАВІГАЦІЯ ============================= */
-function switchView(v){ state.view = v; state.notifOpen=false; state.profileOpen=false; render(); }
+function switchView(v){ state.view = v; state.notifOpen=false; render(); }
 function setWsFilter(id){ state.wsFilter = id; render(); }
-function openWorkspacePage(wsId){ state.activeWs = wsId; state.view = 'workspace'; state.notifOpen=false; state.profileOpen=false; render(); }
+function openWorkspacePage(wsId){ state.activeWs = wsId; state.view = 'workspace'; state.notifOpen=false; render(); }
 
 /* ============================= СПОВІЩЕННЯ ============================= */
 function computeNotifications(){
@@ -1096,12 +919,11 @@ function clickNotif(idx){
   if(n.taskId){ openTaskModal(n.taskId); }
   else if(n.view){ switchView(n.view); }
 }
-function toggleNotif(){ state.notifOpen = !state.notifOpen; state.profileOpen=false; state.searchOpen=false; render(); }
-function toggleProfile(){ state.profileOpen = !state.profileOpen; state.notifOpen=false; state.searchOpen=false; render(); }
+function toggleNotif(){ state.notifOpen = !state.notifOpen; state.searchOpen=false; render(); }
 
 /* ============================= ПОШУК ============================= */
 function toggleSearch(){
-  state.searchOpen = !state.searchOpen; state.notifOpen=false; state.profileOpen=false; render();
+  state.searchOpen = !state.searchOpen; state.notifOpen=false; render();
   if(state.searchOpen) setTimeout(()=>{ const inp=document.getElementById('searchInput'); if(inp) inp.focus(); }, 0);
 }
 function onSearchInput(){
@@ -1114,21 +936,16 @@ function renderSearchResults(q){
   q = (q||'').trim().toLowerCase();
   if(!q) return `<div class="empty-hint">Введіть запит для пошуку</div>`;
   const tasks = state.data.tasks.filter(t=>!t.deleted && t.title.toLowerCase().includes(q)).slice(0,8);
-  const projects = state.data.projects.filter(p=>!p.deleted && p.name.toLowerCase().includes(q)).slice(0,8);
-  if(!tasks.length && !projects.length) return `<div class="empty-hint">Нічого не знайдено</div>`;
-  let html = '';
-  if(tasks.length) html += `<div style="font-size:10.5px;font-weight:700;color:var(--text-dim);padding:4px 2px">Задачі</div>` + tasks.map(t=>`<button type="button" class="notif-row" onclick="closeSearchAndOpenTask('${t.id}')">${escapeHtml(t.title)}</button>`).join('');
-  if(projects.length) html += `<div style="font-size:10.5px;font-weight:700;color:var(--text-dim);padding:4px 2px">Проєкти</div>` + projects.map(p=>`<button type="button" class="notif-row" onclick="closeSearchAndOpenProject('${p.id}')">${escapeHtml(p.name)}</button>`).join('');
-  return html;
+  if(!tasks.length) return `<div class="empty-hint">Нічого не знайдено</div>`;
+  return `<div style="font-size:10.5px;font-weight:700;color:var(--text-dim);padding:4px 2px">Задачі</div>` + tasks.map(t=>`<button type="button" class="notif-row" onclick="closeSearchAndOpenTask('${t.id}')">${escapeHtml(t.title)}</button>`).join('');
 }
 function closeSearchAndOpenTask(id){ state.searchOpen=false; render(); openTaskModal(id); }
-function closeSearchAndOpenProject(id){ state.searchOpen=false; render(); openProjectDetail(id); }
 
 document.addEventListener('click', function(e){
   if(!e.target.closest('.custom-select')) document.querySelectorAll('.custom-select-panel.open').forEach(p=>p.classList.remove('open'));
+  if(!e.target.closest('.custom-datepicker')) document.querySelectorAll('.cdp-panel.open').forEach(p=>p.classList.remove('open'));
   if(!e.target.closest('.inbox-menu-wrap')) document.querySelectorAll('.inbox-menu.open').forEach(p=>p.classList.remove('open'));
   if(state.notifOpen && !e.target.closest('#notifWrap')){ state.notifOpen=false; render(); }
-  if(state.profileOpen && !e.target.closest('#profileWrap')){ state.profileOpen=false; render(); }
   if(state.searchOpen && !e.target.closest('#searchWrap')){ state.searchOpen=false; render(); }
 });
 
@@ -1178,12 +995,8 @@ function renderLogin(){
 function renderSidebar(){
   const navItems = [
     ['dashboard','Головна','home'],
-    ['calendar','Календар','calendar'],
     ['tasks','Задачі','tasks'],
-    ['projects','Проєкти','projects'],
     ['budget','Бюджет','wallet'],
-    ['upwork','Upwork','timer'],
-    ['inbox','Inbox','inbox'],
     ['trash','Кошик','trash'],
   ];
   return `
@@ -1218,25 +1031,18 @@ function renderSidebar(){
       }).join('')}
     </div>
     <div class="sidebar-foot">
-      <div class="profile-row" id="profileWrap">
+      <div class="profile-row" id="profileWrap" onclick="switchView('profile')" style="cursor:pointer">
         <div class="avatar">${state.profile.avatar? `<img src="${state.profile.avatar}" style="width:100%;height:100%;object-fit:cover">` : initials(state.profile.name)}</div>
         <div>
           <div class="profile-name">${escapeHtml(state.profile.name)}</div>
           <div class="profile-email">${escapeHtml(state.profile.email)}</div>
         </div>
-        <button class="profile-menu-btn" onclick="toggleProfile()">⋯</button>
-        ${state.profileOpen ? `
-          <div class="dropdown">
-            <button onclick="switchView('profile');toggleProfile()">Профіль</button>
-            <div style="padding:6px 12px;font-size:10.5px;color:var(--text-dim)">Дані синхронізуються автоматично, резервні копії — теж</div>
-            <button onclick="doLogout()" style="color:var(--pr-critical)">${ICON.logout} Вийти</button>
-          </div>`:''}
       </div>
     </div>
   </div>`;
 }
 
-const VIEW_TITLES = {dashboard:'Головна', calendar:'Календар', tasks:'Задачі', projects:'Проєкти', budget:'Бюджет', upwork:'Upwork', inbox:'Inbox', trash:'Кошик', profile:'Профіль'};
+const VIEW_TITLES = {dashboard:'Головна', tasks:'Задачі', budget:'Бюджет', trash:'Кошик', profile:'Профіль'};
 function renderTopbar(){
   const notifs = computeNotifications();
   const title = state.view==='workspace' ? wsName(state.activeWs) : (VIEW_TITLES[state.view]||'');
@@ -1249,7 +1055,7 @@ function renderTopbar(){
       <button class="icon-btn" onclick="toggleSearch()" title="Пошук">${ICON.search}</button>
       ${state.searchOpen ? `
       <div class="dropdown" style="top:44px;bottom:auto;left:auto;right:0;width:320px;padding:8px;">
-        <input id="searchInput" type="text" value="${escapeHtml(state.searchQuery||'')}" placeholder="Пошук задач і проєктів..." oninput="onSearchInput()" style="margin-bottom:6px">
+        <input id="searchInput" type="text" value="${escapeHtml(state.searchQuery||'')}" placeholder="Пошук задач..." oninput="onSearchInput()" style="margin-bottom:6px">
         <div id="searchResults">${renderSearchResults(state.searchQuery||'')}</div>
       </div>`:''}
     </div>
@@ -1264,19 +1070,13 @@ function renderTopbar(){
       </div>`:''}
     </div>
     <button class="btn btn-primary" onclick="openTaskModal(null${wsCtx})">${ICON.plus} Задача</button>
-    <button class="btn" onclick="openEventModal(null${wsCtx})">${ICON.plus} Подія</button>
-    <button class="btn" onclick="openProjectModal(null${wsCtx})">${ICON.plus} Проєкт</button>
   </div>`;
 }
 
 function renderViewBody(){
   if(state.view==='dashboard') return renderDashboard();
-  if(state.view==='calendar') return renderCalendar();
   if(state.view==='tasks') return renderTasks();
-  if(state.view==='projects') return renderProjects();
   if(state.view==='budget') return renderBudgetModule();
-  if(state.view==='upwork') return renderUpwork();
-  if(state.view==='inbox') return renderInbox();
   if(state.view==='trash') return renderTrash();
   if(state.view==='workspace') return renderWorkspacePage();
   if(state.view==='profile') return renderProfile();
@@ -1308,6 +1108,7 @@ function toggleDropdown(id){
   if(!panel) return;
   const isOpen = panel.classList.contains('open');
   document.querySelectorAll('.custom-select-panel.open').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.cdp-panel.open').forEach(p=>p.classList.remove('open'));
   document.querySelectorAll('.inbox-menu.open').forEach(p=>p.classList.remove('open'));
   if(!isOpen) panel.classList.add('open');
 }
@@ -1319,6 +1120,91 @@ function selectDropdownOption(id, value){
   if(cfg.onChange) cfg.onChange(value);
 }
 
+/* ============================= CUSTOM DATE PICKER ============================= */
+const DATEPICKER_REGISTRY = {};
+function renderCustomDatePicker(id, value, onChange){
+  const base = value? new Date(value+'T00:00:00') : new Date();
+  DATEPICKER_REGISTRY[id] = {value: value||'', onChange, viewYear: base.getFullYear(), viewMonth: base.getMonth()};
+  return buildDatepickerHtml(id);
+}
+function buildDatepickerHtml(id){
+  const cfg = DATEPICKER_REGISTRY[id];
+  return `<div class="custom-datepicker" id="wrap_${id}">
+    <input type="hidden" id="${id}" value="${escapeHtml(cfg.value)}">
+    <button type="button" class="custom-select-btn" onclick="event.stopPropagation();toggleDatepicker('${id}')">
+      <span class="cs-label">${cfg.value? fmtDateHuman(cfg.value) : 'Оберіть дату'}</span>
+      <span class="cs-chev">${ICON.chevronDown}</span>
+    </button>
+    <div class="cdp-panel" id="panel_${id}">
+      <div id="grid_${id}">${buildDatepickerGridHtml(id)}</div>
+    </div>
+  </div>`;
+}
+function buildDatepickerGridHtml(id){
+  const cfg = DATEPICKER_REGISTRY[id];
+  const y = cfg.viewYear, m = cfg.viewMonth;
+  const first = new Date(y,m,1);
+  const startDow = (first.getDay()+6)%7;
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const daysInPrevMonth = new Date(y,m,0).getDate();
+  const todayS = todayStr();
+  let cells = '';
+  for(let i=0;i<startDow;i++){
+    const d = daysInPrevMonth - startDow + 1 + i;
+    const dm = m===0? 11 : m-1, dy = m===0? y-1 : y;
+    const ds = `${dy}-${pad(dm+1)}-${pad(d)}`;
+    cells += `<button type="button" class="cdp-day cdp-day-muted" onclick="event.stopPropagation();selectDatepickerDay('${id}','${ds}')">${d}</button>`;
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const ds = `${y}-${pad(m+1)}-${pad(d)}`;
+    const isToday = ds===todayS;
+    const isSel = ds===cfg.value;
+    cells += `<button type="button" class="cdp-day ${isToday?'cdp-day-today':''} ${isSel?'cdp-day-selected':''}" onclick="event.stopPropagation();selectDatepickerDay('${id}','${ds}')">${d}</button>`;
+  }
+  const totalCells = startDow + daysInMonth;
+  const trailing = (7 - (totalCells % 7)) % 7;
+  for(let i=1;i<=trailing;i++){
+    const dm = m===11? 0 : m+1, dy = m===11? y+1 : y;
+    const ds = `${dy}-${pad(dm+1)}-${pad(i)}`;
+    cells += `<button type="button" class="cdp-day cdp-day-muted" onclick="event.stopPropagation();selectDatepickerDay('${id}','${ds}')">${i}</button>`;
+  }
+  return `
+  <div class="cdp-head">
+    <button type="button" class="icon-btn" onclick="event.stopPropagation();datepickerNavMonth('${id}',-1)">${ICON.chevronL}</button>
+    <span class="cdp-month-label">${MONTHS_NOM[m]} ${y}</span>
+    <button type="button" class="icon-btn" onclick="event.stopPropagation();datepickerNavMonth('${id}',1)">${ICON.chevronR}</button>
+  </div>
+  <div class="cdp-dow-row">${DOW_MON.map(d=>`<span>${d}</span>`).join('')}</div>
+  <div class="cdp-grid">${cells}</div>
+  <button type="button" class="cdp-today-btn" onclick="event.stopPropagation();datepickerToday('${id}')">Сьогодні</button>`;
+}
+function toggleDatepicker(id){
+  const panel = document.getElementById('panel_'+id);
+  if(!panel) return;
+  const isOpen = panel.classList.contains('open');
+  document.querySelectorAll('.cdp-panel.open').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.custom-select-panel.open').forEach(p=>p.classList.remove('open'));
+  if(!isOpen) panel.classList.add('open');
+}
+function datepickerNavMonth(id, dir){
+  const cfg = DATEPICKER_REGISTRY[id];
+  let m = cfg.viewMonth + dir, y = cfg.viewYear;
+  if(m<0){ m=11; y--; } else if(m>11){ m=0; y++; }
+  cfg.viewMonth = m; cfg.viewYear = y;
+  const grid = document.getElementById('grid_'+id);
+  if(grid) grid.innerHTML = buildDatepickerGridHtml(id);
+}
+function selectDatepickerDay(id, dateStr){
+  const cfg = DATEPICKER_REGISTRY[id];
+  cfg.value = dateStr;
+  const d = new Date(dateStr+'T00:00:00');
+  cfg.viewYear = d.getFullYear(); cfg.viewMonth = d.getMonth();
+  const wrap = document.getElementById('wrap_'+id);
+  if(wrap) wrap.outerHTML = buildDatepickerHtml(id);
+  if(cfg.onChange) cfg.onChange(dateStr);
+}
+function datepickerToday(id){ selectDatepickerDay(id, todayStr()); }
+
 /* ============================= WORKSPACE FILTER CHIPS (single-select) ============================= */
 function renderWsFilters(){
   return `<div class="filters-row">
@@ -1328,7 +1214,6 @@ function renderWsFilters(){
 }
 
 function filteredTasks(){ return state.data.tasks.filter(t=>!t.deleted && (state.wsFilter==='all' || t.workspace===state.wsFilter)); }
-function filteredEvents(){ return state.data.events.filter(e=>state.wsFilter==='all' || e.workspace===state.wsFilter); }
 
 /* ============================= DASHBOARD ============================= */
 function dashNav(dir){ state.dashboardDate = addDays(state.dashboardDate, dir); render(); }
@@ -1339,7 +1224,6 @@ function renderDashboard(){
   const selStr = dstr(selDate);
   const isToday = selStr===todayStr();
   const dayTasks = filteredTasks().filter(t=>!t.done && t.dueDate===selStr);
-  const dayEvents = filteredEvents().filter(e=> e.date===selStr || (e.recurring==='weekly' && new Date(e.date+'T00:00:00').getDay()===selDate.getDay() && e.date<=selStr)).sort((a,b)=>a.start.localeCompare(b.start));
 
   return `
   <div class="day-hero">
@@ -1351,28 +1235,9 @@ function renderDashboard(){
     ${!isToday? `<button class="btn btn-sm" onclick="dashToday()">Сьогодні</button>`:''}
   </div>
   ${renderWsFilters()}
-  <div class="grid-dash">
-    <div class="card">
-      <h3>${ICON.tasks} Задачі на цей день <span class="count">${dayTasks.length}</span></h3>
-      ${dayTasks.length? dayTasks.map(t=>rowTask(t)).join(''): `<div class="empty-hint">На цей день задач немає</div>`}
-    </div>
-    <div class="card">
-      <h3>${ICON.calendar} Події дня <span class="count">${dayEvents.length}</span></h3>
-      ${dayEvents.length? dayEvents.map(e=>`
-        <div class="list-row" onclick="switchView('calendar')">
-          <span class="dot" style="background:${wsColor(e.workspace)}"></span>
-          <span class="title">${escapeHtml(e.title)}</span>
-          <span class="meta">${e.start}</span>
-        </div>`).join(''): `<div class="empty-hint">Подій немає</div>`}
-    </div>
-    <div class="card">
-      <h3>Швидкий запис</h3>
-      <div class="quick-capture" style="margin-bottom:6px">
-        <input id="quickInboxInput" type="text" placeholder="Записати ідею в Inbox..." onkeydown="if(event.key==='Enter')quickAddInbox()">
-        <button class="btn btn-sm" onclick="quickAddInbox()">Додати</button>
-      </div>
-      <div class="empty-hint">Ідеї потрапляють в Inbox — звідти їх можна перетворити на задачу, подію чи проєкт.</div>
-    </div>
+  <div class="card" style="max-width:520px">
+    <h3>${ICON.tasks} Задачі на цей день <span class="count">${dayTasks.length}</span></h3>
+    ${dayTasks.length? dayTasks.map(t=>rowTask(t)).join(''): `<div class="empty-hint">На цей день задач немає</div>`}
   </div>`;
 }
 
@@ -1398,13 +1263,6 @@ function rowTask(t){
     ${priorityBadge(t.priority)}
     <button class="row-trash-btn" title="У кошик" onclick="event.stopPropagation();trashTask('${t.id}')">${ICON.trash}</button>
   </div>`;
-}
-
-function quickAddInbox(){
-  const inp = document.getElementById('quickInboxInput');
-  if(!inp || !inp.value.trim()) return;
-  state.data.inbox.unshift({id:uid(), text:inp.value.trim(), createdAt:Date.now()});
-  saveData(); toast('Додано в Inbox'); inp.value=''; render();
 }
 
 function toggleTaskDone(taskId){
@@ -1433,52 +1291,10 @@ function hardDeleteTask(id){
 }
 function deleteTask(id){ closeModal(); trashTask(id); }
 
-function trashProject(id){
-  const p = getProject(id); if(!p) return;
-  p.deleted = true;
-  saveData(); toast('Проєкт перенесено в кошик'); render();
-}
-function restoreProject(id){
-  const p = getProject(id); if(!p) return;
-  p.deleted = false;
-  saveData(); toast('Проєкт відновлено'); render();
-}
-function completeProject(id){
-  const p = getProject(id); if(!p) return;
-  p.completed = true; p.completedAt = Date.now();
-  p.activity = p.activity||[]; p.activity.push({ts:Date.now(), text:'Проєкт завершено'});
-  saveData(); render();
-  showSuccessBurst(`Проєкт «${p.name}» завершено`);
-}
-function reopenProject(id){
-  const p = getProject(id); if(!p) return;
-  p.completed = false; p.completedAt = null;
-  saveData(); toast('Проєкт повернено в активні'); render();
-}
-function showSuccessBurst(text){
-  const wrap = document.createElement('div');
-  wrap.className = 'success-burst';
-  wrap.innerHTML = `<div class="success-burst-inner"><div class="success-burst-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div><div class="success-burst-text">${escapeHtml(text)}</div></div>`;
-  document.body.appendChild(wrap);
-  setTimeout(()=>{
-    wrap.classList.add('fadeout');
-    setTimeout(()=>wrap.remove(), 400);
-  }, 1200);
-}
-function hardDeleteProject(id){
-  confirmAction('Видалити проєкт назавжди? Дію не можна скасувати.', ()=>{
-    state.data.projects = state.data.projects.filter(p=>p.id!==id);
-    saveData(); toast('Проєкт видалено назавжди'); render();
-  });
-}
-function deleteProject(id){ closeModal(); trashProject(id); }
-
 function renderTrash(){
   const tasks = state.data.tasks.filter(t=>t.deleted);
-  const projects = state.data.projects.filter(p=>p.deleted);
-  const completedProjects = state.data.projects.filter(p=>p.completed && !p.deleted);
   return `
-  <div class="card" style="margin-bottom:16px">
+  <div class="card">
     <h3>${ICON.tasks} Задачі <span class="count">${tasks.length}</span></h3>
     ${tasks.length? tasks.map(t=>`
       <div class="list-row">
@@ -1487,191 +1303,7 @@ function renderTrash(){
         <button class="btn btn-sm" onclick="restoreTask('${t.id}')">Відновити</button>
         <button class="icon-btn" title="Видалити назавжди" onclick="hardDeleteTask('${t.id}')">${ICON.trash}</button>
       </div>`).join('') : `<div class="empty-hint">Кошик порожній</div>`}
-  </div>
-  <div class="card" style="margin-bottom:16px">
-    <h3>${ICON.projects} Проєкти <span class="count">${projects.length}</span></h3>
-    ${projects.length? projects.map(p=>`
-      <div class="list-row">
-        <span class="title">${escapeHtml(p.name)}</span>
-        <button class="btn btn-sm" onclick="restoreProject('${p.id}')">Відновити</button>
-        <button class="icon-btn" title="Видалити назавжди" onclick="hardDeleteProject('${p.id}')">${ICON.trash}</button>
-      </div>`).join('') : `<div class="empty-hint">Кошик порожній</div>`}
-  </div>
-  <div class="card">
-    <h3>${ICON.check} Завершені проєкти <span class="count">${completedProjects.length}</span></h3>
-    ${completedProjects.length? completedProjects.map(p=>`
-      <div class="list-row">
-        <span class="dot" style="background:${wsColor(p.workspace)}"></span>
-        <span class="title">${escapeHtml(p.name)}</span>
-        <span class="meta">${p.completedAt? new Date(p.completedAt).toLocaleDateString('uk-UA'):''}</span>
-        <button class="btn btn-sm" onclick="reopenProject('${p.id}')">Повернути в активні</button>
-        <button class="icon-btn" title="Видалити назавжди" onclick="hardDeleteProject('${p.id}')">${ICON.trash}</button>
-      </div>`).join('') : `<div class="empty-hint">Завершених проєктів немає</div>`}
   </div>`;
-}
-
-/* ============================= UPWORK (таймер годин) ============================= */
-let upworkTickInterval = null;
-function upworkElapsedMs(){
-  const t = state.upworkTimer;
-  return t.accumulatedMs + (t.running && t.startedAt ? (Date.now()-t.startedAt) : 0);
-}
-function fmtDuration(ms){
-  const s = Math.max(0, Math.floor(ms/1000));
-  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
-  return pad(h)+':'+pad(m)+':'+pad(sec);
-}
-function fmtHours(ms){ return (ms/3600000).toFixed(1); }
-function startUpworkTicker(){
-  stopUpworkTicker();
-  upworkTickInterval = setInterval(()=>{
-    const el = document.getElementById('upworkTimerDisplay');
-    if(el) el.textContent = fmtDuration(upworkElapsedMs());
-  }, 1000);
-}
-function stopUpworkTicker(){
-  if(upworkTickInterval){ clearInterval(upworkTickInterval); upworkTickInterval = null; }
-}
-function startUpworkTimer(){
-  if(state.upworkTimer.running) return;
-  state.upworkTimer.running = true;
-  state.upworkTimer.startedAt = Date.now();
-  saveUpworkTimer();
-  startUpworkTicker();
-  render();
-}
-function pauseUpworkTimer(){
-  const t = state.upworkTimer;
-  if(!t.running) return;
-  t.accumulatedMs += Date.now()-t.startedAt;
-  t.running = false;
-  t.startedAt = null;
-  saveUpworkTimer();
-  render();
-}
-function stopUpworkTimer(){
-  const total = upworkElapsedMs();
-  if(total>=1000){
-    const note = (state.upworkTimer.note||'').trim();
-    state.data.upworkLogs.unshift({id:uid(), date:todayStr(), durationMs:total, note, createdAt:Date.now()});
-    saveData();
-    toast('Сесію збережено: '+fmtHours(total)+' год');
-  }
-  state.upworkTimer = {running:false, startedAt:null, accumulatedMs:0, note:''};
-  saveUpworkTimer();
-  stopUpworkTicker();
-  render();
-}
-function onUpworkNoteInput(val){
-  state.upworkTimer.note = val;
-  saveUpworkTimer();
-}
-function upworkStats(){
-  const logs = state.data.upworkLogs;
-  const todayS = todayStr();
-  const now = new Date();
-  const dow = (now.getDay()+6)%7;
-  const mondayS = dstr(addDays(now, -dow));
-  let todayMs=0, weekMs=0, totalMs=0;
-  logs.forEach(l=>{
-    totalMs += l.durationMs;
-    if(l.date===todayS) todayMs += l.durationMs;
-    if(l.date>=mondayS) weekMs += l.durationMs;
-  });
-  return {todayMs, weekMs, totalMs};
-}
-function groupUpworkLogsByDate(logs){
-  const map = {};
-  logs.forEach(l=>{ (map[l.date] = map[l.date]||[]).push(l); });
-  return Object.keys(map).sort((a,b)=>b.localeCompare(a)).map(date=>({
-    date, logs: map[date].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)), total: map[date].reduce((s,l)=>s+l.durationMs,0)
-  }));
-}
-function renderUpwork(){
-  const t = state.upworkTimer;
-  const stats = upworkStats();
-  const logs = state.data.upworkLogs;
-  const groups = groupUpworkLogsByDate(logs);
-  const isPaused = !t.running && t.accumulatedMs>0;
-  return `
-  <div class="card upwork-timer-card">
-    <div class="upwork-timer-display" id="upworkTimerDisplay">${fmtDuration(upworkElapsedMs())}</div>
-    <input type="text" id="upworkNoteInput" placeholder="Над чим працюєш? (необов'язково)" value="${escapeHtml(t.note||'')}" oninput="onUpworkNoteInput(this.value)" style="max-width:360px;margin:12px auto 18px">
-    <div class="upwork-timer-actions">
-      ${!t.running && !isPaused? `<button class="btn btn-primary btn-lg" onclick="startUpworkTimer()">${ICON.play} Старт</button>`:''}
-      ${t.running? `<button class="btn btn-lg" onclick="pauseUpworkTimer()">${ICON.pause} Пауза</button>`:''}
-      ${isPaused? `<button class="btn btn-primary btn-lg" onclick="startUpworkTimer()">${ICON.play} Продовжити</button>`:''}
-      ${(t.running||isPaused)? `<button class="btn btn-lg btn-danger-text" onclick="stopUpworkTimer()">${ICON.stop} Стоп</button>`:''}
-    </div>
-  </div>
-  <div class="upwork-stats-row">
-    <div class="upwork-stat"><div class="upwork-stat-val">${fmtHours(stats.todayMs)}</div><div class="upwork-stat-lbl">Сьогодні</div></div>
-    <div class="upwork-stat"><div class="upwork-stat-val">${fmtHours(stats.weekMs)}</div><div class="upwork-stat-lbl">Цей тиждень</div></div>
-    <div class="upwork-stat"><div class="upwork-stat-val">${fmtHours(stats.totalMs)}</div><div class="upwork-stat-lbl">Всього</div></div>
-  </div>
-  <div class="card">
-    <div class="section-head">
-      <h3 style="margin:0">${ICON.timer} Історія</h3>
-      <span class="count">${logs.length}</span>
-      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openUpworkManualModal()">${ICON.plus} Додати вручну</button>
-    </div>
-    ${groups.length? groups.map(g=>`
-      <div class="upwork-date-group">
-        <div class="upwork-date-head">${fmtDateHuman(g.date)}<span class="meta" style="float:right">${fmtHours(g.total)} год</span></div>
-        ${g.logs.map(l=>`
-          <div class="list-row" onclick="openUpworkManualModal('${l.id}')">
-            <span class="title">${l.note? escapeHtml(l.note) : 'Без опису'}</span>
-            <span class="meta">${fmtDuration(l.durationMs)}</span>
-            <button class="row-trash-btn" title="Видалити" onclick="event.stopPropagation();deleteUpworkLog('${l.id}')">${ICON.trash}</button>
-          </div>`).join('')}
-      </div>`).join(''): `<div class="empty-hint">Записів ще немає — запусти таймер або додай вручну</div>`}
-  </div>`;
-}
-function openUpworkManualModal(id){
-  const l = id? state.data.upworkLogs.find(x=>x.id===id) : null;
-  const isNew = !l;
-  const hoursVal = l? String(Math.round((l.durationMs/3600000)*100)/100) : '';
-  const dateVal = l? l.date : todayStr();
-  const html = `
-  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
-    <div class="side-panel">
-      <div class="modal-head"><h3>${isNew?'Новий запис':'Редагувати запис'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
-      <div class="modal-body">
-        <div class="row2">
-          <div><label>Дата</label><input id="u_date" type="date" value="${dateVal}"></div>
-          <div><label>Годин</label><input id="u_hours" type="number" step="0.1" min="0" value="${hoursVal}" placeholder="напр. 2.5"></div>
-        </div>
-        <label>Опис (необов'язково)</label>
-        <textarea id="u_note" rows="3" placeholder="Над чим працював">${l?escapeHtml(l.note||''):''}</textarea>
-      </div>
-      <div class="modal-foot">
-        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteUpworkLog('${l.id}')">${ICON.trash} Видалити</button>`:''}
-        <span style="flex:1"></span>
-        <button class="btn" onclick="closeModal()">Скасувати</button>
-        <button class="btn btn-primary" onclick="saveUpworkManualForm(${isNew?'null':`'${l.id}'`})">Зберегти</button>
-      </div>
-    </div>
-  </div>`;
-  openModal(html);
-}
-function saveUpworkManualForm(id){
-  const hours = parseFloat(document.getElementById('u_hours').value);
-  if(!hours || hours<=0){ toast('Вкажіть кількість годин'); return; }
-  const date = document.getElementById('u_date').value || todayStr();
-  const note = document.getElementById('u_note').value.trim();
-  if(id){
-    const l = state.data.upworkLogs.find(x=>x.id===id);
-    if(l){ l.durationMs = Math.round(hours*3600000); l.date = date; l.note = note; }
-  } else {
-    state.data.upworkLogs.unshift({id:uid(), date, durationMs:Math.round(hours*3600000), note, createdAt:Date.now()});
-  }
-  saveData(); closeModal(); toast('Збережено'); render();
-}
-function deleteUpworkLog(id){
-  confirmAction('Видалити цей запис?', ()=>{
-    state.data.upworkLogs = state.data.upworkLogs.filter(l=>l.id!==id);
-    saveData(); closeModal(); toast('Запис видалено'); render();
-  });
 }
 
 /* ============================= БЮДЖЕТ: КОНСТАНТИ ТА ДАНІ ============================= */
@@ -1804,7 +1436,6 @@ function buildTransactionRecord(form){
     accountId: form.accountId,
     destination: form.type==='transfer'? (form.destination||'') : undefined,
     date: form.date,
-    time: form.time||'',
     description: form.description||'',
     recurringId: form.recurringId||null,
     accountEffect: form.type==='income'? native : -native,
@@ -2253,7 +1884,7 @@ function openRecurringModal(id){
         <label>Рахунок</label>${renderCustomSelect('r_account', accOptions, r?r.accountId:(accOptions[0]||{}).value, null)}
         <div class="row2">
           <div><label>Періодичність</label>${renderCustomSelect('r_freq', RECUR_FREQ, r?r.frequency:'monthly', null)}</div>
-          <div><label>Наступна дата</label><input id="r_next" type="date" value="${r?r.nextDate:todayStr()}"></div>
+          <div><label>Наступна дата</label>${renderCustomDatePicker('r_next', r?r.nextDate:todayStr(), null)}</div>
         </div>
         <label>Статус</label>${renderCustomSelect('r_active', [{value:'1',label:'Активний'},{value:'0',label:'Неактивний'}], r?(r.active?'1':'0'):'1', null)}
       </div>
@@ -2303,7 +1934,7 @@ function confirmRecurPaid(id){
     if(acc){
       const rec = buildTransactionRecord({
         type:'expense', amount:r.amount, currency:r.currency, categoryId:r.categoryId,
-        accountId:r.accountId, date:r.nextDate, time:'', description:r.name, recurringId:r.id,
+        accountId:r.accountId, date:r.nextDate, description:r.name, recurringId:r.id,
       });
       rec.id = uid(); rec.createdAt = Date.now();
       state.data.budget.transactions.unshift(rec);
@@ -2453,10 +2084,7 @@ function txModalContentHtml(type, t, seed){
     <label>З рахунку</label>${renderCustomSelect('tx_account', accOptions, defaultAccId, null)}
     <label>Кому / призначення</label><input id="tx_destination" type="text" value="${src?escapeHtml(src.destination||''):''}" placeholder="напр. Другу, Орендодавцю, Revolut">
     `}
-    <div class="row2">
-      <div><label>Дата</label><input id="tx_date" type="date" value="${src?src.date:todayStr()}"></div>
-      <div><label>Час</label><input id="tx_time" type="time" value="${src?(src.time||''):''}"></div>
-    </div>
+    <label>Дата</label>${renderCustomDatePicker('tx_date', src?src.date:todayStr(), null)}
     <label>Коментар</label><input id="tx_desc" type="text" value="${src?escapeHtml(src.description||''):''}" placeholder="необов'язково">
   </div>
   <div class="modal-foot">
@@ -2477,14 +2105,12 @@ function switchTxType(newType){
   if(!panel) return;
   const amountEl = document.getElementById('tx_amount');
   const dateEl = document.getElementById('tx_date');
-  const timeEl = document.getElementById('tx_time');
   const descEl = document.getElementById('tx_desc');
   const accEl = document.getElementById('tx_account');
   const ccyEl = document.getElementById('tx_currency');
   const seed = {
     amount: amountEl? amountEl.value : '',
     date: dateEl? dateEl.value : todayStr(),
-    time: timeEl? timeEl.value : '',
     description: descEl? descEl.value : '',
     accountId: accEl? accEl.value : null,
     currency: ccyEl? ccyEl.value : null,
@@ -2498,11 +2124,9 @@ function saveTxForm(type, id){
   const accountId = document.getElementById('tx_account').value;
   if(!accountId){ toast('Оберіть рахунок'); return; }
   const date = document.getElementById('tx_date').value || todayStr();
-  const timeEl = document.getElementById('tx_time');
   const descEl = document.getElementById('tx_desc');
   const form = {
     type, amount, currency, accountId, date,
-    time: timeEl? timeEl.value : '',
     description: descEl? descEl.value : '',
   };
   if(type==='transfer'){
@@ -2529,7 +2153,7 @@ function duplicateTx(id){
   const t = state.data.budget.transactions.find(x=>x.id===id);
   if(!t) return;
   closeModal();
-  openTxModal(t.type, null, Object.assign({}, t, {date: todayStr(), time:''}));
+  openTxModal(t.type, null, Object.assign({}, t, {date: todayStr()}));
 }
 function deleteTx(id){
   confirmAction('Видалити цю транзакцію?', ()=>{
@@ -2731,25 +2355,12 @@ function aiOverdueText(){
   if(!overdue.length) return 'Протермінованих задач немає — усе під контролем 👍';
   return 'Протерміновані задачі:\n' + overdue.map(t=>`• ${t.title} (дедлайн ${fmtDateHuman(t.dueDate)}, ${wsName(t.workspace)})`).join('\n');
 }
-function aiEventsForDayText(offsetDays, label){
-  const d = addDays(new Date(), offsetDays);
-  const ds = dstr(d);
-  const evts = state.data.events.filter(e=> e.date===ds || (e.recurring==='weekly' && e.date<=ds && new Date(e.date+'T00:00:00').getDay()===d.getDay()));
-  if(!evts.length) return `${label} подій немає.`;
-  return `Події (${label}):\n` + evts.sort((a,b)=>a.start.localeCompare(b.start)).map(e=>`• ${e.start}–${e.end} ${e.title} (${wsName(e.workspace)})`).join('\n');
-}
-function aiProjectsText(){
-  const projects = state.data.projects.filter(p=>!p.deleted && !p.completed);
-  if(!projects.length) return 'Активних проєктів поки немає.';
-  return 'Проєкти:\n' + projects.map(p=>`• ${p.name} — ${STATUS_LABEL[p.status]||p.status} (${wsName(p.workspace)})`).join('\n');
-}
 function aiStatsText(){
   const tasks = state.data.tasks.filter(t=>!t.deleted);
   const open = tasks.filter(t=>!t.done);
   const done = tasks.filter(t=>t.done);
-  const projects = state.data.projects.filter(p=>!p.deleted && !p.completed);
   const byWs = WORKSPACES.map(w=>`${w.name}: ${open.filter(t=>t.workspace===w.id).length}`).join(', ');
-  return `Статистика:\nВідкритих задач: ${open.length}\nВиконаних задач: ${done.length}\nПроєктів: ${projects.length}\n\nПо напрямках — ${byWs}`;
+  return `Статистика:\nВідкритих задач: ${open.length}\nВиконаних задач: ${done.length}\n\nПо напрямках — ${byWs}`;
 }
 function detectWorkspace(text){
   if(/kofax|кофакс/.test(text)) return 'kofax';
@@ -2762,7 +2373,7 @@ function aiWorkspaceTasksText(wsId){
   return `Задачі («${wsName(wsId)}»):\n` + tasks.map(t=>`• ${t.title}`).join('\n');
 }
 function aiHelpText(){
-  return 'Ось що я вмію:\n• «рекомендація» — з чого почати\n• «активні задачі» — список відкритих\n• «протерміновані» — прострочені дедлайни\n• «події сьогодні» / «події завтра»\n• «проєкти» — статус усіх проєктів\n• «статистика» — загальні цифри\n• «задачі kofax / особисте» — фільтр по напрямку\n• «створи задачу: ...» — додам нову задачу\n• «підсумок дня» — що виконано сьогодні';
+  return 'Ось що я вмію:\n• «рекомендація» — з чого почати\n• «активні задачі» — список відкритих\n• «протерміновані» — прострочені дедлайни\n• «статистика» — загальні цифри\n• «задачі kofax / особисте» — фільтр по напрямку\n• «створи задачу: ...» — додам нову задачу\n• «підсумок дня» — що виконано сьогодні';
 }
 function parseQuickText(text){
   let t = text.trim();
@@ -2794,10 +2405,7 @@ function generateAiReply(raw){
   const text = raw.toLowerCase();
   if(/допомог|що ти вмієш|можливост|команди/.test(text)) return aiHelpText();
   if(/протермін|прострочен|не встиг/.test(text)) return aiOverdueText();
-  if(/(поді\w*.*сьогодні|сьогодні.*поді)/.test(text)) return aiEventsForDayText(0, 'сьогодні');
-  if(/(поді\w*.*завтра|завтра.*поді)/.test(text)) return aiEventsForDayText(1, 'завтра');
   if(/статистик|скільки задач|цифри/.test(text)) return aiStatsText();
-  if(/проєкт|проект/.test(text) && !/задач/.test(text)) return aiProjectsText();
   if(/рекоменд|що (мені )?зробити|з чого почати|найважлив/.test(text)) return aiRecommendText();
   const ws = detectWorkspace(text);
   if(ws && /задач/.test(text)) return aiWorkspaceTasksText(ws);
@@ -2927,31 +2535,14 @@ function renderWorkspacePage(){
   if(!ws){ state.view='dashboard'; return renderDashboard(); }
   const tasks = state.data.tasks.filter(t=>t.workspace===wsId && !t.deleted);
   const openTasks = tasks.filter(t=>!t.done);
-  const projects = state.data.projects.filter(p=>p.workspace===wsId && !p.deleted && !p.completed);
-  const events = state.data.events.filter(e=>e.workspace===wsId).sort((a,b)=> (a.date+a.start).localeCompare(b.date+b.start)).slice(0,6);
   return `
   <div style="margin-bottom:16px">
     <button class="btn btn-sm btn-ghost" style="margin-bottom:8px;padding-left:0" onclick="switchView('dashboard')">${ICON.arrowLeft} Усі простори</button>
     <div style="font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px"><span class="dot" style="width:12px;height:12px;background:${ws.color}"></span>${ws.name}</div>
   </div>
-  <div class="grid-dash">
-    <div class="card">
-      <h3>${ICON.tasks} Активні задачі <span class="count">${openTasks.length}</span></h3>
-      ${openTasks.length? openTasks.map(t=>rowTask(t)).join(''): `<div class="empty-hint">Усі задачі виконано</div>`}
-    </div>
-    <div class="card">
-      <h3>${ICON.projects} Проєкти <span class="count">${projects.length}</span></h3>
-      ${projects.length? projects.map(p=>colProjRow(p)).join(''): `<div class="empty-hint">Проєктів немає</div>`}
-    </div>
-    <div class="card">
-      <h3>${ICON.calendar} Найближчі події <span class="count">${events.length}</span></h3>
-      ${events.length? events.map(e=>`
-        <div class="list-row" onclick="switchView('calendar')">
-          <span class="meta" style="width:70px">${fmtDateHuman(e.date)}</span>
-          <span class="title">${escapeHtml(e.title)}</span>
-          <span class="meta">${e.start}</span>
-        </div>`).join(''): `<div class="empty-hint">Подій не заплановано</div>`}
-    </div>
+  <div class="card" style="max-width:520px">
+    <h3>${ICON.tasks} Активні задачі <span class="count">${openTasks.length}</span></h3>
+    ${openTasks.length? openTasks.map(t=>rowTask(t)).join(''): `<div class="empty-hint">Усі задачі виконано</div>`}
   </div>`;
 }
 
@@ -3019,7 +2610,7 @@ function openTaskModal(id, opts){
           </div>
           <div>
             <label>Дедлайн (необов'язково)</label>
-            <input id="f_duedate" type="date" value="${t?(t.dueDate||''):''}">
+            ${renderCustomDatePicker('f_duedate', t?(t.dueDate||''):'', null)}
           </div>
         </div>
         <label>Пріоритет</label>
@@ -3082,10 +2673,6 @@ function saveTaskForm(id){
       id:uid(), checklist:[], attachments:[], done:false, deleted:false, completedAt:null, createdAt:Date.now(),
     }, vals));
     toast('Задачу створено');
-    if(pendingInboxSourceId){
-      state.data.inbox = state.data.inbox.filter(i=>i.id!==pendingInboxSourceId);
-      pendingInboxSourceId = null;
-    }
   }
   saveData(); closeModal(); render();
 }
@@ -3108,492 +2695,6 @@ function addAttachment(taskId){
   saveData(); openTaskModal(taskId);
 }
 function removeAttachment(taskId, idx){ getTask(taskId).attachments.splice(idx,1); saveData(); openTaskModal(taskId); }
-
-/* ============================= PROJECTS (three direction columns) ============================= */
-function renderProjects(){
-  return `
-  ${renderWsFilters()}
-  <div class="dir-columns">
-    ${DIR_ORDER.filter(w=> state.wsFilter==='all' || state.wsFilter===w).map(w=>renderProjectColumn(w)).join('')}
-  </div>`;
-}
-function renderProjectColumn(wsId){
-  const ws = WORKSPACES.find(w=>w.id===wsId);
-  const projects = state.data.projects.filter(p=>p.workspace===wsId && !p.deleted && !p.completed);
-  return `
-  <div class="card">
-    <div class="section-head">
-      <span class="dot" style="background:${ws.color};width:11px;height:11px"></span>
-      <h3>${ws.name}</h3><span class="count">${projects.length}</span>
-      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openProjectModal(null,{workspace:'${wsId}'})">${ICON.plus}</button>
-    </div>
-    ${projects.length? projects.map(p=>colProjRow(p)).join(''): `<div class="empty-hint">Проєктів немає</div>`}
-  </div>`;
-}
-function colProjRow(p){
-  return `
-  <div class="proj-card">
-    <div class="proj-card-main" onclick="openProjectDetail('${p.id}')">
-      <div class="proj-card-top">
-        <span class="col-task-title">${escapeHtml(p.name)}</span>
-        <span class="status-pill">${STATUS_LABEL[p.status]||p.status}</span>
-      </div>
-    </div>
-    <button class="proj-complete-btn" title="Завершити проєкт" onclick="event.stopPropagation();completeProject('${p.id}')">${ICON.check}</button>
-    <button class="row-trash-btn" title="У кошик" onclick="event.stopPropagation();trashProject('${p.id}')">${ICON.trash}</button>
-  </div>`;
-}
-function openProjectModal(id, opts){
-  opts = opts || {};
-  const p = id? getProject(id): null;
-  const isNew = !p;
-  const wsOptions = WORKSPACES.map(w=>({value:w.id,label:w.name,dot:w.color}));
-  const wsVal = p? p.workspace : (opts.workspace || 'personal');
-  const html = `
-  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
-    <div class="side-panel">
-      <div class="modal-head"><h3>${isNew?'Новий проєкт':'Редагувати проєкт'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
-      <div class="modal-body">
-        <label>Назва</label><input id="p_name" type="text" value="${p?escapeHtml(p.name):escapeHtml(opts.title||'')}">
-        <label>Опис</label><textarea id="p_desc" rows="3">${p?escapeHtml(p.description||''):''}</textarea>
-        <div class="row2">
-          <div><label>Напрямок</label>${renderCustomSelect('p_ws', wsOptions, wsVal, null)}</div>
-          <div><label>Назва компанії</label><input id="p_company" type="text" value="${p?escapeHtml(p.company||''):''}" placeholder="напр. ТОВ «Компанія»"></div>
-        </div>
-        <div class="row2">
-          <div><label>Дедлайн</label><input id="p_deadline" type="date" value="${p?p.deadline||'':''}"></div>
-          <div><label>Статус</label>${renderCustomSelect('p_status', STATUSES.map(s=>({value:s,label:STATUS_LABEL[s]})), p?p.status:'tz', null)}</div>
-        </div>
-      </div>
-      <div class="modal-foot">
-        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteProject('${p.id}')">${ICON.trash} У кошик</button>`:''}
-        <span style="flex:1"></span>
-        <button class="btn" onclick="closeModal()">Скасувати</button>
-        <button class="btn btn-primary" onclick="saveProjectForm(${isNew?'null':`'${p.id}'`})">Зберегти</button>
-      </div>
-    </div>
-  </div>`;
-  openModal(html);
-}
-function saveProjectForm(id){
-  const name = document.getElementById('p_name').value.trim();
-  if(!name){ toast('Вкажіть назву проєкту'); return; }
-  const vals = {
-    name, description:document.getElementById('p_desc').value,
-    workspace:document.getElementById('p_ws').value,
-    company:document.getElementById('p_company').value,
-    deadline:document.getElementById('p_deadline').value,
-    status:document.getElementById('p_status').value,
-  };
-  if(id){
-    const p = getProject(id); Object.assign(p, vals);
-    p.activity.push({ts:Date.now(), text:'Проєкт оновлено'});
-    toast('Проєкт збережено');
-  } else {
-    state.data.projects.unshift(Object.assign({id:uid(), deleted:false, completed:false, completedAt:null, fileIds:[], activity:[{ts:Date.now(), text:'Проєкт створено'}]}, vals));
-    toast('Проєкт створено');
-    if(pendingInboxSourceId){
-      state.data.inbox = state.data.inbox.filter(i=>i.id!==pendingInboxSourceId);
-      pendingInboxSourceId = null;
-    }
-  }
-  saveData(); closeModal(); render();
-}
-function openProjectDetail(id){
-  const p = getProject(id); if(!p) return;
-  const html = `
-  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
-    <div class="side-panel">
-      <div class="modal-head"><h3>${escapeHtml(p.name)}</h3><span style="flex:1"></span>
-        <button class="icon-btn" onclick="closeModal();openProjectModal('${p.id}')" title="Редагувати">✎</button>
-        <button class="icon-btn" onclick="closeModal()">${ICON.x}</button>
-      </div>
-      <div class="modal-body">
-        <div style="color:var(--text-dim);font-size:13px;margin-bottom:10px">${escapeHtml(p.description||'')}</div>
-
-        <label>Файли</label>
-        <div>${(p.fileIds||[]).map((f,i)=>`<span class="link-chip">${ICON.paperclip}${renderFileLink(f)}<button class="mini-x" onclick="removeProjectFile('${p.id}',${i})">${ICON.x}</button></span>`).join('') || '<span class="empty-hint">Файлів немає</span>'}</div>
-        <div style="display:flex;gap:8px;margin-top:6px">
-          <input id="newProjFile" type="text" placeholder="Назва файлу або посилання Google Drive">
-          <button class="btn btn-sm" onclick="addProjectFile('${p.id}')">Додати</button>
-        </div>
-
-        <label>Історія активності</label>
-        ${p.activity.slice().reverse().map(a=>`<div class="empty-hint" style="border-bottom:1px dashed var(--border);padding:6px 0">${new Date(a.ts).toLocaleString('uk-UA')} — ${escapeHtml(a.text)}</div>`).join('')}
-      </div>
-      <div class="modal-foot"><button class="btn" onclick="closeModal()">Закрити</button></div>
-    </div>
-  </div>`;
-  openModal(html);
-}
-function addProjectFile(projId){
-  const inp = document.getElementById('newProjFile');
-  if(!inp.value.trim()) return;
-  const p = getProject(projId);
-  p.fileIds = p.fileIds||[]; p.fileIds.push(inp.value.trim());
-  p.activity.push({ts:Date.now(), text:`Додано файл «${inp.value.trim()}»`});
-  saveData(); openProjectDetail(projId);
-}
-function removeProjectFile(projId, idx){
-  const p = getProject(projId); p.fileIds.splice(idx,1); saveData(); openProjectDetail(projId);
-}
-
-/* ============================= INBOX ============================= */
-function renderInbox(){
-  const items = state.data.inbox;
-  return `
-  <div class="card" style="margin-bottom:14px">
-    <div class="empty-hint" style="padding:0 0 12px">Записуйте сюди будь-які ідеї, щоб не тримати їх у голові. Кожен запис можна перетворити на задачу, проєкт або подію — або просто видалити, якщо він більше не потрібен.</div>
-    <div class="quick-capture" style="margin-bottom:0">
-      <input id="inboxInput" type="text" placeholder="Записати нову ідею..." onkeydown="if(event.key==='Enter')addInboxItem()">
-      <button class="btn btn-primary" onclick="addInboxItem()">${ICON.plus} Додати</button>
-    </div>
-  </div>
-  <div class="card">
-    ${items.length? items.map(it=>`
-      <div class="inbox-row">
-        <div>
-          <div class="inbox-text">${escapeHtml(it.text)}</div>
-          <div class="inbox-time">${timeAgo(it.createdAt)}</div>
-        </div>
-        <span style="flex:1"></span>
-        <div class="inbox-menu-wrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();toggleInboxMenu('${it.id}')">Перетворити ${ICON.chevronDown}</button>
-          <div class="inbox-menu" id="inboxmenu_${it.id}">
-            <button onclick="convertInboxTo('${it.id}','task')">→ Задача</button>
-            <button onclick="convertInboxTo('${it.id}','project')">→ Проєкт</button>
-            <button onclick="convertInboxTo('${it.id}','event')">→ Подія</button>
-          </div>
-        </div>
-        <button class="mini-x" title="Видалити" onclick="removeInbox('${it.id}')">${ICON.x}</button>
-      </div>`).join('') : `<div class="empty-state">Inbox порожній. Записуйте сюди будь-які ідеї, щоб не тримати їх у голові.</div>`}
-  </div>`;
-}
-function addInboxItem(){
-  const inp = document.getElementById('inboxInput');
-  if(!inp.value.trim()) return;
-  state.data.inbox.unshift({id:uid(), text:inp.value.trim(), createdAt:Date.now()});
-  saveData(); render();
-}
-function removeInbox(id){
-  confirmAction('Видалити цю ідею з Inbox?', ()=>{
-    state.data.inbox = state.data.inbox.filter(i=>i.id!==id); saveData(); toast('Ідею видалено'); render();
-  });
-}
-function toggleInboxMenu(id){
-  const menu = document.getElementById('inboxmenu_'+id);
-  if(!menu) return;
-  const isOpen = menu.classList.contains('open');
-  document.querySelectorAll('.inbox-menu.open').forEach(m=>m.classList.remove('open'));
-  document.querySelectorAll('.custom-select-panel.open').forEach(p=>p.classList.remove('open'));
-  if(!isOpen) menu.classList.add('open');
-}
-function convertInboxTo(id, type){
-  const item = state.data.inbox.find(i=>i.id===id); if(!item) return;
-  pendingInboxSourceId = id;
-  if(type==='task') openTaskModal(null, {title:item.text});
-  else if(type==='project') openProjectModal(null, {title:item.text});
-  else openEventModal(null, {title:item.text});
-}
-
-/* ============================= CALENDAR ============================= */
-function calNav(dir){
-  const d = new Date(state.calendarDate);
-  if(state.calendarMode==='day') d.setDate(d.getDate()+dir);
-  else if(state.calendarMode==='week') d.setDate(d.getDate()+dir*7);
-  else d.setMonth(d.getMonth()+dir);
-  state.calendarDate = d; render();
-}
-function calToday(){ state.calendarDate = new Date(); render(); }
-function setCalMode(m){ state.calendarMode = m; render(); }
-
-function eventsForDate(dateStr){
-  const d = new Date(dateStr+'T00:00:00');
-  return filteredEvents().filter(e=> e.date===dateStr || (e.recurring==='weekly' && e.date<=dateStr && new Date(e.date+'T00:00:00').getDay()===d.getDay()));
-}
-
-function renderGcalStatus(){
-  if(!state.gcalToken){
-    return `<button class="btn btn-sm" onclick="requestGcalToken()" style="margin-right:8px">${ICON.google} Підключити Google Calendar</button>`;
-  }
-  const lastSync = state.gcalLastSync ? timeAgo(state.gcalLastSync) : 'ще не синхронізовано';
-  return `<button class="btn btn-sm btn-ghost" title="Оновити зараз" onclick="syncGoogleCalendar()" style="margin-right:8px;gap:6px">${state.gcalSyncing?ICON.refresh:ICON.google} ${state.gcalSyncing?'Синхронізація...':'Синхр.: '+lastSync}</button>`;
-}
-function renderCalendar(){
-  const d = state.calendarDate;
-  let title = '';
-  if(state.calendarMode==='month') title = `${MONTHS_NOM[d.getMonth()]} ${d.getFullYear()}`;
-  else if(state.calendarMode==='week'){
-    const start = addDays(d, -((d.getDay()+6)%7));
-    const end = addDays(start,6);
-    title = `${start.getDate()} ${MONTHS[start.getMonth()]} — ${end.getDate()} ${MONTHS[end.getMonth()]}`;
-  } else title = fmtFullDate(d);
-
-  return `
-  <div class="cal-head">
-    <div class="cal-nav">
-      <button class="icon-btn" onclick="calNav(-1)">${ICON.chevronL}</button>
-      <button class="icon-btn" onclick="calNav(1)">${ICON.chevronR}</button>
-    </div>
-    <button class="btn btn-sm" onclick="calToday()">Сьогодні</button>
-    <div class="cal-title">${title}</div>
-    <span style="flex:1"></span>
-    ${renderGcalStatus()}
-    <div class="modes">
-      <button class="${state.calendarMode==='day'?'active':''}" onclick="setCalMode('day')">День</button>
-      <button class="${state.calendarMode==='week'?'active':''}" onclick="setCalMode('week')">Тиждень</button>
-      <button class="${state.calendarMode==='month'?'active':''}" onclick="setCalMode('month')">Місяць</button>
-    </div>
-  </div>
-  ${renderWsFilters()}
-  ${state.calendarMode==='month'? renderMonthView(d): state.calendarMode==='week'? renderWeekView(d): renderDayView(d)}
-  `;
-}
-
-function renderMonthView(d){
-  const first = new Date(d.getFullYear(), d.getMonth(), 1);
-  const startOffset = (first.getDay()+6)%7;
-  const gridStart = addDays(first, -startOffset);
-  const cells = [];
-  for(let i=0;i<42;i++) cells.push(addDays(gridStart,i));
-  return `
-  <div class="month-grid">
-    ${DOW.slice(1).concat(DOW[0]).map(x=>`<div class="month-dow">${x}</div>`).join('')}
-    ${cells.map(c=>{
-      const ds = dstr(c);
-      const evts = eventsForDate(ds);
-      const isOther = c.getMonth()!==d.getMonth();
-      const isToday = ds===todayStr();
-      return `<div class="month-cell ${isOther?'other':''} ${isToday?'today':''}" onclick="state.calendarDate=new Date('${ds}T00:00:00');setCalMode('day')">
-        <div class="dnum">${c.getDate()}</div>
-        ${evts.slice(0,4).map(e=>`<div class="month-evt" style="background:${wsColor(e.workspace)}" onclick="event.stopPropagation();openEventModal('${e.id}')">${escapeHtml(e.title)}</div>`).join('')}
-        ${evts.length>4? `<div style="font-size:10px;color:var(--text-dim)">ще ${evts.length-4}...</div>`:''}
-      </div>`;
-    }).join('')}
-  </div>`;
-}
-
-const CAL_HOURS = Array.from({length:18},(_, i)=>i+6); // 6:00 - 23:00
-const WORK_START = 9, WORK_END = 18; // Google Calendar-style working hours highlight
-function isWorkHour(h, day){ const dow = day.getDay(); return dow>=1 && dow<=5 && h>=WORK_START && h<WORK_END; }
-function renderWeekView(d){
-  const start = addDays(d, -((d.getDay()+6)%7));
-  const days = Array.from({length:7},(_, i)=>addDays(start,i));
-  return `
-  <div class="week-grid">
-    <div class="week-dow-head"></div>
-    ${days.map(day=>`<div class="week-dow-head ${dstr(day)===todayStr()?'today':''}">${DOW[day.getDay()]} ${day.getDate()}</div>`).join('')}
-    ${CAL_HOURS.map(h=>`
-      <div class="hour-label">${pad(h)}:00</div>
-      ${days.map(day=>{
-        const ds = dstr(day);
-        return `<div class="week-cell ${isWorkHour(h,day)?'work-hour':''}" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})"></div>`;
-      }).join('')}
-    `).join('')}
-    <div class="events-layer" id="eventsLayer"></div>
-    <div class="now-line" id="nowLine"><span class="now-dot"></span></div>
-  </div>`;
-}
-function renderDayView(d){
-  const ds = dstr(d);
-  return `
-  <div class="week-grid" style="grid-template-columns:56px 1fr">
-    <div class="week-dow-head"></div>
-    <div class="week-dow-head today">${DOW_FULL[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}</div>
-    ${CAL_HOURS.map(h=>`
-      <div class="hour-label">${pad(h)}:00</div>
-      <div class="week-cell day-list ${isWorkHour(h,d)?'work-hour':''}" ondragover="event.preventDefault()" ondrop="onDropCalendar(event,'${ds}',${h})" onclick="openEventModal(null,{date:'${ds}',start:'${pad(h)}:00'})"></div>
-    `).join('')}
-    <div class="events-layer" id="eventsLayer"></div>
-    <div class="now-line" id="nowLine"><span class="now-dot"></span></div>
-  </div>`;
-}
-function timeToMinutes(t){ const parts=(t||'0:0').split(':'); return (parseInt(parts[0])||0)*60 + (parseInt(parts[1])||0); }
-function positionCalendarEvents(){
-  const layer = document.getElementById('eventsLayer');
-  if(!layer) return;
-  const grid = layer.closest('.week-grid');
-  if(!grid) return;
-  layer.innerHTML = '';
-  const firstLabel = grid.querySelector('.hour-label');
-  if(!firstLabel) return;
-  const rowH = firstLabel.offsetHeight;
-  const gridTop = firstLabel.offsetTop;
-  const startHourMin = CAL_HOURS[0]*60;
-  let dayCols;
-  if(state.calendarMode==='day'){
-    dayCols = [{ds: dstr(state.calendarDate), left:56, width: grid.offsetWidth-56}];
-  } else {
-    const start = addDays(state.calendarDate, -((state.calendarDate.getDay()+6)%7));
-    const days = Array.from({length:7},(_, i)=>addDays(start,i));
-    const headers = grid.querySelectorAll('.week-dow-head');
-    dayCols = days.map((day,i)=>({ds:dstr(day), left: headers[i+1]?headers[i+1].offsetLeft:0, width: headers[i+1]?headers[i+1].offsetWidth:0}));
-  }
-  dayCols.forEach(col=>{
-    const evts = eventsForDate(col.ds).slice().sort((a,b)=>timeToMinutes(a.start)-timeToMinutes(b.start));
-    const lanesEnd = [];
-    const placed = evts.map(e=>{
-      const sM = timeToMinutes(e.start), eM = Math.max(sM+15, timeToMinutes(e.end||e.start));
-      let lane = 0;
-      while(lanesEnd[lane] !== undefined && lanesEnd[lane] > sM) lane++;
-      lanesEnd[lane] = eM;
-      return {e, sM, eM, lane};
-    });
-    const laneCount = Math.max(1, ...placed.map(p=>p.lane+1));
-    placed.forEach(p=>{
-      const top = gridTop + ((p.sM - startHourMin)/60)*rowH;
-      const height = Math.max(18, ((p.eM-p.sM)/60)*rowH - 2);
-      const laneWidth = col.width/laneCount;
-      const left = col.left + p.lane*laneWidth;
-      const el = document.createElement('div');
-      el.className = 'cal-evt';
-      el.style.top = top+'px'; el.style.left = left+'px';
-      el.style.width = Math.max(20,laneWidth-2)+'px'; el.style.height = height+'px';
-      el.style.background = wsColor(p.e.workspace);
-      el.draggable = true;
-      el.title = `${p.e.start}–${p.e.end} ${p.e.title}`;
-      el.textContent = height>26 ? `${p.e.start} ${p.e.title}` : p.e.title;
-      el.ondragstart = (ev)=>onDragStartEvent(ev, p.e.id);
-      el.onclick = (ev)=>{ ev.stopPropagation(); openEventModal(p.e.id); };
-      layer.appendChild(el);
-    });
-  });
-}
-function positionNowLine(){
-  const line = document.getElementById('nowLine');
-  if(!line) return;
-  const grid = line.closest('.week-grid');
-  if(!grid){ return; }
-  const now = new Date();
-  const h = now.getHours(), m = now.getMinutes();
-  if(h < CAL_HOURS[0] || h > CAL_HOURS[CAL_HOURS.length-1]){ line.style.display='none'; return; }
-  let targetLabel = null;
-  grid.querySelectorAll('.hour-label').forEach(el=>{ if(el.textContent === pad(h)+':00') targetLabel = el; });
-  if(!targetLabel){ line.style.display='none'; return; }
-  const top = targetLabel.offsetTop + (m/60)*targetLabel.offsetHeight;
-  let left, width;
-  if(state.calendarMode==='day'){
-    const ds = dstr(state.calendarDate);
-    if(ds !== todayStr()){ line.style.display='none'; return; }
-    left = 56; width = grid.offsetWidth - 56;
-  } else {
-    const start = addDays(state.calendarDate, -((state.calendarDate.getDay()+6)%7));
-    const days = Array.from({length:7},(_, i)=>addDays(start,i));
-    const idx = days.findIndex(dd=>dstr(dd)===todayStr());
-    if(idx===-1){ line.style.display='none'; return; }
-    const headers = grid.querySelectorAll('.week-dow-head');
-    const todayHeader = headers[idx+1];
-    if(!todayHeader){ line.style.display='none'; return; }
-    left = todayHeader.offsetLeft;
-    width = grid.offsetWidth - left;
-  }
-  line.style.top = top+'px';
-  line.style.left = left+'px';
-  line.style.width = width+'px';
-  line.style.display = 'block';
-}
-setInterval(positionNowLine, 60000);
-let dragEventId = null;
-function onDragStartEvent(ev,id){ dragEventId = id; }
-function onDropCalendar(ev, dateStr, hour){
-  ev.preventDefault();
-  if(!dragEventId) return;
-  const e = state.data.events.find(x=>x.id===dragEventId);
-  if(e){
-    const durationH = (parseInt(e.end)||hour+1) - (parseInt(e.start)||hour);
-    e.date = dateStr;
-    e.start = `${pad(hour)}:00`;
-    e.end = `${pad(Math.min(23,hour+Math.max(1,durationH)))}:00`;
-    saveData(); toast('Подію перенесено');
-  }
-  dragEventId = null; render();
-}
-
-function openEventModal(id, opts){
-  opts = opts || {};
-  const e = id? state.data.events.find(x=>x.id===id) : null;
-  const isNew = !e;
-  const dateVal = e? e.date : (opts.date || dstr(state.calendarDate));
-  const startVal = e? e.start : (opts.start || '10:00');
-  const endVal = e? e.end : (opts.end || addHourStr(startVal));
-  const wsVal = e? e.workspace : (opts.workspace || 'personal');
-  const html = `
-  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
-    <div class="side-panel">
-      <div class="modal-head"><h3>${isNew?'Нова подія':'Подія'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
-      <div class="modal-body">
-        <label>Назва</label><input id="e_title" type="text" value="${e?escapeHtml(e.title):escapeHtml(opts.title||'')}">
-        <label>Опис</label><textarea id="e_desc" rows="3">${e?escapeHtml(e.description||''):''}</textarea>
-        <div><label>Робочий простір</label>${renderCustomSelect('e_ws', WORKSPACES.map(w=>({value:w.id,label:w.name,dot:w.color})), wsVal, null)}</div>
-        <div class="row2">
-          <div><label>Дата</label><input id="e_date" type="date" value="${dateVal}"></div>
-          <div><label>Повторення</label>${renderCustomSelect('e_recurring', [{value:'none',label:'Не повторюється'},{value:'weekly',label:'Щотижня'}], e?e.recurring:'none', null)}</div>
-        </div>
-        <div class="row2">
-          <div><label>Початок</label><input id="e_start" type="time" value="${startVal}"></div>
-          <div><label>Кінець</label><input id="e_end" type="time" value="${endVal}"></div>
-        </div>
-      </div>
-      <div class="modal-foot">
-        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteEvent('${e.id}')">${ICON.trash} Видалити</button>`:''}
-        <span style="flex:1"></span>
-        <button class="btn" onclick="closeModal()">Скасувати</button>
-        <button class="btn btn-primary" onclick="saveEventForm(${isNew?'null':`'${e.id}'`})">Зберегти</button>
-      </div>
-    </div>
-  </div>`;
-  openModal(html);
-}
-function saveEventForm(id){
-  const title = document.getElementById('e_title').value.trim();
-  if(!title){ toast('Вкажіть назву події'); return; }
-  const vals = {
-    title, description: document.getElementById('e_desc').value,
-    workspace: document.getElementById('e_ws').value,
-    date: document.getElementById('e_date').value,
-    recurring: document.getElementById('e_recurring').value,
-    start: document.getElementById('e_start').value,
-    end: document.getElementById('e_end').value,
-  };
-  if(id){
-    const ev = state.data.events.find(x=>x.id===id);
-    Object.assign(ev, vals);
-    if(ev.googleEventId) ev.dirty = true;
-    toast('Подію оновлено');
-  }
-  else{
-    state.data.events.unshift(Object.assign({id:uid(), source:'local'}, vals));
-    toast('Подію створено');
-    if(pendingInboxSourceId){
-      state.data.inbox = state.data.inbox.filter(i=>i.id!==pendingInboxSourceId);
-      pendingInboxSourceId = null;
-    }
-  }
-  saveData(); closeModal(); render();
-  if(state.gcalToken) syncGoogleCalendar(true);
-}
-function deleteEvent(id){
-  confirmAction('Видалити цю подію?', ()=>{
-    const ev = state.data.events.find(e=>e.id===id);
-    const gid = ev && ev.googleEventId;
-    state.data.events = state.data.events.filter(e=>e.id!==id);
-    saveData(); closeModal(); toast('Подію видалено'); render();
-    if(gid){
-      queueGcalDelete(gid);
-      if(state.gcalToken){
-        gcalDelete(gid).then(()=>{
-          dequeueGcalDelete(gid);
-        }).catch(err=>{
-          console.error('GCAL DEBUG: delete failed, will retry later', gid, err);
-          if(err && err.code===401){ state.gcalToken = null; clearGcalToken(); toast('Подію видалено локально. Доступ до Google Calendar прострочено — після повторного підключення вона видалиться й там автоматично'); }
-          else toast('Подію видалено локально, спробуємо видалити з Google Calendar пізніше автоматично');
-        });
-      } else {
-        toast('Подію видалено локально. Вона автоматично видалиться з Google Calendar, щойно ви підключите його знову');
-      }
-    }
-  });
-}
 
 /* ============================= MODAL HELPERS ============================= */
 function openModal(html){
@@ -3637,7 +2738,6 @@ function closeModal(){
   const el = document.getElementById('modalRoot');
   if(el) el.remove();
   document.removeEventListener('keydown', escCloseHandler);
-  pendingInboxSourceId = null;
 }
 function escCloseHandler(ev){ if(ev.key==='Escape') closeModal(); }
 
@@ -3654,12 +2754,10 @@ function snapshotData(){
 /* ============================= INIT ============================= */
 applyAccent(loadAccent());
 render();
-if(state.upworkTimer.running) startUpworkTicker();
 if(state.data && state.data.budget) maybeFetchExchangeRates();
 setInterval(maybeFetchExchangeRates, 3600000);
 initAiChatWidget();
 setInterval(snapshotData, 3600000);
-setInterval(()=>{ if(state.gcalToken) syncGoogleCalendar(true); }, 300000);
 </script>
 </body>
 </html>
