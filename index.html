@@ -183,6 +183,49 @@
   .upwork-date-group:first-child .upwork-date-head{border-top:none;padding-top:0;}
   @media (max-width:700px){.upwork-stats-row{flex-direction:column;} .upwork-timer-display{font-size:42px;}}
 
+  /* budget module */
+  .bgt-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:6px;}
+  @media (max-width:1000px){.bgt-stat-row{grid-template-columns:1fr 1fr;}}
+  @media (max-width:600px){.bgt-stat-row{grid-template-columns:1fr;}}
+  .bgt-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+  .bgt-stat-lbl{font-size:11.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px;}
+  .bgt-stat-val{font-size:22px;font-weight:800;}
+  .bgt-pos{color:var(--pr-medium);}
+  .bgt-neg{color:var(--pr-critical);}
+  .bgt-stat-delta{font-size:11px;color:var(--text-dim);margin-top:4px;font-weight:700;}
+  .bgt-progress{height:9px;border-radius:999px;background:var(--surface-2);overflow:hidden;}
+  .bgt-progress-fill{height:100%;border-radius:999px;transition:.2s;}
+  .bgt-budget-item{padding:10px 2px;border-bottom:1px solid var(--border);}
+  .bgt-budget-item:last-child{border-bottom:none;}
+  .bgt-budget-head{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px;}
+  .bgt-budget-foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-dim);margin-top:6px;}
+  .bgt-insights{margin:0;padding-left:18px;font-size:13px;line-height:1.9;}
+  .bgt-insights li{margin-bottom:2px;}
+  .bgt-health-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .bgt-health-item{flex:1;min-width:110px;text-align:center;}
+  .bgt-health-val{font-size:17px;font-weight:800;}
+  .bgt-health-lbl{font-size:10.5px;color:var(--text-dim);font-weight:700;margin-top:3px;}
+  .bgt-cat-row{padding:6px 0;border-bottom:1px solid var(--border);}
+  .bgt-cat-row:last-child{border-bottom:none;}
+  .bgt-subcat-list{display:flex;flex-wrap:wrap;gap:6px;padding:0 4px 8px 40px;}
+  .bgt-subcat-del{background:none;border:none;color:inherit;margin-left:4px;cursor:pointer;opacity:.6;font-size:13px;}
+  .bgt-subcat-del:hover{opacity:1;}
+  .bgt-color-picker{display:flex;flex-wrap:wrap;gap:8px;}
+  .bgt-color-swatch{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;}
+  .bgt-color-swatch.active{border-color:var(--text);}
+  .bgt-goals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .bgt-goal-card{cursor:pointer;box-shadow:none;border:1px solid var(--border);}
+  .bgt-goal-head{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .bgt-type-switch{display:flex;gap:6px;margin-bottom:14px;background:var(--surface-2);border-radius:var(--radius-sm);padding:4px;}
+  .bgt-type-btn{flex:1;padding:8px;border:none;background:transparent;border-radius:calc(var(--radius-sm) - 2px);font-size:12.5px;font-weight:700;color:var(--text-dim);cursor:pointer;}
+  .bgt-type-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
+  .bgt-details{margin-top:14px;border-top:1px solid var(--border);padding-top:10px;}
+  .bgt-details summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--text-dim);}
+  .bgt-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .bgt-table th{text-align:left;font-size:11px;color:var(--text-dim);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--border-strong);}
+  .bgt-table td{padding:8px;border-bottom:1px solid var(--border);}
+  .bgt-table tr:last-child td{border-bottom:none;}
+
   .view{flex:1;overflow-y:auto;padding:22px 26px 60px;}
   .filters-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
   .chip{
@@ -483,6 +526,8 @@ const ICON = {
   play:`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`,
   pause:`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`,
   stop:`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`,
+  wallet:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M17 12h4v4h-4a2 2 0 0 1 0-4z"/></svg>`,
+  edit:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
 };
 
 /* ============================= КОНСТАНТИ ============================= */
@@ -579,7 +624,7 @@ function processGcalDeleteQueue(){
   });
 }
 
-function emptyData(){ return {tasks:[], projects:[], events:[], inbox:[], upworkLogs:[]}; }
+function emptyData(){ return {tasks:[], projects:[], events:[], inbox:[], upworkLogs:[], budget: emptyBudgetData()}; }
 
 function saveData(){
   if(!state.user || !db) return;
@@ -624,6 +669,9 @@ const state = {
   data: emptyData(),
   profile: loadProfile(),
   upworkTimer: loadUpworkTimer(),
+  budgetView: 'overview',
+  bgtAnalyticsPeriod: 'month',
+  bgtFilters: {period:'month', type:'all', categoryId:'all', subcategoryId:'all', accountId:'all', currency:'all', tag:'all', search:''},
   notifOpen: false,
   profileOpen: false,
   searchOpen: false,
@@ -662,8 +710,10 @@ function subscribeToData(uid){
         events: Array.isArray(d.events)? d.events : [],
         inbox: Array.isArray(d.inbox)? d.inbox : [],
         upworkLogs: Array.isArray(d.upworkLogs)? d.upworkLogs : [],
+        budget: normalizeBudgetData(d.budget),
       };
       cleanupKykilData();
+      processRecurringPayments();
     } else {
       state.data = emptyData();
       db.collection('crmData').doc(uid).set(state.data).catch(()=>{});
@@ -1086,6 +1136,7 @@ function renderSidebar(){
     ['calendar','Календар','calendar'],
     ['tasks','Задачі','tasks'],
     ['projects','Проєкти','projects'],
+    ['budget','Бюджет','wallet'],
     ['upwork','Upwork','timer'],
     ['inbox','Inbox','inbox'],
     ['trash','Кошик','trash'],
@@ -1140,7 +1191,7 @@ function renderSidebar(){
   </div>`;
 }
 
-const VIEW_TITLES = {dashboard:'Головна', calendar:'Календар', tasks:'Задачі', projects:'Проєкти', upwork:'Upwork', inbox:'Inbox', trash:'Кошик', profile:'Профіль'};
+const VIEW_TITLES = {dashboard:'Головна', calendar:'Календар', tasks:'Задачі', projects:'Проєкти', budget:'Бюджет', upwork:'Upwork', inbox:'Inbox', trash:'Кошик', profile:'Профіль'};
 function renderTopbar(){
   const notifs = computeNotifications();
   const title = state.view==='workspace' ? wsName(state.activeWs) : (VIEW_TITLES[state.view]||'');
@@ -1178,6 +1229,7 @@ function renderViewBody(){
   if(state.view==='calendar') return renderCalendar();
   if(state.view==='tasks') return renderTasks();
   if(state.view==='projects') return renderProjects();
+  if(state.view==='budget') return renderBudgetModule();
   if(state.view==='upwork') return renderUpwork();
   if(state.view==='inbox') return renderInbox();
   if(state.view==='trash') return renderTrash();
@@ -1575,6 +1627,1246 @@ function deleteUpworkLog(id){
     state.data.upworkLogs = state.data.upworkLogs.filter(l=>l.id!==id);
     saveData(); closeModal(); toast('Запис видалено'); render();
   });
+}
+
+/* ============================= БЮДЖЕТ: КОНСТАНТИ ТА ДАНІ ============================= */
+const BUDGET_BASE_CCY = 'PLN';
+const CATEGORY_PALETTE = ['#2F4EF3','#0EA5E9','#14B8A6','#22C55E','#EAB308','#F59E0B','#F97316','#EF4444','#EC4899','#A855F7','#6366F1','#64748B','#84CC16','#06B6D4'];
+function mkCat(id,name,icon,subs){ return {id, name, icon, subcategories:(subs||[]).map(s=>({id:id+'-'+s.id, name:s.name}))}; }
+function defaultExpenseCategories(){
+  const c = [
+    mkCat('housing','Житло','🏠',[{id:'rent',name:'Оренда'},{id:'utilities',name:'Комунальні'},{id:'internet',name:'Інтернет'},{id:'mobile',name:'Мобільний зв\'язок'},{id:'repair',name:'Ремонт / побут'}]),
+    mkCat('groceries','Продукти','🛒',[{id:'supermarket',name:'Супермаркет'},{id:'market',name:'Ринок'},{id:'delivery',name:'Доставка продуктів'}]),
+    mkCat('eatingout','Їжа поза домом','🍔',[{id:'restaurants',name:'Ресторани'},{id:'cafe',name:'Кафе'},{id:'fastfood',name:'Fast Food'},{id:'fooddelivery',name:'Доставка'}]),
+    mkCat('transport','Транспорт','🚗',[{id:'public',name:'Громадський транспорт'},{id:'taxi',name:'Таксі'},{id:'fuel',name:'Паливо'},{id:'parking',name:'Паркування'},{id:'carrepair',name:'Ремонт авто'}]),
+    mkCat('shopping','Покупки','🛍',[{id:'clothes',name:'Одяг'},{id:'electronics',name:'Техніка'},{id:'home',name:'Дім'},{id:'personal',name:'Особисті речі'}]),
+    mkCat('health','Здоров\'я','❤️',[{id:'doctors',name:'Лікарі'},{id:'pharmacy',name:'Аптека'},{id:'tests',name:'Аналізи'},{id:'insurance',name:'Страхування'}]),
+    mkCat('sport','Спорт','🏋️',[{id:'gym',name:'Зал'},{id:'nutrition',name:'Спортивне харчування'},{id:'gear',name:'Спорядження'}]),
+    mkCat('entertainment','Розваги','🎮',[{id:'games',name:'Ігри'},{id:'subs',name:'Підписки'},{id:'cinema',name:'Кіно'},{id:'concerts',name:'Концерти'},{id:'hobby',name:'Хобі'}]),
+    mkCat('travel','Подорожі','✈️',[{id:'tickets',name:'Квитки'},{id:'hotels',name:'Готелі'},{id:'travelfood',name:'Харчування'},{id:'travelfun',name:'Розваги'},{id:'travelother',name:'Інше'}]),
+    mkCat('education','Освіта','🎓',[{id:'courses',name:'Курси'},{id:'books',name:'Книги'},{id:'training',name:'Навчання'}]),
+    mkCat('work','Робота','💻',[{id:'software',name:'Софт'},{id:'services',name:'Сервіси'},{id:'ads',name:'Реклама'},{id:'equipment',name:'Обладнання'},{id:'workother',name:'Інше'}]),
+    mkCat('finance','Фінанси','💰',[{id:'fees',name:'Комісії'},{id:'bankpayments',name:'Банківські платежі'},{id:'loans',name:'Кредити'},{id:'investments',name:'Інвестиції'}]),
+    mkCat('gifts','Подарунки','🎁',[]),
+    mkCat('other','Інше','📦',[]),
+  ];
+  c.forEach((cat,i)=>cat.color = CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]);
+  return c;
+}
+function defaultIncomeCategories(){
+  const c = [
+    mkCat('salary','Зарплата','💼',[]),
+    mkCat('freelance','Фріланс','🖥️',[]),
+    mkCat('projects_in','Проєкти','📁',[]),
+    mkCat('business','Бізнес','🏢',[]),
+    mkCat('bonuses','Бонуси','🎉',[]),
+    mkCat('gifts_in','Подарунки','🎁',[]),
+    mkCat('sale','Продаж речей','🏷️',[]),
+    mkCat('investments_in','Інвестиції','📈',[]),
+    mkCat('refunds','Повернення коштів','↩️',[]),
+    mkCat('other_in','Інше','📦',[]),
+  ];
+  c.forEach((cat,i)=>cat.color = CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]);
+  return c;
+}
+const ACCOUNT_TYPES = [
+  {value:'bank', label:'Банківський рахунок', icon:'🏦'},
+  {value:'card', label:'Картка', icon:'💳'},
+  {value:'cash', label:'Готівка', icon:'💵'},
+  {value:'ewallet', label:'Електронний гаманець', icon:'📱'},
+  {value:'savings', label:'Накопичувальний рахунок', icon:'💰'},
+  {value:'investment', label:'Інвестиційний рахунок', icon:'📈'},
+];
+const ACCOUNT_TYPE_LABEL = {}; ACCOUNT_TYPES.forEach(t=>ACCOUNT_TYPE_LABEL[t.value]=t.label);
+const ACCOUNT_TYPE_ICON = {}; ACCOUNT_TYPES.forEach(t=>ACCOUNT_TYPE_ICON[t.value]=t.icon);
+const RECUR_FREQ = [
+  {value:'weekly',label:'Щотижня'},
+  {value:'biweekly',label:'Кожні 2 тижні'},
+  {value:'monthly',label:'Щомісяця'},
+  {value:'quarterly',label:'Кожні 3 місяці'},
+  {value:'semiannual',label:'Кожні 6 місяців'},
+  {value:'yearly',label:'Щороку'},
+];
+const RECUR_FREQ_LABEL = {}; RECUR_FREQ.forEach(f=>RECUR_FREQ_LABEL[f.value]=f.label);
+const RECUR_MONTHLY_FACTOR = {weekly:4.345, biweekly:2.1725, monthly:1, quarterly:1/3, semiannual:1/6, yearly:1/12};
+const BUDGET_STATUS_LABEL = {normal:'Нормально', warning:'Попередження', near:'Майже ліміт', over:'Перевищено'};
+const BUDGET_STATUS_COLOR = {normal:'var(--pr-medium)', warning:'var(--pr-high)', near:'#F97316', over:'var(--pr-critical)'};
+const BUDGET_TABS = [
+  ['overview','Огляд'],['transactions','Транзакції'],['accounts','Рахунки'],
+  ['budgets','Бюджети'],['categories','Категорії'],['recurring','Регулярні платежі'],
+  ['goals','Фінансові цілі'],['analytics','Аналітика'],
+];
+function emptyBudgetData(){
+  return {
+    accounts: [],
+    transactions: [],
+    expenseCategories: defaultExpenseCategories(),
+    incomeCategories: defaultIncomeCategories(),
+    budgets: [],
+    recurring: [],
+    goals: [],
+    currencies: ['PLN','EUR','USD','GBP','UAH'],
+    rates: {PLN:1, EUR:4.3, USD:4.0, GBP:5.0, UAH:0.095},
+    lastUsed: {accountId:null, expenseCategoryId:null, incomeCategoryId:null, currency:'PLN'},
+  };
+}
+function normalizeBudgetData(b){
+  b = b || {};
+  const d = emptyBudgetData();
+  return {
+    accounts: Array.isArray(b.accounts)? b.accounts : d.accounts,
+    transactions: Array.isArray(b.transactions)? b.transactions : d.transactions,
+    expenseCategories: (Array.isArray(b.expenseCategories) && b.expenseCategories.length)? b.expenseCategories : d.expenseCategories,
+    incomeCategories: (Array.isArray(b.incomeCategories) && b.incomeCategories.length)? b.incomeCategories : d.incomeCategories,
+    budgets: Array.isArray(b.budgets)? b.budgets : d.budgets,
+    recurring: Array.isArray(b.recurring)? b.recurring : d.recurring,
+    goals: Array.isArray(b.goals)? b.goals : d.goals,
+    currencies: (Array.isArray(b.currencies) && b.currencies.length)? b.currencies : d.currencies,
+    rates: (b.rates && typeof b.rates==='object')? Object.assign({}, d.rates, b.rates) : d.rates,
+    lastUsed: (b.lastUsed && typeof b.lastUsed==='object')? Object.assign({}, d.lastUsed, b.lastUsed) : d.lastUsed,
+  };
+}
+
+/* ============================= БЮДЖЕТ: УТИЛІТИ ============================= */
+function bgtRate(ccy){ return (state.data.budget.rates && state.data.budget.rates[ccy]) || 1; }
+function toPLN(amount, ccy){ return amount * bgtRate(ccy); }
+function fromPLN(amountPLN, ccy){ const r = bgtRate(ccy) || 1; return amountPLN / r; }
+function fmtMoney(amount, ccy){
+  const n = Math.round((amount||0)*100)/100;
+  return `${n.toLocaleString('uk-UA',{minimumFractionDigits:2,maximumFractionDigits:2})} ${ccy||BUDGET_BASE_CCY}`;
+}
+function fmtMoneyShort(amount, ccy){
+  const n = Math.round(amount||0);
+  return `${n.toLocaleString('uk-UA',{maximumFractionDigits:0})} ${ccy||BUDGET_BASE_CCY}`;
+}
+function addMonths(d,n){ const r=new Date(d); r.setMonth(r.getMonth()+n); return r; }
+function advanceDateStr(dateStr, freq){
+  const d = new Date(dateStr+'T00:00:00');
+  if(freq==='weekly') return dstr(addDays(d,7));
+  if(freq==='biweekly') return dstr(addDays(d,14));
+  if(freq==='quarterly') return dstr(addMonths(d,3));
+  if(freq==='semiannual') return dstr(addMonths(d,6));
+  if(freq==='yearly') return dstr(addMonths(d,12));
+  return dstr(addMonths(d,1));
+}
+function monthRange(d){ const y=d.getFullYear(),m=d.getMonth(); return [dstr(new Date(y,m,1)), dstr(new Date(y,m+1,0))]; }
+function yearRange(d){ return [`${d.getFullYear()}-01-01`, `${d.getFullYear()}-12-31`]; }
+function getAccounts(){ return state.data.budget.accounts.filter(a=>!a.archived); }
+function getAccount(id){ return state.data.budget.accounts.find(a=>a.id===id); }
+function accountNativeBalance(acc){
+  let bal = acc.initialBalance||0;
+  state.data.budget.transactions.forEach(t=>{
+    if(t.accountId===acc.id) bal += (t.accountEffect||0);
+    if(t.type==='transfer' && t.toAccountId===acc.id) bal += (t.toAccountEffect||0);
+  });
+  return bal;
+}
+function accountBalancePLN(acc){ return toPLN(accountNativeBalance(acc), acc.currency); }
+function totalBalancePLN(){ return getAccounts().reduce((s,a)=>s+accountBalancePLN(a),0); }
+function catList(kind){ return kind==='income'? state.data.budget.incomeCategories : state.data.budget.expenseCategories; }
+function getExpenseCategory(id){ return state.data.budget.expenseCategories.find(c=>c.id===id); }
+function getIncomeCategory(id){ return state.data.budget.incomeCategories.find(c=>c.id===id); }
+function getCategoryForTx(t){ return t.type==='income'? getIncomeCategory(t.categoryId) : getExpenseCategory(t.categoryId); }
+function isRealTx(t){ return !!t && !t.deleted; }
+function txInRange(t, fromStr, toStr){ return t.date>=fromStr && t.date<=toStr; }
+function sumExpensePLN(fromStr,toStr, filterFn){
+  return state.data.budget.transactions.filter(t=>isRealTx(t) && t.type==='expense' && txInRange(t,fromStr,toStr) && (!filterFn||filterFn(t))).reduce((s,t)=>s+t.convertedAmount,0);
+}
+function sumIncomePLN(fromStr,toStr, filterFn){
+  return state.data.budget.transactions.filter(t=>isRealTx(t) && t.type==='income' && txInRange(t,fromStr,toStr) && (!filterFn||filterFn(t))).reduce((s,t)=>s+t.convertedAmount,0);
+}
+function allTags(){
+  const set = {};
+  state.data.budget.transactions.forEach(t=>(t.tags||[]).forEach(tag=>set[tag]=1));
+  return Object.keys(set).sort();
+}
+function buildTransactionRecord(form){
+  const rate = bgtRate(form.currency);
+  const convertedAmount = Math.round(form.amount*rate*100)/100;
+  const rec = {
+    type: form.type,
+    amount: form.amount,
+    currency: form.currency,
+    exchangeRate: rate,
+    convertedAmount,
+    categoryId: form.type==='transfer'? null : form.categoryId,
+    subcategoryId: form.type==='transfer'? null : (form.subcategoryId||null),
+    accountId: form.accountId,
+    date: form.date,
+    time: form.time||'',
+    description: form.description||'',
+    merchant: form.merchant||'',
+    location: form.location||'',
+    tags: form.tags||[],
+    receiptUrl: form.receiptUrl||'',
+    recurringId: form.recurringId||null,
+  };
+  const fromAcc = getAccount(form.accountId);
+  if(form.type==='transfer'){
+    const toAcc = getAccount(form.toAccountId);
+    rec.toAccountId = form.toAccountId;
+    rec.accountEffect = -form.amount;
+    rec.toAccountEffect = (toAcc && fromAcc)? fromPLN(toPLN(form.amount, fromAcc.currency), toAcc.currency) : 0;
+  } else {
+    let native = form.amount;
+    if(fromAcc && form.currency!==fromAcc.currency) native = fromPLN(convertedAmount, fromAcc.currency);
+    rec.accountEffect = form.type==='expense'? -native : native;
+  }
+  return rec;
+}
+
+/* ============================= БЮДЖЕТ: АГРЕГАТИ ТА ІНСАЙТИ ============================= */
+function budgetOverviewStats(){
+  const now = new Date();
+  const [mFrom,mTo] = monthRange(now);
+  const [pmFrom,pmTo] = monthRange(addMonths(now,-1));
+  const income = sumIncomePLN(mFrom,mTo);
+  const expense = sumExpensePLN(mFrom,mTo);
+  const prevIncome = sumIncomePLN(pmFrom,pmTo);
+  const prevExpense = sumExpensePLN(pmFrom,pmTo);
+  return {
+    balance: totalBalancePLN(),
+    income, expense, remainder: income-expense,
+    incomeChangePct: prevIncome? Math.round(((income-prevIncome)/prevIncome)*100) : null,
+    expenseChangePct: prevExpense? Math.round(((expense-prevExpense)/prevExpense)*100) : null,
+  };
+}
+function budgetProgress(){
+  const now = new Date();
+  const [mFrom,mTo] = monthRange(now);
+  return (state.data.budget.budgets||[]).map(b=>{
+    const cat = getExpenseCategory(b.categoryId);
+    const spent = sumExpensePLN(mFrom,mTo, t=>t.categoryId===b.categoryId);
+    const pct = b.limit>0? Math.round((spent/b.limit)*100) : 0;
+    let status='normal';
+    if(pct>=100) status='over'; else if(pct>=90) status='near'; else if(pct>=70) status='warning';
+    return {budget:b, category:cat, spent, pct, remaining:b.limit-spent, status};
+  });
+}
+function upcomingRecurring(limit){
+  return (state.data.budget.recurring||[]).filter(r=>r.active).slice().sort((a,b)=>a.nextDate.localeCompare(b.nextDate)).slice(0, limit||5);
+}
+function monthlyRecurringTotalPLN(){
+  return (state.data.budget.recurring||[]).filter(r=>r.active).reduce((s,r)=>{
+    const factor = RECUR_MONTHLY_FACTOR[r.frequency]||1;
+    return s + toPLN(r.amount, r.currency)*factor;
+  },0);
+}
+function activeGoals(){ return (state.data.budget.goals||[]).filter(g=>g.status!=='done'); }
+function goalProgressPct(g){ return g.targetAmount>0? Math.min(100, Math.round((g.currentAmount/g.targetAmount)*100)) : 0; }
+function savingsRatePct(income, expense){ return income>0? Math.round(((income-expense)/income)*100) : 0; }
+function avgExpenseLast3Months(){
+  const now = new Date();
+  let total=0;
+  for(let i=0;i<3;i++){ const [f,t]=monthRange(addMonths(now,-i)); total+=sumExpensePLN(f,t); }
+  return total/3;
+}
+function computeBudgetInsights(){
+  const insights = [];
+  const now = new Date();
+  const [mFrom,mTo]=monthRange(now);
+  const [pmFrom,pmTo]=monthRange(addMonths(now,-1));
+  const income = sumIncomePLN(mFrom,mTo);
+  const expense = sumExpensePLN(mFrom,mTo);
+  const catTotals = {};
+  state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type==='expense'&&txInRange(t,mFrom,mTo)).forEach(t=>{
+    catTotals[t.categoryId] = (catTotals[t.categoryId]||0) + t.convertedAmount;
+  });
+  const catEntries = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+  if(catEntries.length){
+    const cat = getExpenseCategory(catEntries[0][0]);
+    insights.push(`Найбільша категорія витрат цього місяця — ${cat?cat.name:'Інше'} (${fmtMoneyShort(catEntries[0][1])}).`);
+  }
+  const prevCatTotals = {};
+  state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type==='expense'&&txInRange(t,pmFrom,pmTo)).forEach(t=>{
+    prevCatTotals[t.categoryId] = (prevCatTotals[t.categoryId]||0) + t.convertedAmount;
+  });
+  let biggestJump = null;
+  Object.keys(catTotals).forEach(cid=>{
+    const cur = catTotals[cid], prev = prevCatTotals[cid]||0;
+    if(prev>=50){
+      const pct = Math.round(((cur-prev)/prev)*100);
+      if(pct>15 && (!biggestJump || pct>biggestJump.pct)) biggestJump = {cid, pct};
+    }
+  });
+  if(biggestJump){
+    const cat = getExpenseCategory(biggestJump.cid);
+    insights.push(`Цього місяця ти витратив на ${cat?cat.name.toLowerCase():'цю категорію'} на ${biggestJump.pct}% більше, ніж минулого місяця.`);
+  }
+  const recurTotal = monthlyRecurringTotalPLN();
+  if(recurTotal>0) insights.push(`Твої регулярні платежі складають ${fmtMoneyShort(recurTotal)} на місяць.`);
+  if(income>0) insights.push(`Цього місяця витрати становлять ${Math.round((expense/income)*100)}% від доходів.`);
+  insights.push(`За останні 3 місяці середні витрати становили ${fmtMoneyShort(avgExpenseLast3Months())}/місяць.`);
+  return insights;
+}
+
+/* ============================= БЮДЖЕТ: НАВІГАЦІЯ МОДУЛЯ ============================= */
+function switchBudgetTab(tab){ state.budgetView = tab; render(); }
+function renderBudgetModule(){
+  const body =
+    state.budgetView==='transactions'? renderBudgetTransactions() :
+    state.budgetView==='accounts'? renderBudgetAccounts() :
+    state.budgetView==='budgets'? renderBudgetBudgets() :
+    state.budgetView==='categories'? renderBudgetCategories() :
+    state.budgetView==='recurring'? renderBudgetRecurring() :
+    state.budgetView==='goals'? renderBudgetGoals() :
+    state.budgetView==='analytics'? renderBudgetAnalytics() : renderBudgetOverview();
+  return `
+  <div class="filters-row" style="margin-bottom:18px">
+    ${BUDGET_TABS.map(([id,label])=>`<button type="button" class="chip ${state.budgetView===id?'active':''}" onclick="switchBudgetTab('${id}')">${label}</button>`).join('')}
+  </div>
+  ${body}`;
+}
+
+/* ============================= БЮДЖЕТ: ОГЛЯД ============================= */
+function renderTxRow(t){
+  const acc = getAccount(t.accountId);
+  const cat = getCategoryForTx(t);
+  const isTransfer = t.type==='transfer';
+  const sign = t.type==='expense'?'−':(t.type==='income'?'+':'');
+  const cls = t.type==='expense'?'bgt-neg':(t.type==='income'?'bgt-pos':'');
+  const label = isTransfer? `${acc?acc.name:'—'} → ${(getAccount(t.toAccountId)||{}).name||'—'}` : (t.description || (cat?cat.name:'Без категорії'));
+  const amt = isTransfer? t.amount : t.convertedAmount;
+  const ccy = isTransfer? t.currency : BUDGET_BASE_CCY;
+  return `
+  <div class="list-row" onclick="openTxModal('${t.type}','${t.id}')">
+    <span class="dot" style="background:${isTransfer?'var(--text-dim)':(cat?cat.color:'#999')}"></span>
+    <span class="title">${escapeHtml(label)}</span>
+    <span class="meta">${cat && !isTransfer? escapeHtml(cat.name) : ''}</span>
+    <span class="meta ${cls}" style="font-weight:800">${sign}${fmtMoneyShort(amt, ccy)}</span>
+    <button class="row-trash-btn" title="Видалити" onclick="event.stopPropagation();deleteTx('${t.id}')">${ICON.trash}</button>
+  </div>`;
+}
+function renderBudgetBar(p){
+  return `
+  <div class="bgt-budget-item">
+    <div class="bgt-budget-head"><span>${p.category?p.category.icon+' '+p.category.name:'—'}</span><span>${fmtMoneyShort(p.spent)} / ${fmtMoneyShort(p.budget.limit)}</span></div>
+    <div class="bgt-progress"><div class="bgt-progress-fill" style="width:${Math.min(100,p.pct)}%;background:${BUDGET_STATUS_COLOR[p.status]}"></div></div>
+    <div class="bgt-budget-foot"><span style="color:${BUDGET_STATUS_COLOR[p.status]};font-weight:700">${BUDGET_STATUS_LABEL[p.status]}</span><span>Залишилось: ${fmtMoneyShort(p.remaining)}</span></div>
+  </div>`;
+}
+function renderBudgetOverview(){
+  const stats = budgetOverviewStats();
+  const progress = budgetProgress();
+  const recentTx = state.data.budget.transactions.filter(isRealTx).slice().sort((a,b)=> (b.date+(b.time||'')).localeCompare(a.date+(a.time||'')) || (b.createdAt||0)-(a.createdAt||0)).slice(0,6);
+  const upcoming = upcomingRecurring(5);
+  const goals = activeGoals().slice(0,4);
+  const insights = computeBudgetInsights();
+  const recurTotal = monthlyRecurringTotalPLN();
+  const savingsRate = savingsRatePct(stats.income, stats.expense);
+  return `
+  <div class="bgt-stat-row">
+    <div class="bgt-stat-card"><div class="bgt-stat-lbl">Баланс</div><div class="bgt-stat-val">${fmtMoneyShort(stats.balance)}</div></div>
+    <div class="bgt-stat-card"><div class="bgt-stat-lbl">Доходи цього місяця</div><div class="bgt-stat-val bgt-pos">+${fmtMoneyShort(stats.income)}</div>${stats.incomeChangePct!==null?`<div class="bgt-stat-delta">${stats.incomeChangePct>=0?'▲':'▼'} ${Math.abs(stats.incomeChangePct)}% до мин. міс.</div>`:''}</div>
+    <div class="bgt-stat-card"><div class="bgt-stat-lbl">Витрати цього місяця</div><div class="bgt-stat-val bgt-neg">−${fmtMoneyShort(stats.expense)}</div>${stats.expenseChangePct!==null?`<div class="bgt-stat-delta">${stats.expenseChangePct>=0?'▲':'▼'} ${Math.abs(stats.expenseChangePct)}% до мин. міс.</div>`:''}</div>
+    <div class="bgt-stat-card"><div class="bgt-stat-lbl">Залишок за місяць</div><div class="bgt-stat-val ${stats.remainder>=0?'bgt-pos':'bgt-neg'}">${stats.remainder>=0?'+':''}${fmtMoneyShort(stats.remainder)}</div></div>
+  </div>
+  <div style="margin:16px 0 20px"><button class="btn btn-primary btn-lg" onclick="openTxModal('expense')">${ICON.plus} Додати транзакцію</button></div>
+  <div class="grid-dash" style="grid-template-columns:1.3fr 1fr">
+    <div class="card">
+      <h3>${ICON.tasks} Останні транзакції</h3>
+      ${recentTx.length? recentTx.map(t=>renderTxRow(t)).join('') : `<div class="empty-hint">Транзакцій ще немає</div>`}
+    </div>
+    <div class="card">
+      <h3>${ICON.calendar} Найближчі платежі</h3>
+      ${upcoming.length? upcoming.map(r=>`
+        <div class="list-row" style="cursor:default">
+          <span class="title">${escapeHtml(r.name)}</span>
+          <span class="meta">${fmtDateHuman(r.nextDate)}</span>
+          <span class="meta" style="font-weight:800">${fmtMoneyShort(r.amount, r.currency)}</span>
+        </div>`).join('') : `<div class="empty-hint">Активних регулярних платежів немає</div>`}
+    </div>
+  </div>
+  <div class="grid-dash" style="grid-template-columns:1fr 1fr;margin-top:16px">
+    <div class="card">
+      <h3>${ICON.projects} Бюджети</h3>
+      ${progress.length? progress.slice(0,5).map(p=>renderBudgetBar(p)).join('') : `<div class="empty-hint">Ліміти ще не встановлені</div>`}
+    </div>
+    <div class="card">
+      <h3>🎯 Фінансові цілі</h3>
+      ${goals.length? goals.map(g=>`
+        <div class="list-row" onclick="switchView('budget');switchBudgetTab('goals')">
+          <span class="title">${escapeHtml(g.name)}</span>
+          <span class="meta">${goalProgressPct(g)}%</span>
+        </div>`).join('') : `<div class="empty-hint">Цілей ще немає</div>`}
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>💡 Фінансові інсайти</h3>
+    ${insights.length? `<ul class="bgt-insights">${insights.map(i=>`<li>${escapeHtml(i)}</li>`).join('')}</ul>` : `<div class="empty-hint">Замало даних для інсайтів</div>`}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>🩺 Фінансовий стан</h3>
+    <div class="bgt-health-row">
+      <div class="bgt-health-item"><div class="bgt-health-val">${savingsRate}%</div><div class="bgt-health-lbl">Savings rate</div></div>
+      <div class="bgt-health-item"><div class="bgt-health-val">${fmtMoneyShort(avgExpenseLast3Months())}</div><div class="bgt-health-lbl">Сер. витрати/міс</div></div>
+      <div class="bgt-health-item"><div class="bgt-health-val">${fmtMoneyShort(recurTotal)}</div><div class="bgt-health-lbl">Регулярні витрати</div></div>
+      <div class="bgt-health-item"><div class="bgt-health-val">${fmtMoneyShort(stats.balance)}</div><div class="bgt-health-lbl">Поточний баланс</div></div>
+      <div class="bgt-health-item"><div class="bgt-health-val">${fmtMoneyShort((state.data.budget.goals||[]).reduce((s,g)=>s+g.currentAmount,0))}</div><div class="bgt-health-lbl">Накопичення</div></div>
+    </div>
+  </div>`;
+}
+
+/* ============================= БЮДЖЕТ: ТРАНЗАКЦІЇ ============================= */
+function setBgtFilter(key,val){ state.bgtFilters[key]=val; render(); }
+function setBgtFilters(obj){ Object.assign(state.bgtFilters, obj); render(); }
+function bgtPeriodRange(period){
+  const now = new Date();
+  if(period==='today'){ const s=todayStr(); return [s,s]; }
+  if(period==='week'){ const dow=(now.getDay()+6)%7; return [dstr(addDays(now,-dow)), dstr(addDays(now,6-dow))]; }
+  if(period==='month') return monthRange(now);
+  if(period==='lastmonth') return monthRange(addMonths(now,-1));
+  if(period==='year') return yearRange(now);
+  return null;
+}
+function filteredBudgetTx(){
+  const f = state.bgtFilters;
+  const range = bgtPeriodRange(f.period);
+  return state.data.budget.transactions.filter(t=>{
+    if(t.deleted) return false;
+    if(range && !(t.date>=range[0] && t.date<=range[1])) return false;
+    if(f.type!=='all' && t.type!==f.type) return false;
+    if(f.categoryId!=='all' && t.categoryId!==f.categoryId) return false;
+    if(f.subcategoryId && f.subcategoryId!=='all' && t.subcategoryId!==f.subcategoryId) return false;
+    if(f.accountId!=='all' && t.accountId!==f.accountId && t.toAccountId!==f.accountId) return false;
+    if(f.currency!=='all' && t.currency!==f.currency) return false;
+    if(f.tag!=='all' && !(t.tags||[]).includes(f.tag)) return false;
+    if(f.search && !(t.description||'').toLowerCase().includes(f.search.toLowerCase()) && !(t.merchant||'').toLowerCase().includes(f.search.toLowerCase())) return false;
+    return true;
+  }).sort((a,b)=> (b.date+(b.time||'')).localeCompare(a.date+(a.time||'')) || (b.createdAt||0)-(a.createdAt||0));
+}
+function renderBudgetTransactions(){
+  const f = state.bgtFilters;
+  const list = filteredBudgetTx();
+  const catForFilter = f.type==='income'? state.data.budget.incomeCategories : state.data.budget.expenseCategories;
+  const catOptions = [{value:'all',label:'Всі категорії'}].concat(catForFilter.map(c=>({value:c.id,label:c.icon+' '+c.name,dot:c.color})));
+  const selectedCat = catForFilter.find(c=>c.id===f.categoryId);
+  const subOptions = [{value:'all',label:'Всі підкатегорії'}].concat((selectedCat&&selectedCat.subcategories||[]).map(s=>({value:s.id,label:s.name})));
+  const accOptions = [{value:'all',label:'Всі рахунки'}].concat(getAccounts().map(a=>({value:a.id,label:a.name})));
+  const ccyOptions = [{value:'all',label:'Всі валюти'}].concat((state.data.budget.currencies||[]).map(c=>({value:c,label:c})));
+  const tagOptions = [{value:'all',label:'Всі теги'}].concat(allTags().map(tg=>({value:tg,label:'#'+tg})));
+  return `
+  <div class="filters-row">
+    ${[['today','Сьогодні'],['week','Цього тижня'],['month','Цього місяця'],['lastmonth','Минулого місяця'],['year','Цього року'],['all','Весь час']].map(([id,label])=>`<button type="button" class="chip ${f.period===id?'active':''}" onclick="setBgtFilter('period','${id}')">${label}</button>`).join('')}
+  </div>
+  <div class="row2" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px">
+    ${renderCustomSelect('bgt_f_type', [{value:'all',label:'Всі типи'},{value:'expense',label:'Витрати'},{value:'income',label:'Доходи'},{value:'transfer',label:'Перекази'}], f.type, v=>setBgtFilters({type:v, categoryId:'all', subcategoryId:'all'}))}
+    ${renderCustomSelect('bgt_f_category', catOptions, f.categoryId, v=>setBgtFilters({categoryId:v, subcategoryId:'all'}))}
+    ${renderCustomSelect('bgt_f_subcategory', subOptions, f.subcategoryId, v=>setBgtFilter('subcategoryId',v))}
+    ${renderCustomSelect('bgt_f_account', accOptions, f.accountId, v=>setBgtFilter('accountId',v))}
+  </div>
+  <div class="row2" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px">
+    ${renderCustomSelect('bgt_f_currency', ccyOptions, f.currency, v=>setBgtFilter('currency',v))}
+    ${renderCustomSelect('bgt_f_tag', tagOptions, f.tag, v=>setBgtFilter('tag',v))}
+  </div>
+  <div class="card">
+    <div class="section-head"><h3 style="margin:0">Транзакції</h3><span class="count">${list.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openTxModal('expense')">${ICON.plus} Додати</button>
+    </div>
+    <input type="text" placeholder="Пошук за описом чи магазином..." value="${escapeHtml(f.search||'')}" oninput="setBgtFilter('search', this.value)" style="margin-bottom:10px">
+    ${list.length? list.map(t=>renderTxRow(t)).join('') : `<div class="empty-hint">Немає транзакцій за цим фільтром</div>`}
+  </div>`;
+}
+
+/* ============================= БЮДЖЕТ: РАХУНКИ ============================= */
+function setBudgetRate(ccy, val){
+  const v = parseFloat(val);
+  if(!v || v<=0) return;
+  state.data.budget.rates[ccy] = v;
+  saveData(); toast('Курс оновлено'); render();
+}
+function renderBudgetAccounts(){
+  const accounts = state.data.budget.accounts.filter(a=>!a.archived);
+  const archived = state.data.budget.accounts.filter(a=>a.archived);
+  return `
+  <div class="card">
+    <div class="section-head"><h3 style="margin:0">Рахунки</h3><span class="count">${accounts.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openAccountModal()">${ICON.plus} Новий рахунок</button>
+    </div>
+    ${accounts.length? accounts.map(a=>`
+      <div class="list-row" onclick="openAccountModal('${a.id}')">
+        <span style="font-size:18px">${a.icon||ACCOUNT_TYPE_ICON[a.type]||'💳'}</span>
+        <span class="title">${escapeHtml(a.name)}</span>
+        <span class="meta">${ACCOUNT_TYPE_LABEL[a.type]||''}</span>
+        <span class="meta" style="font-weight:800">${fmtMoney(accountNativeBalance(a), a.currency)}</span>
+      </div>`).join('') : `<div class="empty-hint">Рахунків ще немає — додай перший</div>`}
+  </div>
+  ${archived.length? `
+  <div class="card" style="margin-top:16px">
+    <h3>Архівовані</h3>
+    ${archived.map(a=>`
+      <div class="list-row" onclick="openAccountModal('${a.id}')">
+        <span class="title" style="opacity:.6">${escapeHtml(a.name)}</span>
+        <span class="meta">${fmtMoney(accountNativeBalance(a), a.currency)}</span>
+      </div>`).join('')}
+  </div>` : ''}
+  <div class="card" style="margin-top:16px">
+    <h3>💱 Курси валют (до PLN)</h3>
+    <div class="empty-hint" style="padding-bottom:8px">Орієнтовні курси — онови вручну за потреби. Використовуються для конвертації сум в інших валютах.</div>
+    ${(state.data.budget.currencies||[]).filter(c=>c!=='PLN').map(c=>`
+      <div class="row2" style="align-items:center;max-width:320px;grid-template-columns:auto 120px">
+        <div style="font-weight:700">1 ${c} =</div>
+        <input type="number" step="0.001" min="0" value="${bgtRate(c)}" onchange="setBudgetRate('${c}', this.value)">
+      </div>`).join('')}
+  </div>`;
+}
+function openAccountModal(id){
+  const a = id? getAccount(id) : null;
+  const isNew = !a;
+  const html = `
+  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="side-panel">
+      <div class="modal-head"><h3>${isNew?'Новий рахунок':'Редагувати рахунок'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <label>Назва</label><input id="a_name" type="text" value="${a?escapeHtml(a.name):''}" placeholder="напр. mBank">
+        <div class="row2">
+          <div><label>Тип</label>${renderCustomSelect('a_type', ACCOUNT_TYPES.map(t=>({value:t.value,label:t.icon+' '+t.label})), a?a.type:'bank', null)}</div>
+          <div><label>Валюта</label>${renderCustomSelect('a_currency', (state.data.budget.currencies||[]).map(c=>({value:c,label:c})), a?a.currency:'PLN', null)}</div>
+        </div>
+        <label>Початковий баланс</label>
+        <input id="a_balance" type="number" step="0.01" value="${a?a.initialBalance:'0'}">
+        <label>Опис (необов'язково)</label>
+        <textarea id="a_desc" rows="2">${a?escapeHtml(a.description||''):''}</textarea>
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost" onclick="toggleArchiveAccount('${a.id}')">${a.archived?'Розархівувати':'Архівувати'}</button><button class="btn btn-ghost btn-danger-text" onclick="deleteAccount('${a.id}')">${ICON.trash} Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveAccountForm(${isNew?'null':`'${a.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveAccountForm(id){
+  const name = document.getElementById('a_name').value.trim();
+  if(!name){ toast('Вкажіть назву рахунку'); return; }
+  const vals = {
+    name,
+    type: document.getElementById('a_type').value,
+    currency: document.getElementById('a_currency').value,
+    initialBalance: parseFloat(document.getElementById('a_balance').value)||0,
+    description: document.getElementById('a_desc').value,
+  };
+  if(id){
+    const a = getAccount(id);
+    Object.assign(a, vals);
+  } else {
+    state.data.budget.accounts.push(Object.assign({id:uid(), archived:false, createdAt:Date.now()}, vals));
+  }
+  saveData(); closeModal(); toast('Збережено'); render();
+}
+function toggleArchiveAccount(id){
+  const a = getAccount(id); if(!a) return;
+  a.archived = !a.archived;
+  saveData(); closeModal(); render();
+}
+function deleteAccount(id){
+  const used = state.data.budget.transactions.some(t=>t.accountId===id || t.toAccountId===id);
+  confirmAction(used? 'Цей рахунок використовується в транзакціях. Видалити його все одно? Транзакції залишаться без прив\'язки до рахунку.' : 'Видалити цей рахунок?', ()=>{
+    state.data.budget.accounts = state.data.budget.accounts.filter(a=>a.id!==id);
+    saveData(); closeModal(); toast('Рахунок видалено'); render();
+  });
+}
+
+/* ============================= БЮДЖЕТ: КАТЕГОРІЇ ============================= */
+function renderCategoryRow(c, kind){
+  return `
+  <div class="bgt-cat-row">
+    <div class="list-row" style="cursor:default">
+      <span class="dot" style="background:${c.color}"></span>
+      <span style="font-size:16px">${c.icon}</span>
+      <span class="title">${escapeHtml(c.name)}</span>
+      <button class="btn btn-sm" onclick="openSubcategoryModal('${kind}','${c.id}')">${ICON.plus} Підкатегорія</button>
+      <button class="icon-btn" title="Редагувати" onclick="openCategoryModal('${kind}','${c.id}')">${ICON.edit}</button>
+      <button class="row-trash-btn" title="Видалити" onclick="deleteCategory('${kind}','${c.id}')">${ICON.trash}</button>
+    </div>
+    ${c.subcategories && c.subcategories.length? `
+    <div class="bgt-subcat-list">
+      ${c.subcategories.map(s=>`<span class="tag" style="background:var(--surface-2);color:var(--text-dim)">${escapeHtml(s.name)}<button class="bgt-subcat-del" onclick="deleteSubcategory('${kind}','${c.id}','${s.id}')" title="Видалити">×</button></span>`).join('')}
+    </div>` : ''}
+  </div>`;
+}
+function renderBudgetCategories(){
+  const exp = state.data.budget.expenseCategories;
+  const inc = state.data.budget.incomeCategories;
+  return `
+  <div class="card">
+    <div class="section-head"><h3 style="margin:0">Категорії витрат</h3><span class="count">${exp.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openCategoryModal('expense')">${ICON.plus} Категорія</button>
+    </div>
+    ${exp.map(c=>renderCategoryRow(c,'expense')).join('')}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="section-head"><h3 style="margin:0">Категорії доходів</h3><span class="count">${inc.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openCategoryModal('income')">${ICON.plus} Категорія</button>
+    </div>
+    ${inc.map(c=>renderCategoryRow(c,'income')).join('')}
+  </div>`;
+}
+function openCategoryModal(kind, id){
+  const list = catList(kind);
+  const c = id? list.find(x=>x.id===id) : null;
+  const isNew = !c;
+  const initialColor = c? c.color : CATEGORY_PALETTE[list.length % CATEGORY_PALETTE.length];
+  const html = `
+  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="side-panel">
+      <div class="modal-head"><h3>${isNew?'Нова категорія':'Редагувати категорію'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <div class="row2" style="grid-template-columns:70px 1fr">
+          <div><label>Іконка</label><input id="c_icon" type="text" maxlength="4" value="${c?c.icon:'📦'}" style="text-align:center;font-size:18px"></div>
+          <div><label>Назва</label><input id="c_name" type="text" value="${c?escapeHtml(c.name):''}"></div>
+        </div>
+        <label>Колір</label>
+        <div class="bgt-color-picker">
+          ${CATEGORY_PALETTE.map(col=>`<button type="button" class="bgt-color-swatch ${initialColor===col?'active':''}" style="background:${col}" onclick="document.getElementById('c_color').value='${col}';document.querySelectorAll('.bgt-color-swatch').forEach(function(el){el.classList.remove('active')});this.classList.add('active')"></button>`).join('')}
+        </div>
+        <input type="hidden" id="c_color" value="${initialColor}">
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteCategory('${kind}','${c.id}')">${ICON.trash} Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveCategoryForm('${kind}', ${isNew?'null':`'${c.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveCategoryForm(kind, id){
+  const name = document.getElementById('c_name').value.trim();
+  if(!name){ toast('Вкажіть назву категорії'); return; }
+  const icon = document.getElementById('c_icon').value.trim() || '📦';
+  const color = document.getElementById('c_color').value;
+  const list = catList(kind);
+  if(id){
+    const c = list.find(x=>x.id===id);
+    Object.assign(c, {name, icon, color});
+  } else {
+    list.push({id:uid(), name, icon, color, subcategories:[]});
+  }
+  saveData(); closeModal(); toast('Збережено'); render();
+}
+function deleteCategory(kind, id){
+  confirmAction('Видалити цю категорію? Транзакції з нею залишаться, але без категорії.', ()=>{
+    if(kind==='income') state.data.budget.incomeCategories = state.data.budget.incomeCategories.filter(c=>c.id!==id);
+    else state.data.budget.expenseCategories = state.data.budget.expenseCategories.filter(c=>c.id!==id);
+    state.data.budget.budgets = (state.data.budget.budgets||[]).filter(b=>b.categoryId!==id);
+    saveData(); closeModal(); toast('Категорію видалено'); render();
+  });
+}
+function openSubcategoryModal(kind, categoryId){
+  const html = `
+  <div class="modal-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="modal" style="width:380px">
+      <div class="modal-head"><h3>Нова підкатегорія</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <label>Назва</label><input id="sc_name" type="text" placeholder="напр. Кав'ярні">
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveSubcategoryForm('${kind}','${categoryId}')">Додати</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveSubcategoryForm(kind, categoryId){
+  const name = document.getElementById('sc_name').value.trim();
+  if(!name){ toast('Вкажіть назву'); return; }
+  const c = catList(kind).find(x=>x.id===categoryId);
+  if(c){ c.subcategories = c.subcategories||[]; c.subcategories.push({id:uid(), name}); }
+  saveData(); closeModal(); toast('Підкатегорію додано'); render();
+}
+function deleteSubcategory(kind, categoryId, subId){
+  const c = catList(kind).find(x=>x.id===categoryId);
+  if(c){ c.subcategories = (c.subcategories||[]).filter(s=>s.id!==subId); }
+  saveData(); render();
+}
+
+/* ============================= БЮДЖЕТ: ЛІМІТИ (БЮДЖЕТИ) ============================= */
+function renderBudgetBudgets(){
+  const progress = budgetProgress();
+  const usedCatIds = {}; progress.forEach(p=>usedCatIds[p.budget.categoryId]=1);
+  const available = state.data.budget.expenseCategories.filter(c=>!usedCatIds[c.id]);
+  return `
+  <div class="card">
+    <div class="section-head"><h3 style="margin:0">Ліміти витрат (щомісяця, PLN)</h3><span class="count">${progress.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openBudgetLimitModal()" ${available.length?'':'disabled'}>${ICON.plus} Встановити ліміт</button>
+    </div>
+    ${progress.length? progress.map(p=>`
+      <div class="bgt-budget-item" style="cursor:pointer" onclick="openBudgetLimitModal('${p.budget.id}')">
+        <div class="bgt-budget-head"><span>${p.category?p.category.icon+' '+p.category.name:'—'}</span><span>${fmtMoney(p.spent)} / ${fmtMoney(p.budget.limit)}</span></div>
+        <div class="bgt-progress"><div class="bgt-progress-fill" style="width:${Math.min(100,p.pct)}%;background:${BUDGET_STATUS_COLOR[p.status]}"></div></div>
+        <div class="bgt-budget-foot"><span style="color:${BUDGET_STATUS_COLOR[p.status]};font-weight:700">${BUDGET_STATUS_LABEL[p.status]} · ${p.pct}%</span><span>Залишилось: ${fmtMoney(p.remaining)}</span></div>
+      </div>`).join('') : `<div class="empty-hint">Ліміти ще не встановлені</div>`}
+  </div>`;
+}
+function openBudgetLimitModal(id){
+  const b = id? (state.data.budget.budgets||[]).find(x=>x.id===id) : null;
+  const isNew = !b;
+  const usedCatIds = {}; (state.data.budget.budgets||[]).forEach(x=>{ if(x.id!==id) usedCatIds[x.categoryId]=1; });
+  const options = state.data.budget.expenseCategories.filter(c=>!usedCatIds[c.id]).map(c=>({value:c.id,label:c.icon+' '+c.name,dot:c.color}));
+  const html = `
+  <div class="modal-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="modal" style="width:400px">
+      <div class="modal-head"><h3>${isNew?'Новий ліміт':'Редагувати ліміт'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <label>Категорія</label>${renderCustomSelect('bl_cat', options, b?b.categoryId:(options[0]||{}).value, null)}
+        <label>Ліміт на місяць (PLN)</label>
+        <input id="bl_limit" type="number" step="1" min="0" value="${b?b.limit:''}">
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteBudgetLimit('${b.id}')">${ICON.trash} Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveBudgetLimitForm(${isNew?'null':`'${b.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveBudgetLimitForm(id){
+  const categoryId = document.getElementById('bl_cat').value;
+  const limit = parseFloat(document.getElementById('bl_limit').value);
+  if(!categoryId){ toast('Оберіть категорію'); return; }
+  if(!limit || limit<=0){ toast('Вкажіть ліміт'); return; }
+  if(id){
+    const b = state.data.budget.budgets.find(x=>x.id===id);
+    Object.assign(b, {categoryId, limit});
+  } else {
+    state.data.budget.budgets.push({id:uid(), categoryId, limit});
+  }
+  saveData(); closeModal(); toast('Збережено'); render();
+}
+function deleteBudgetLimit(id){
+  confirmAction('Видалити цей ліміт?', ()=>{
+    state.data.budget.budgets = state.data.budget.budgets.filter(b=>b.id!==id);
+    saveData(); closeModal(); toast('Ліміт видалено'); render();
+  });
+}
+
+/* ============================= БЮДЖЕТ: РЕГУЛЯРНІ ПЛАТЕЖІ ============================= */
+function renderBudgetRecurring(){
+  const list = (state.data.budget.recurring||[]).slice().sort((a,b)=>a.nextDate.localeCompare(b.nextDate));
+  return `
+  <div class="card">
+    <div class="section-head"><h3 style="margin:0">Регулярні платежі</h3><span class="count">${list.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openRecurringModal()">${ICON.plus} Новий</button>
+    </div>
+    ${list.length? list.map(r=>`
+      <div class="list-row" onclick="openRecurringModal('${r.id}')">
+        <span class="dot" style="background:${r.active?'var(--pr-medium)':'var(--text-dim)'}"></span>
+        <span class="title">${escapeHtml(r.name)}</span>
+        <span class="meta">${RECUR_FREQ_LABEL[r.frequency]}</span>
+        <span class="meta">${r.mode==='auto'?'Авто':'Вручну'}</span>
+        <span class="meta">${fmtDateHuman(r.nextDate)}</span>
+        <span class="meta" style="font-weight:800">${fmtMoney(r.amount, r.currency)}</span>
+        <button class="btn btn-sm" onclick="event.stopPropagation();runRecurringNow('${r.id}')">Провести</button>
+      </div>`).join('') : `<div class="empty-hint">Регулярних платежів ще немає</div>`}
+  </div>`;
+}
+function openRecurringModal(id){
+  const r = id? (state.data.budget.recurring||[]).find(x=>x.id===id) : null;
+  const isNew = !r;
+  const catOptions = state.data.budget.expenseCategories.map(c=>({value:c.id,label:c.icon+' '+c.name,dot:c.color}));
+  const accOptions = getAccounts().map(a=>({value:a.id,label:a.name}));
+  const html = `
+  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="side-panel">
+      <div class="modal-head"><h3>${isNew?'Новий регулярний платіж':'Редагувати платіж'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <label>Назва</label><input id="r_name" type="text" value="${r?escapeHtml(r.name):''}" placeholder="напр. Netflix">
+        <div class="row2">
+          <div><label>Сума</label><input id="r_amount" type="number" step="0.01" min="0" value="${r?r.amount:''}"></div>
+          <div><label>Валюта</label>${renderCustomSelect('r_currency', (state.data.budget.currencies||[]).map(c=>({value:c,label:c})), r?r.currency:'PLN', null)}</div>
+        </div>
+        <label>Категорія</label>${renderCustomSelect('r_category', catOptions, r?r.categoryId:(catOptions[0]||{}).value, null)}
+        <label>Рахунок</label>${renderCustomSelect('r_account', accOptions, r?r.accountId:(accOptions[0]||{}).value, null)}
+        <div class="row2">
+          <div><label>Періодичність</label>${renderCustomSelect('r_freq', RECUR_FREQ, r?r.frequency:'monthly', null)}</div>
+          <div><label>Наступна дата</label><input id="r_next" type="date" value="${r?r.nextDate:todayStr()}"></div>
+        </div>
+        <div class="row2">
+          <div><label>Режим</label>${renderCustomSelect('r_mode', [{value:'auto',label:'Автоматичний'},{value:'manual',label:'Вручну'}], r?r.mode:'manual', null)}</div>
+          <div><label>Статус</label>${renderCustomSelect('r_active', [{value:'1',label:'Активний'},{value:'0',label:'Неактивний'}], r?(r.active?'1':'0'):'1', null)}</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteRecurring('${r.id}')">${ICON.trash} Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveRecurringForm(${isNew?'null':`'${r.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveRecurringForm(id){
+  const name = document.getElementById('r_name').value.trim();
+  if(!name){ toast('Вкажіть назву'); return; }
+  const amount = parseFloat(document.getElementById('r_amount').value);
+  if(!amount || amount<=0){ toast('Вкажіть суму'); return; }
+  const vals = {
+    name, amount,
+    currency: document.getElementById('r_currency').value,
+    categoryId: document.getElementById('r_category').value,
+    accountId: document.getElementById('r_account').value,
+    frequency: document.getElementById('r_freq').value,
+    nextDate: document.getElementById('r_next').value || todayStr(),
+    mode: document.getElementById('r_mode').value,
+    active: document.getElementById('r_active').value==='1',
+  };
+  if(id){
+    const r = state.data.budget.recurring.find(x=>x.id===id);
+    Object.assign(r, vals);
+  } else {
+    state.data.budget.recurring.push(Object.assign({id:uid()}, vals));
+  }
+  saveData(); closeModal(); toast('Збережено'); render();
+}
+function deleteRecurring(id){
+  confirmAction('Видалити цей регулярний платіж?', ()=>{
+    state.data.budget.recurring = state.data.budget.recurring.filter(r=>r.id!==id);
+    saveData(); closeModal(); toast('Видалено'); render();
+  });
+}
+function createTransactionFromRecurring(r, dateStr){
+  const acc = getAccount(r.accountId);
+  if(!acc) return;
+  const rec = buildTransactionRecord({
+    type:'expense', amount:r.amount, currency:r.currency, categoryId:r.categoryId, subcategoryId:null,
+    accountId:r.accountId, date:dateStr, time:'', description:r.name, merchant:'', location:'', tags:[], receiptUrl:'',
+    recurringId:r.id,
+  });
+  rec.id = uid(); rec.createdAt = Date.now();
+  state.data.budget.transactions.unshift(rec);
+}
+function processRecurringPayments(){
+  if(!state.data || !state.data.budget) return;
+  const today = todayStr();
+  let changed = false;
+  (state.data.budget.recurring||[]).forEach(r=>{
+    if(!r.active || r.mode!=='auto') return;
+    let guard = 0;
+    while(r.nextDate<=today && guard<36){
+      createTransactionFromRecurring(r, r.nextDate);
+      r.nextDate = advanceDateStr(r.nextDate, r.frequency);
+      changed = true; guard++;
+    }
+  });
+  if(changed){ saveData(); render(); toast('Нараховано регулярні платежі'); }
+}
+function runRecurringNow(id){
+  const r = (state.data.budget.recurring||[]).find(x=>x.id===id);
+  if(!r) return;
+  createTransactionFromRecurring(r, r.nextDate);
+  r.nextDate = advanceDateStr(r.nextDate, r.frequency);
+  saveData(); toast('Платіж проведено'); render();
+}
+
+/* ============================= БЮДЖЕТ: ФІНАНСОВІ ЦІЛІ ============================= */
+function renderGoalCard(g){
+  const pct = goalProgressPct(g);
+  return `
+  <div class="card bgt-goal-card" onclick="openGoalModal('${g.id}')">
+    <div class="bgt-goal-head"><span class="title">${escapeHtml(g.name)}</span>${g.status==='done'?`<span class="tag" style="background:var(--pr-medium)">Досягнуто</span>`:''}</div>
+    <div class="bgt-progress" style="margin:10px 0"><div class="bgt-progress-fill" style="width:${pct}%;background:var(--accent-grad)"></div></div>
+    <div class="bgt-budget-foot"><span>${fmtMoneyShort(g.currentAmount, g.currency)} / ${fmtMoneyShort(g.targetAmount, g.currency)}</span><span style="font-weight:800">${pct}%</span></div>
+    ${g.deadline? `<div class="meta" style="margin-top:6px">До ${fmtDateHuman(g.deadline)}</div>`:''}
+    <button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="event.stopPropagation();promptGoalDeposit('${g.id}')">${ICON.plus} Поповнити</button>
+  </div>`;
+}
+function renderBudgetGoals(){
+  const goals = state.data.budget.goals||[];
+  return `
+  <div class="card">
+    <div class="section-head"><h3 style="margin:0">Фінансові цілі</h3><span class="count">${goals.length}</span>
+      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openGoalModal()">${ICON.plus} Нова ціль</button>
+    </div>
+    ${goals.length? `<div class="bgt-goals-grid">${goals.map(g=>renderGoalCard(g)).join('')}</div>` : `<div class="empty-hint">Цілей ще немає</div>`}
+  </div>`;
+}
+function openGoalModal(id){
+  const g = id? (state.data.budget.goals||[]).find(x=>x.id===id) : null;
+  const isNew = !g;
+  const accOptions = [{value:'',label:'—'}].concat(getAccounts().map(a=>({value:a.id,label:a.name})));
+  const html = `
+  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="side-panel">
+      <div class="modal-head"><h3>${isNew?'Нова ціль':'Редагувати ціль'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <label>Назва</label><input id="g_name" type="text" value="${g?escapeHtml(g.name):''}" placeholder="напр. MacBook">
+        <div class="row2">
+          <div><label>Цільова сума</label><input id="g_target" type="number" step="0.01" min="0" value="${g?g.targetAmount:''}"></div>
+          <div><label>Валюта</label>${renderCustomSelect('g_currency', (state.data.budget.currencies||[]).map(c=>({value:c,label:c})), g?g.currency:'PLN', null)}</div>
+        </div>
+        <label>Накопичено</label><input id="g_current" type="number" step="0.01" min="0" value="${g?g.currentAmount:'0'}">
+        <div class="row2">
+          <div><label>Дедлайн (необов'язково)</label><input id="g_deadline" type="date" value="${g?(g.deadline||''):''}"></div>
+          <div><label>Рахунок (необов'язково)</label>${renderCustomSelect('g_account', accOptions, g?(g.accountId||''):'', null)}</div>
+        </div>
+        <label>Опис</label><textarea id="g_desc" rows="2">${g?escapeHtml(g.description||''):''}</textarea>
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteGoal('${g.id}')">${ICON.trash} Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveGoalForm(${isNew?'null':`'${g.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function saveGoalForm(id){
+  const name = document.getElementById('g_name').value.trim();
+  if(!name){ toast('Вкажіть назву цілі'); return; }
+  const targetAmount = parseFloat(document.getElementById('g_target').value);
+  if(!targetAmount || targetAmount<=0){ toast('Вкажіть цільову суму'); return; }
+  const currentAmount = parseFloat(document.getElementById('g_current').value)||0;
+  const vals = {
+    name, targetAmount, currentAmount,
+    currency: document.getElementById('g_currency').value,
+    deadline: document.getElementById('g_deadline').value || null,
+    accountId: document.getElementById('g_account').value || null,
+    description: document.getElementById('g_desc').value,
+    status: currentAmount>=targetAmount? 'done' : 'active',
+  };
+  if(id){
+    const g = state.data.budget.goals.find(x=>x.id===id);
+    Object.assign(g, vals);
+  } else {
+    state.data.budget.goals.push(Object.assign({id:uid()}, vals));
+  }
+  saveData(); closeModal(); toast('Збережено'); render();
+}
+function deleteGoal(id){
+  confirmAction('Видалити цю ціль?', ()=>{
+    state.data.budget.goals = state.data.budget.goals.filter(g=>g.id!==id);
+    saveData(); closeModal(); toast('Видалено'); render();
+  });
+}
+function promptGoalDeposit(id){
+  const g = (state.data.budget.goals||[]).find(x=>x.id===id);
+  if(!g) return;
+  const html = `
+  <div class="modal-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="modal" style="width:340px">
+      <div class="modal-head"><h3>Поповнити «${escapeHtml(g.name)}»</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <label>Сума поповнення</label><input id="gd_amount" type="number" step="0.01" min="0" placeholder="напр. 500">
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="confirmGoalDeposit('${id}')">Додати</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function confirmGoalDeposit(id){
+  const amount = parseFloat(document.getElementById('gd_amount').value);
+  if(!amount || amount<=0){ toast('Вкажіть суму'); return; }
+  const g = (state.data.budget.goals||[]).find(x=>x.id===id);
+  if(g){
+    g.currentAmount += amount;
+    if(g.currentAmount>=g.targetAmount) g.status='done';
+  }
+  saveData(); closeModal(); toast('Ціль поповнено'); render();
+}
+
+/* ============================= БЮДЖЕТ: МОДАЛКА ТРАНЗАКЦІЇ ============================= */
+function openTxModal(type, id, seed){
+  const t = id? state.data.budget.transactions.find(x=>x.id===id) : null;
+  const src = t || seed || null;
+  const isNew = !t;
+  type = t? t.type : (type||'expense');
+  const lastUsed = state.data.budget.lastUsed||{};
+  const accounts = getAccounts();
+  const defaultAccId = src? src.accountId : (lastUsed.accountId && getAccount(lastUsed.accountId) ? lastUsed.accountId : (accounts[0]||{}).id);
+  const defaultAcc = getAccount(defaultAccId);
+  const defaultCcy = src? src.currency : (defaultAcc? defaultAcc.currency : 'PLN');
+  const catKind = type==='income' ? 'income' : 'expense';
+  const catList_ = catList(catKind);
+  const defaultCatId = src? src.categoryId : (lastUsed[catKind+'CategoryId'] && catList_.find(c=>c.id===lastUsed[catKind+'CategoryId']) ? lastUsed[catKind+'CategoryId'] : (catList_[0]||{}).id);
+  const selCat = catList_.find(c=>c.id===defaultCatId);
+  const subOptions = [{value:'',label:'—'}].concat((selCat&&selCat.subcategories||[]).map(s=>({value:s.id,label:s.name})));
+  const accOptions = accounts.map(a=>({value:a.id,label:(a.icon||ACCOUNT_TYPE_ICON[a.type]||'')+' '+a.name}));
+  const toAccOptions = accounts.filter(a=>a.id!==defaultAccId).map(a=>({value:a.id,label:a.name}));
+  if(!accounts.length){
+    openModal(`<div class="modal-overlay" onmousedown="if(event.target===this)closeModal()"><div class="modal" style="width:360px"><div class="modal-body" style="padding-top:22px"><div style="font-size:14px;line-height:1.5">Спочатку додай хоча б один рахунок на сторінці «Рахунки».</div></div><div class="modal-foot"><button class="btn btn-primary" onclick="closeModal();switchBudgetTab('accounts')">До рахунків</button></div></div></div>`);
+    return;
+  }
+  const html = `
+  <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="side-panel">
+      <div class="modal-head"><h3>${isNew?'Нова транзакція':'Транзакція'}</h3><span style="flex:1"></span><button class="icon-btn" onclick="closeModal()">${ICON.x}</button></div>
+      <div class="modal-body">
+        <div class="bgt-type-switch">
+          <button type="button" class="bgt-type-btn ${type==='expense'?'active':''}" onclick="switchTxType('expense','${t?t.id:''}')">Витрата</button>
+          <button type="button" class="bgt-type-btn ${type==='income'?'active':''}" onclick="switchTxType('income','${t?t.id:''}')">Дохід</button>
+          <button type="button" class="bgt-type-btn ${type==='transfer'?'active':''}" onclick="switchTxType('transfer','${t?t.id:''}')">Переказ</button>
+        </div>
+        <div class="row2">
+          <div><label>Сума</label><input id="tx_amount" type="number" step="0.01" min="0" value="${src?src.amount:''}"></div>
+          <div>${type==='transfer'?
+            `<label>Валюта</label><input id="tx_currency_display" type="text" value="${defaultCcy}" disabled style="opacity:.6"><input type="hidden" id="tx_currency" value="${defaultCcy}">`
+            : `<label>Валюта</label>${renderCustomSelect('tx_currency', (state.data.budget.currencies||[]).map(c=>({value:c,label:c})), defaultCcy, null)}`
+          }</div>
+        </div>
+        ${type!=='transfer'? `
+        <label>Категорія</label>${renderCustomSelect('tx_category', catList_.map(c=>({value:c.id,label:c.icon+' '+c.name,dot:c.color})), defaultCatId, v=>onTxCategoryChange(v,catKind))}
+        <div id="tx_subcat_wrap">
+          <label>Підкатегорія (необов'язково)</label>${renderCustomSelect('tx_subcategory', subOptions, src?(src.subcategoryId||''):'', null)}
+        </div>` : ''}
+        <label>${type==='transfer'?'З рахунку':'Рахунок'}</label>${renderCustomSelect('tx_account', accOptions, defaultAccId, type==='transfer'? (v=>onTxFromAccountChange(v)) : null)}
+        ${type==='transfer'? `
+        <label>На рахунок</label>${renderCustomSelect('tx_to_account', toAccOptions, src?src.toAccountId:(toAccOptions[0]||{}).value, null)}` : ''}
+        <div class="row2">
+          <div><label>Дата</label><input id="tx_date" type="date" value="${src?src.date:todayStr()}"></div>
+          <div><label>Час (необов'язково)</label><input id="tx_time" type="time" value="${src?(src.time||''):''}"></div>
+        </div>
+        <details class="bgt-details" ${src&&(src.description||src.merchant||src.location||(src.tags&&src.tags.length)||src.receiptUrl)?'open':''}>
+          <summary>Додатково</summary>
+          <label>Опис / коментар</label><input id="tx_desc" type="text" value="${src?escapeHtml(src.description||''):''}">
+          <div class="row2">
+            <div><label>Контрагент / магазин</label><input id="tx_merchant" type="text" value="${src?escapeHtml(src.merchant||''):''}"></div>
+            <div><label>Локація</label><input id="tx_location" type="text" value="${src?escapeHtml(src.location||''):''}"></div>
+          </div>
+          <label>Теги (через кому)</label><input id="tx_tags" type="text" value="${src?escapeHtml((src.tags||[]).join(', ')):''}" placeholder="напр. travel, work">
+          <label>Посилання / чек</label><input id="tx_receipt" type="text" value="${src?escapeHtml(src.receiptUrl||''):''}" placeholder="URL фото чека тощо">
+        </details>
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost" onclick="duplicateTx('${t.id}')">${ICON.plus} Дублювати</button><button class="btn btn-ghost btn-danger-text" onclick="deleteTx('${t.id}')">${ICON.trash} Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveTxForm('${type}', ${isNew?'null':`'${t.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`;
+  openModal(html);
+}
+function switchTxType(type, id){ closeModal(); openTxModal(type, id||null); }
+function onTxCategoryChange(catId, kind){
+  const c = catList(kind).find(x=>x.id===catId);
+  const wrap = document.getElementById('tx_subcat_wrap');
+  if(wrap){
+    const subOptions = [{value:'',label:'—'}].concat((c&&c.subcategories||[]).map(s=>({value:s.id,label:s.name})));
+    wrap.innerHTML = `<label>Підкатегорія (необов'язково)</label>${renderCustomSelect('tx_subcategory', subOptions, '', null)}`;
+  }
+}
+function onTxFromAccountChange(accId){
+  const acc = getAccount(accId);
+  if(!acc) return;
+  const hidden = document.getElementById('tx_currency');
+  if(hidden) hidden.value = acc.currency;
+  const disp = document.getElementById('tx_currency_display');
+  if(disp) disp.value = acc.currency;
+}
+function saveTxForm(type, id){
+  const amount = parseFloat(document.getElementById('tx_amount').value);
+  if(!amount || amount<=0){ toast('Вкажіть суму'); return; }
+  const currency = document.getElementById('tx_currency').value;
+  const accountId = document.getElementById('tx_account').value;
+  if(!accountId){ toast('Оберіть рахунок'); return; }
+  const date = document.getElementById('tx_date').value || todayStr();
+  const timeEl = document.getElementById('tx_time');
+  const descEl = document.getElementById('tx_desc');
+  const merchantEl = document.getElementById('tx_merchant');
+  const locationEl = document.getElementById('tx_location');
+  const tagsEl = document.getElementById('tx_tags');
+  const receiptEl = document.getElementById('tx_receipt');
+  const form = {
+    type, amount, currency, accountId, date,
+    time: timeEl? timeEl.value : '',
+    description: descEl?descEl.value:'', merchant: merchantEl?merchantEl.value:'', location: locationEl?locationEl.value:'',
+    tags: tagsEl? tagsEl.value.split(',').map(s=>s.trim()).filter(Boolean) : [],
+    receiptUrl: receiptEl?receiptEl.value:'',
+  };
+  if(type==='transfer'){
+    form.toAccountId = document.getElementById('tx_to_account').value;
+    if(!form.toAccountId || form.toAccountId===accountId){ toast('Оберіть інший рахунок призначення'); return; }
+  } else {
+    form.categoryId = document.getElementById('tx_category').value;
+    if(!form.categoryId){ toast('Оберіть категорію'); return; }
+    const subEl = document.getElementById('tx_subcategory');
+    form.subcategoryId = subEl ? (subEl.value || null) : null;
+  }
+  const rec = buildTransactionRecord(form);
+  if(id){
+    const existing = state.data.budget.transactions.find(x=>x.id===id);
+    Object.assign(existing, rec);
+  } else {
+    rec.id = uid(); rec.createdAt = Date.now();
+    state.data.budget.transactions.unshift(rec);
+  }
+  state.data.budget.lastUsed = state.data.budget.lastUsed||{};
+  state.data.budget.lastUsed.accountId = accountId;
+  state.data.budget.lastUsed.currency = currency;
+  if(type!=='transfer') state.data.budget.lastUsed[type+'CategoryId'] = form.categoryId;
+  saveData(); closeModal(); toast('Збережено'); render();
+}
+function duplicateTx(id){
+  const t = state.data.budget.transactions.find(x=>x.id===id);
+  if(!t) return;
+  closeModal();
+  openTxModal(t.type, null, Object.assign({}, t, {date: todayStr(), time:''}));
+}
+function deleteTx(id){
+  confirmAction('Видалити цю транзакцію?', ()=>{
+    state.data.budget.transactions = state.data.budget.transactions.filter(t=>t.id!==id);
+    saveData(); closeModal(); toast('Транзакцію видалено'); render();
+  });
+}
+
+/* ============================= БЮДЖЕТ: АНАЛІТИКА (SVG-графіки) ============================= */
+function svgDonutChart(segments, size){
+  size = size||160;
+  const r = size/2 - 14, cx=size/2, cy=size/2, circ=2*Math.PI*r;
+  const total = segments.reduce((s,x)=>s+x.value,0) || 1;
+  let offset = 0;
+  const circles = segments.map(seg=>{
+    const frac = seg.value/total;
+    const dash = frac*circ;
+    const el = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="20" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"></circle>`;
+    offset += dash;
+    return el;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${circles}<circle cx="${cx}" cy="${cy}" r="${r-13}" fill="var(--surface)"></circle></svg>`;
+}
+function svgBarChart(buckets, height){
+  height = height||160;
+  const max = Math.max(1, ...buckets.map(b=>Math.max(b.income,b.expense)));
+  const bw = 18, gap = 10, groupW = bw*2+6, pad=30;
+  const width = buckets.length*(groupW+gap)+pad;
+  const bars = buckets.map((b,i)=>{
+    const x = pad + i*(groupW+gap);
+    const hInc = Math.round((b.income/max)*(height-30));
+    const hExp = Math.round((b.expense/max)*(height-30));
+    return `
+      <rect x="${x}" y="${height-20-hInc}" width="${bw}" height="${hInc}" rx="3" fill="var(--pr-medium)"></rect>
+      <rect x="${x+bw+6}" y="${height-20-hExp}" width="${bw}" height="${hExp}" rx="3" fill="var(--pr-critical)"></rect>
+      <text x="${x+groupW/2}" y="${height-4}" font-size="10" fill="var(--text-dim)" text-anchor="middle">${escapeHtml(b.label)}</text>
+    `;
+  }).join('');
+  return `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMinYMid meet">${bars}</svg>`;
+}
+function bgtTrendBuckets(period){
+  const now = new Date();
+  const buckets = [];
+  if(period==='week'){
+    for(let i=6;i>=0;i--){ const d=addDays(now,-i); const s=dstr(d); buckets.push({label:DOW[d.getDay()], from:s, to:s}); }
+  } else if(period==='year'){
+    for(let i=5;i>=0;i--){ const d=addMonths(now,-i); const [f,tt]=monthRange(d); buckets.push({label:MONTHS[d.getMonth()].slice(0,3), from:f, to:tt}); }
+  } else {
+    for(let i=5;i>=0;i--){ const d=addMonths(now,-i); const [f,tt]=monthRange(d); buckets.push({label:MONTHS[d.getMonth()].slice(0,3), from:f, to:tt}); }
+  }
+  return buckets.map(b=>({label:b.label, income:sumIncomePLN(b.from,b.to), expense:sumExpensePLN(b.from,b.to)}));
+}
+function bgtDailyTrend(){
+  const now = new Date();
+  const [mFrom] = monthRange(now);
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const days = [];
+  for(let d=1; d<=daysInMonth; d++){
+    const ds = mFrom.slice(0,8)+pad(d);
+    days.push({day:d, total: sumExpensePLN(ds,ds)});
+  }
+  return days;
+}
+function svgTrendChart(days, height){
+  height = height||120;
+  const max = Math.max(1, ...days.map(d=>d.total));
+  const bw = 6, gap=2, padX=4;
+  const width = days.length*(bw+gap)+padX*2;
+  const bars = days.map((d,i)=>{
+    const x = padX+i*(bw+gap);
+    const h = Math.round((d.total/max)*(height-16));
+    return `<rect x="${x}" y="${height-16-h}" width="${bw}" height="${Math.max(1,h)}" rx="1" fill="var(--accent)" opacity="${d.total>0?1:.25}"></rect>`;
+  }).join('');
+  return `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">${bars}</svg>`;
+}
+function topExpenses(fromStr,toStr, limit){
+  return state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type==='expense'&&txInRange(t,fromStr,toStr)).slice().sort((a,b)=>b.convertedAmount-a.convertedAmount).slice(0,limit||10);
+}
+function monthComparisonRows(){
+  const now = new Date();
+  const [cf,ct] = monthRange(now);
+  const [pf,pt] = monthRange(addMonths(now,-1));
+  const cats = state.data.budget.expenseCategories;
+  return cats.map(c=>{
+    const cur = sumExpensePLN(cf,ct, t=>t.categoryId===c.id);
+    const prev = sumExpensePLN(pf,pt, t=>t.categoryId===c.id);
+    return {category:c, cur, prev, delta:cur-prev};
+  }).filter(r=>r.cur>0||r.prev>0).sort((a,b)=>b.cur-a.cur);
+}
+function setBgtAnalyticsPeriod(p){ state.bgtAnalyticsPeriod = p; render(); }
+function renderBudgetAnalytics(){
+  const period = state.bgtAnalyticsPeriod || 'month';
+  const buckets = bgtTrendBuckets(period);
+  const now = new Date();
+  const [mFrom,mTo] = monthRange(now);
+  const catTotals = {};
+  state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type==='expense'&&txInRange(t,mFrom,mTo)).forEach(t=>{
+    catTotals[t.categoryId] = (catTotals[t.categoryId]||0)+t.convertedAmount;
+  });
+  const segments = Object.entries(catTotals).map(([cid,val])=>{
+    const cat = getExpenseCategory(cid);
+    return {label:cat?cat.name:'Інше', value:val, color:cat?cat.color:'#999'};
+  }).sort((a,b)=>b.value-a.value);
+  const totalExpense = segments.reduce((s,x)=>s+x.value,0) || 1;
+  const daily = bgtDailyTrend();
+  const top = topExpenses(mFrom,mTo,10);
+  const comparison = monthComparisonRows();
+  return `
+  <div class="filters-row">
+    ${[['week','Тиждень'],['month','Місяць'],['year','Рік']].map(([id,label])=>`<button type="button" class="chip ${period===id?'active':''}" onclick="setBgtAnalyticsPeriod('${id}')">${label}</button>`).join('')}
+  </div>
+  <div class="card">
+    <h3>Доходи vs витрати</h3>
+    ${svgBarChart(buckets)}
+  </div>
+  <div class="grid-dash" style="grid-template-columns:auto 1fr;margin-top:16px;align-items:center">
+    <div class="card" style="text-align:center">
+      <h3>Витрати за категоріями (цей місяць)</h3>
+      ${svgDonutChart(segments)}
+    </div>
+    <div class="card">
+      <h3>Легенда</h3>
+      ${segments.length? segments.map(s=>`
+        <div class="list-row" style="cursor:default">
+          <span class="dot" style="background:${s.color}"></span>
+          <span class="title">${escapeHtml(s.label)}</span>
+          <span class="meta">${Math.round((s.value/totalExpense)*100)}%</span>
+          <span class="meta" style="font-weight:800">${fmtMoneyShort(s.value)}</span>
+        </div>`).join('') : `<div class="empty-hint">Витрат цього місяця ще немає</div>`}
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Динаміка витрат цього місяця</h3>
+    ${svgTrendChart(daily)}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>TOP-10 найбільших витрат (цей місяць)</h3>
+    ${top.length? top.map(t=>renderTxRow(t)).join('') : `<div class="empty-hint">Витрат цього місяця ще немає</div>`}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Порівняння місяців</h3>
+    <table class="bgt-table">
+      <thead><tr><th>Категорія</th><th>Мин. місяць</th><th>Цей місяць</th><th>Зміна</th></tr></thead>
+      <tbody>
+        ${comparison.length? comparison.map(r=>`
+        <tr>
+          <td>${r.category.icon} ${escapeHtml(r.category.name)}</td>
+          <td>${fmtMoneyShort(r.prev)}</td>
+          <td>${fmtMoneyShort(r.cur)}</td>
+          <td style="color:${r.delta>0?'var(--pr-critical)':(r.delta<0?'var(--pr-medium)':'var(--text-dim)')};font-weight:700">${r.delta>=0?'+':''}${fmtMoneyShort(r.delta)}</td>
+        </tr>`).join('') : `<tr><td colspan="4" class="empty-hint">Замало даних</td></tr>`}
+      </tbody>
+    </table>
+  </div>`;
 }
 
 /* ============================= AI (rule-based, chat-driven) ============================= */
@@ -2523,6 +3815,7 @@ function snapshotData(){
 applyAccent(loadAccent());
 render();
 if(state.upworkTimer.running) startUpworkTicker();
+if(state.data && state.data.budget) setInterval(processRecurringPayments, 3600000);
 initAiChatWidget();
 setInterval(snapshotData, 3600000);
 setInterval(()=>{ if(state.gcalToken) syncGoogleCalendar(true); }, 300000);
