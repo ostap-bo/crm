@@ -673,9 +673,14 @@ function emptyData(){ return {tasks:[], budget: emptyBudgetData()}; }
 
 function saveData(){
   if(!state.user || !db) return;
-  db.collection('crmData').doc(state.user.uid).set(state.data).then(()=>{
-    snapshotData();
-  }).catch(()=>{ toast('Не вдалося зберегти дані онлайн'); });
+  try{
+    db.collection('crmData').doc(state.user.uid).set(state.data).then(()=>{
+      snapshotData();
+    }).catch(err=>{ console.error('saveData failed', err); toast('Не вдалося зберегти дані онлайн'); });
+  }catch(err){
+    console.error('saveData threw synchronously', err);
+    toast('Не вдалося зберегти дані онлайн');
+  }
 }
 function loadProfile(){
   try{
@@ -1509,9 +1514,9 @@ function buildTransactionRecord(form){
     currency: form.currency,
     exchangeRate: rate,
     convertedAmount,
-    categoryId: form.type==='transfer'? null : form.categoryId,
+    categoryId: form.type==='transfer'? null : (form.categoryId||null),
     accountId: form.accountId,
-    destination: form.type==='transfer'? (form.destination||'') : undefined,
+    destination: form.type==='transfer'? (form.destination||'') : '',
     date: form.date,
     description: form.description||'',
     recurringId: form.recurringId||null,
