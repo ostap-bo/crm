@@ -316,6 +316,12 @@
   .list-row .meta{font-size:11.5px;color:var(--text-dim);flex:none;}
   .row-trash-btn{background:none;border:none;color:var(--text-dim);padding:4px;flex:none;opacity:.55;transition:.12s;}
   .row-trash-btn:hover{opacity:1;color:var(--pr-critical);}
+  .tx-row{display:grid;grid-template-columns:8px 1fr 86px 96px 26px;align-items:center;gap:10px;padding:9px 6px;transition:.12s;cursor:pointer;}
+  .tx-row:hover{background:var(--surface-2);}
+  .tx-row .title{font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tx-row .date{font-size:11.5px;color:var(--text-dim);text-align:right;white-space:nowrap;}
+  .tx-row .amt{font-size:13px;font-weight:800;text-align:right;white-space:nowrap;}
+  @media (max-width:520px){.tx-row{grid-template-columns:8px 1fr 82px 24px;}.tx-row .date{display:none;}}
   .tag{font-size:10.5px;font-weight:700;padding:2px 7px;color:#fff;flex:none;border-radius:var(--radius-sm);}
   .quick-capture{display:flex;gap:8px;margin-bottom:18px;}
   .quick-capture input{flex:1;}
@@ -1649,11 +1655,11 @@ function renderTxRow(t){
   const cls = t.type==='expense'?'bgt-neg':(t.type==='income'?'bgt-pos':'');
   const label = isTransfer? `${acc?acc.name:'—'} → ${t.destination||'—'}` : (t.description || (cat?cat.name:'Без категорії'));
   return `
-  <div class="list-row" onclick="openTxModal('${t.type}','${t.id}')">
+  <div class="tx-row" onclick="openTxModal('${t.type}','${t.id}')">
     <span class="dot" style="background:${isTransfer?'var(--text-dim)':(cat?cat.color:'#999')}"></span>
     <span class="title">${escapeHtml(label)}</span>
-    <span class="meta">${cat && !isTransfer? escapeHtml(cat.name) : ''}</span>
-    <span class="meta ${cls}" style="font-weight:800">${sign}${fmtMoneyShort(dispAmt(t.convertedAmount), state.bgtDisplayCcy)}</span>
+    <span class="date">${fmtDateHuman(t.date)}</span>
+    <span class="amt ${cls}">${sign}${fmtMoneyShort(dispAmt(t.convertedAmount), state.bgtDisplayCcy)}</span>
     <button class="row-trash-btn" title="Видалити" onclick="event.stopPropagation();deleteTx('${t.id}')">${ICON.trash}</button>
   </div>`;
 }
