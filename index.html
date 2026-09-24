@@ -709,6 +709,8 @@ const state = {
   profile: loadProfile(),
   budgetView: 'overview',
   bgtAnalyticsPeriod: 'month',
+  bgtAnalyticsCatType: 'expense',
+  bgtComparisonExpanded: false,
   bgtDisplayCcy: localStorage.getItem(LS_BGT_DISPLAY_CCY) || 'UAH',
   bgtFilters: {period:'month', type:'all', categoryId:'all', accountId:'all', currency:'all', search:''},
   notifOpen: false,
@@ -1564,58 +1566,6 @@ function budgetOverviewStats(){
 function upcomingRecurring(limit){
   return (state.data.budget.recurring||[]).filter(r=>r.active).slice().sort((a,b)=>a.nextDate.localeCompare(b.nextDate)).slice(0, limit||5);
 }
-function monthlyRecurringTotalBase(){
-  return (state.data.budget.recurring||[]).filter(r=>r.active).reduce((s,r)=>{
-    const factor = RECUR_MONTHLY_FACTOR[r.frequency]||1;
-    return s + toBaseCcy(r.amount, r.currency)*factor;
-  },0);
-}
-function savingsRatePct(income, expense){ return income>0? Math.round(((income-expense)/income)*100) : 0; }
-function avgExpenseLast3MonthsBase(){
-  const now = new Date();
-  let total=0;
-  for(let i=0;i<3;i++){ const [f,t]=monthRange(addMonths(now,-i)); total+=sumExpenseBase(f,t); }
-  return total/3;
-}
-function computeBudgetInsights(){
-  const insights = [];
-  const now = new Date();
-  const [mFrom,mTo]=monthRange(now);
-  const [pmFrom,pmTo]=monthRange(addMonths(now,-1));
-  const income = sumIncomeBase(mFrom,mTo);
-  const expense = sumExpenseBase(mFrom,mTo);
-  const catTotals = {};
-  state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type==='expense'&&txInRange(t,mFrom,mTo)).forEach(t=>{
-    catTotals[t.categoryId] = (catTotals[t.categoryId]||0) + t.convertedAmount;
-  });
-  const catEntries = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
-  if(catEntries.length){
-    const cat = getExpenseCategory(catEntries[0][0]);
-    insights.push(`Найбільша категорія витрат цього місяця — ${cat?cat.name:'Інше'} (${fmtMoneyShort(dispAmt(catEntries[0][1]), state.bgtDisplayCcy)}).`);
-  }
-  const prevCatTotals = {};
-  state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type==='expense'&&txInRange(t,pmFrom,pmTo)).forEach(t=>{
-    prevCatTotals[t.categoryId] = (prevCatTotals[t.categoryId]||0) + t.convertedAmount;
-  });
-  let biggestJump = null;
-  Object.keys(catTotals).forEach(cid=>{
-    const cur = catTotals[cid], prev = prevCatTotals[cid]||0;
-    if(prev>=50){
-      const pct = Math.round(((cur-prev)/prev)*100);
-      if(pct>15 && (!biggestJump || pct>biggestJump.pct)) biggestJump = {cid, pct};
-    }
-  });
-  if(biggestJump){
-    const cat = getExpenseCategory(biggestJump.cid);
-    insights.push(`Цього місяця ти витратив на ${cat?cat.name.toLowerCase():'цю категорію'} на ${biggestJump.pct}% більше, ніж минулого місяця.`);
-  }
-  const recurTotal = monthlyRecurringTotalBase();
-  if(recurTotal>0) insights.push(`Твої регулярні платежі складають ${fmtMoneyShort(dispAmt(recurTotal), state.bgtDisplayCcy)} на місяць.`);
-  if(income>0) insights.push(`Цього місяця витрати становлять ${Math.round((expense/income)*100)}% від доходів.`);
-  insights.push(`За останні 3 місяці середні витрати становили ${fmtMoneyShort(dispAmt(avgExpenseLast3MonthsBase()), state.bgtDisplayCcy)}/місяць.`);
-  return insights;
-}
-
 /* ============================= БЮДЖЕТ: НАВІГАЦІЯ МОДУЛЯ ============================= */
 function switchBudgetTab(tab){ state.budgetView = tab; render(); }
 function setBgtDisplayCcy(ccy){ state.bgtDisplayCcy = ccy; localStorage.setItem(LS_BGT_DISPLAY_CCY, ccy); render(); }
@@ -2309,9 +2259,6 @@ function svgTrendChart(days, height){
   }).join('');
   return `<svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">${bars}</svg>`;
 }
-function topExpenses(fromStr,toStr, limit){
-  return state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type==='expense'&&txInRange(t,fromStr,toStr)).slice().sort((a,b)=>b.convertedAmount-a.convertedAmount).slice(0,limit||10);
-}
 function monthComparisonRows(){
   const now = new Date();
   const [cf,ct] = monthRange(now);
@@ -2323,29 +2270,33 @@ function monthComparisonRows(){
     return {category:c, cur, prev, delta:cur-prev};
   }).filter(r=>r.cur>0||r.prev>0).sort((a,b)=>b.cur-a.cur);
 }
+function bgtCategoryTotals(kind, fromStr, toStr){
+  const totals = {};
+  state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type===kind&&txInRange(t,fromStr,toStr)).forEach(t=>{
+    totals[t.categoryId] = (totals[t.categoryId]||0)+t.convertedAmount;
+  });
+  const getCat = kind==='income'? getIncomeCategory : getExpenseCategory;
+  return Object.entries(totals).map(([cid,val])=>{
+    const cat = getCat(cid);
+    return {label:cat?cat.name:'Інше', value:dispAmt(val), color:cat?cat.color:'#999'};
+  }).sort((a,b)=>b.value-a.value);
+}
 function setBgtAnalyticsPeriod(p){ state.bgtAnalyticsPeriod = p; render(); }
+function setBgtAnalyticsCatType(t){ state.bgtAnalyticsCatType = t; render(); }
+function toggleBgtComparisonExpanded(){ state.bgtComparisonExpanded = !state.bgtComparisonExpanded; render(); }
 function renderBudgetAnalytics(){
   const dc = state.bgtDisplayCcy;
   const period = state.bgtAnalyticsPeriod || 'month';
   const buckets = bgtTrendBuckets(period);
   const now = new Date();
   const [mFrom,mTo] = monthRange(now);
-  const stats = budgetOverviewStats();
-  const savingsRate = savingsRatePct(stats.income, stats.expense);
-  const catTotals = {};
-  state.data.budget.transactions.filter(t=>isRealTx(t)&&t.type==='expense'&&txInRange(t,mFrom,mTo)).forEach(t=>{
-    catTotals[t.categoryId] = (catTotals[t.categoryId]||0)+t.convertedAmount;
-  });
-  const segments = Object.entries(catTotals).map(([cid,val])=>{
-    const cat = getExpenseCategory(cid);
-    return {label:cat?cat.name:'Інше', value:dispAmt(val), color:cat?cat.color:'#999'};
-  }).sort((a,b)=>b.value-a.value);
-  const totalExpense = segments.reduce((s,x)=>s+x.value,0) || 1;
+  const catType = state.bgtAnalyticsCatType || 'expense';
+  const segments = bgtCategoryTotals(catType, mFrom, mTo);
+  const totalSeg = segments.reduce((s,x)=>s+x.value,0) || 1;
   const daily = bgtDailyTrend();
-  const top = topExpenses(mFrom,mTo,10);
-  const comparison = monthComparisonRows();
-  const insights = computeBudgetInsights();
-  const recurTotal = monthlyRecurringTotalBase();
+  const compAll = monthComparisonRows();
+  const comparisonExpanded = !!state.bgtComparisonExpanded;
+  const comparison = comparisonExpanded? compAll : compAll.slice(0,5);
   return `
   <div class="bgt-stat-head">
     <div style="font-size:11.5px;color:var(--text-dim);font-weight:700">Показники у</div>
@@ -2358,29 +2309,34 @@ function renderBudgetAnalytics(){
     <h3>Доходи vs витрати (${dc})</h3>
     ${svgBarChart(buckets)}
   </div>
-  <div class="grid-dash" style="grid-template-columns:auto 1fr;margin-top:16px;align-items:center">
-    <div class="card" style="text-align:center">
-      <h3>Витрати за категоріями (цей місяць)</h3>
-      ${svgDonutChart(segments)}
+  <div class="grid-dash" style="grid-template-columns:1fr 1fr;margin-top:16px;align-items:stretch">
+    <div class="card" style="text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <h3 style="margin:0">${catType==='income'?'Доходи':'Витрати'} за категоріями</h3>
+        <div class="bgt-filter-row" style="max-width:160px">
+          ${[['expense','Витрати'],['income','Доходи']].map(([id,label])=>`<button type="button" class="bgt-period-tab ${catType===id?'active':''}" onclick="setBgtAnalyticsCatType('${id}')">${label}</button>`).join('')}
+        </div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px 0">
+        ${svgDonutChart(segments, 240)}
+      </div>
     </div>
-    <div class="card">
+    <div class="card" style="display:flex;flex-direction:column">
       <h3>Легенда</h3>
-      ${segments.length? segments.map(s=>`
+      <div style="flex:1;overflow:auto">
+        ${segments.length? segments.map(s=>`
         <div class="list-row" style="cursor:default">
           <span class="dot" style="background:${s.color}"></span>
           <span class="title">${escapeHtml(s.label)}</span>
-          <span class="meta">${Math.round((s.value/totalExpense)*100)}%</span>
+          <span class="meta">${Math.round((s.value/totalSeg)*100)}%</span>
           <span class="meta" style="font-weight:800">${fmtMoneyShort(s.value, dc)}</span>
-        </div>`).join('') : `<div class="empty-hint">Витрат цього місяця ще немає</div>`}
+        </div>`).join('') : `<div class="empty-hint">${catType==='income'?'Доходів':'Витрат'} цього місяця ще немає</div>`}
+      </div>
     </div>
   </div>
   <div class="card" style="margin-top:16px">
     <h3>Динаміка витрат цього місяця</h3>
     ${svgTrendChart(daily)}
-  </div>
-  <div class="card" style="margin-top:16px">
-    <h3>TOP-10 найбільших витрат (цей місяць)</h3>
-    ${top.length? top.map(t=>renderTxRow(t)).join('') : `<div class="empty-hint">Витрат цього місяця ще немає</div>`}
   </div>
   <div class="card" style="margin-top:16px">
     <h3>Порівняння місяців</h3>
@@ -2396,19 +2352,7 @@ function renderBudgetAnalytics(){
         </tr>`).join('') : `<tr><td colspan="4" class="empty-hint">Замало даних</td></tr>`}
       </tbody>
     </table>
-  </div>
-  <div class="card" style="margin-top:16px">
-    <h3>💡 Фінансові інсайти</h3>
-    ${insights.length? `<ul class="bgt-insights">${insights.map(i=>`<li>${escapeHtml(i)}</li>`).join('')}</ul>` : `<div class="empty-hint">Замало даних для інсайтів</div>`}
-  </div>
-  <div class="card" style="margin-top:16px">
-    <h3>🩺 Фінансовий стан</h3>
-    <div class="bgt-health-row">
-      <div class="bgt-health-item"><div class="bgt-health-val">${savingsRate}%</div><div class="bgt-health-lbl">Savings rate</div></div>
-      <div class="bgt-health-item"><div class="bgt-health-val">${fmtMoneyShort(dispAmt(avgExpenseLast3MonthsBase()), dc)}</div><div class="bgt-health-lbl">Сер. витрати/міс</div></div>
-      <div class="bgt-health-item"><div class="bgt-health-val">${fmtMoneyShort(dispAmt(recurTotal), dc)}</div><div class="bgt-health-lbl">Регулярні витрати</div></div>
-      <div class="bgt-health-item"><div class="bgt-health-val">${fmtMoneyShort(dispAmt(stats.balance), dc)}</div><div class="bgt-health-lbl">Поточний баланс</div></div>
-    </div>
+    ${compAll.length>5? `<button type="button" class="btn btn-sm btn-ghost" style="margin-top:10px;width:100%;justify-content:center" onclick="toggleBgtComparisonExpanded()">${comparisonExpanded? 'Згорнути' : `Показати ще ${compAll.length-5}`}</button>` : ''}
   </div>`;
 }
 
