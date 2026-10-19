@@ -14,8 +14,8 @@
     --accent-light:#E8ECFE;
     --accent-contrast:#ffffff;
     --accent-grad:linear-gradient(135deg, #2F4EF3 0%, #0124A4 100%);
-    --radius:14px;
-    --radius-sm:8px;
+    --radius:16px;
+    --radius-sm:10px;
     --ws-personal:#eab308;
     --ws-kofax:#2563eb;
     --pr-critical:#E5484D;
@@ -24,15 +24,15 @@
     --pr-low:#6B7080;
   }
   html[data-theme="light"]{
-    --bg:#F4F6FB;
+    --bg:#F5F6FB;
     --surface:#ffffff;
-    --surface-2:#EEF0F7;
-    --surface-3:#E7EAF4;
-    --text:#12131C;
-    --text-dim:#6B7080;
-    --border:#E2E5EF;
-    --border-strong:#C9CEDC;
-    --shadow:0 1px 2px rgba(16,24,64,.04), 0 8px 24px rgba(16,24,64,.06);
+    --surface-2:#F3F4FA;
+    --surface-3:#E9ECF6;
+    --text:#14161F;
+    --text-dim:#6B7186;
+    --border:#E8EAF3;
+    --border-strong:#D5D9E8;
+    --shadow:0 1px 2px rgba(16,24,64,.04), 0 6px 20px rgba(16,24,64,.05);
     --overlay:rgba(10,11,20,.45);
   }
   html[data-theme="dark"]{
@@ -102,31 +102,38 @@
 
   /* ---------- SIDEBAR ---------- */
   .sidebar{
-    width:236px;flex:none;background:var(--surface);border-right:1px solid var(--border);
-    display:flex;flex-direction:column;padding:18px 14px;
+    width:244px;flex:none;background:var(--surface);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;padding:20px 12px 16px;
   }
-  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 20px;}
-  .brand-mark{width:32px;height:32px;background:var(--accent-grad);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;flex:none;}
-  .brand-name{font-weight:700;font-size:15px;}
-  .brand-sub{font-size:11px;color:var(--text-dim);}
-  .nav{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 10px 22px;}
+  .brand-mark{width:34px;height:34px;background:var(--accent-grad);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none;}
+  .brand-name{font-weight:800;font-size:17px;line-height:1.1;letter-spacing:-.01em;}
+  .brand-sub{font-size:11px;color:var(--text-dim);font-weight:500;}
+  .nav-label{font-size:11px;font-weight:600;color:var(--text-dim);letter-spacing:.06em;padding:0 12px 8px;opacity:.9;}
+  .nav{display:flex;flex-direction:column;gap:4px;flex:1;overflow-y:auto;}
   .nav-item{
-    display:flex;align-items:center;gap:11px;padding:9px 10px;
-    border:none;background:transparent;color:var(--text-dim);font-size:14px;font-weight:500;text-align:left;width:100%;
+    display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;
+    border:none;background:transparent;color:#4B5168;font-size:14px;font-weight:600;text-align:left;width:100%;
     transition:.12s;text-decoration:none;cursor:pointer;box-sizing:border-box;
   }
-  .nav-item svg{flex:none;opacity:.85;}
+  .nav-item svg{flex:none;opacity:.9;}
   .nav-item:hover{background:var(--surface-2);color:var(--text);}
-  .nav-item.active{background:var(--accent-grad);color:#fff;font-weight:700;}
-  .nav-sep{height:1px;background:var(--border);margin:12px 4px;}
-  .ws-legend{padding:4px 10px 10px;font-size:11px;color:var(--text-dim);}
-  .ws-legend-row{display:flex;align-items:center;gap:7px;padding:6px 4px;cursor:pointer;border:1px solid transparent;}
-  .ws-legend-row:hover{background:var(--surface-2);border-color:var(--border);}
-  .ws-legend-row.active{border-color:var(--border-strong);background:var(--surface-2);font-weight:700;color:var(--text);}
-  .ws-legend-row .count{margin-left:auto;font-size:10.5px;background:var(--surface-3);border-radius:999px;padding:1px 7px;color:var(--text-dim);font-weight:700;}
+  .nav-item.active{background:var(--accent-grad);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(47,78,243,.28);}
+  .nav-sep{height:1px;background:var(--border);margin:12px 8px;}
+  .ws-legend{padding:2px 0 10px;font-size:12px;color:var(--text-dim);}
+  .ws-legend-head{display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;font-size:11px;font-weight:600;letter-spacing:.06em;}
+  .ws-legend-add{width:22px;height:22px;border-radius:50%;border:none;background:var(--surface-2);color:var(--text-dim);display:flex;align-items:center;justify-content:center;padding:0;transition:.12s;}
+  .ws-legend-add svg{width:12px;height:12px;}
+  .ws-legend-add:hover{background:var(--accent-light);color:var(--accent);}
+  .ws-legend-row{display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer;border-radius:10px;font-size:13px;font-weight:600;color:#4B5168;}
+  .ws-legend-row:hover{background:var(--surface-2);}
+  .ws-legend-row.active{background:var(--surface-2);font-weight:700;color:var(--text);}
+  .ws-legend-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ws-legend-row .count{margin-left:auto;font-size:10.5px;background:var(--surface-3);border-radius:999px;padding:1px 8px;color:var(--text-dim);font-weight:700;}
   .dot{width:8px;height:8px;border-radius:50%;flex:none;}
-  .sidebar-foot{border-top:1px solid var(--border);padding-top:12px;margin-top:8px;}
-  .profile-row{display:flex;align-items:center;gap:10px;padding:6px;position:relative;}
+  .sidebar-foot{border-top:1px solid var(--border);padding-top:12px;margin-top:6px;}
+  .profile-row{display:flex;align-items:center;gap:10px;padding:6px 8px;position:relative;border-radius:12px;}
+  .profile-row:hover{background:var(--surface-2);}
   .avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none;overflow:hidden;}
   .profile-name{font-size:13px;font-weight:600;}
   .profile-email{font-size:11px;color:var(--text-dim);}
@@ -143,13 +150,22 @@
   /* ---------- MAIN ---------- */
   .main{flex:1;display:flex;flex-direction:column;min-width:0;height:100vh;}
   .topbar{
-    display:flex;align-items:center;gap:12px;padding:16px 26px;border-bottom:1px solid var(--border);flex:none;
+    display:flex;align-items:center;gap:12px;padding:14px 28px;border-bottom:1px solid var(--border);flex:none;background:var(--surface);
   }
-  .topbar h2{font-size:19px;margin:0;font-weight:700;}
+  .topbar h2{font-size:20px;margin:0;font-weight:800;letter-spacing:-.01em;}
   .topbar .spacer{flex:1;}
+  .search-pill{
+    display:flex;align-items:center;gap:9px;width:250px;height:40px;padding:0 16px;border-radius:999px;
+    border:1px solid var(--border);background:var(--surface-2);color:var(--text-dim);font-size:13px;font-weight:500;text-align:left;transition:.15s;
+  }
+  .search-pill:hover{border-color:var(--border-strong);background:var(--surface-3);}
+  .search-pill svg{flex:none;width:16px;height:16px;}
+  .user-chip{display:flex;align-items:center;gap:8px;height:40px;padding:0 6px 0 5px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);cursor:pointer;flex:none;transition:.15s;}
+  .user-chip:hover{background:var(--surface-3);}
+  .user-chip-role{font-size:11.5px;font-weight:700;color:var(--accent);background:var(--accent-light);border-radius:999px;padding:5px 11px;}
   .icon-btn{
     border-radius:50%;
-    width:36px;height:36px;border:1px solid var(--border);background:var(--surface-2);
+    width:40px;height:40px;border:1px solid var(--border);background:var(--surface-2);
     display:flex;align-items:center;justify-content:center;color:var(--text-dim);position:relative;transition:.15s;flex:none;
   }
   .icon-btn:hover{background:var(--surface-3);color:var(--text);}
@@ -184,15 +200,15 @@
   @media (max-width:700px){.upwork-stats-row{flex-direction:column;} .upwork-timer-display{font-size:42px;}}
 
   /* budget module */
-  .bgt-topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px 6px 6px;margin-bottom:18px;box-shadow:var(--shadow);flex-wrap:wrap;}
+  .bgt-topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:6px 8px 6px 6px;margin-bottom:18px;box-shadow:var(--shadow);flex-wrap:wrap;}
   .bgt-tabs{display:flex;gap:2px;flex-wrap:wrap;}
-  .bgt-tab{padding:9px 14px;border:none;background:transparent;border-radius:6px;font-size:13px;font-weight:700;color:var(--text-dim);cursor:pointer;transition:background .15s,color .15s;}
+  .bgt-tab{padding:9px 14px;border:none;background:transparent;border-radius:10px;font-size:13px;font-weight:700;color:var(--text-dim);cursor:pointer;transition:background .15s,color .15s;}
   .bgt-tab:hover{background:var(--surface-2);color:var(--text);}
   .bgt-tab.active{background:var(--accent-grad);color:#fff;}
   .bgt-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
   @media (max-width:1000px){.bgt-stat-row{grid-template-columns:1fr 1fr;}}
   @media (max-width:600px){.bgt-stat-row{grid-template-columns:1fr;}}
-  .bgt-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow);transition:border-color .15s,box-shadow .15s;}
+  .bgt-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);transition:border-color .15s,box-shadow .15s;}
   .bgt-stat-card:hover{border-color:var(--border-strong);}
   .bgt-stat-lbl{font-size:11.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px;}
   .bgt-stat-val{font-size:22px;font-weight:800;}
@@ -200,12 +216,12 @@
   .bgt-neg{color:var(--pr-critical);}
   .bgt-stat-delta{font-size:11px;color:var(--text-dim);margin-top:4px;font-weight:700;}
   .bgt-stat-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
-  .bgt-ccy-switch{display:inline-flex;gap:2px;background:var(--surface-2);border-radius:7px;padding:3px;border:1px solid var(--border);}
+  .bgt-ccy-switch{display:inline-flex;gap:2px;background:var(--surface-2);border-radius:12px;padding:3px;border:1px solid var(--border);}
   .bgt-ccy-btn{padding:6px 13px;border:none;background:transparent;border-radius:5px;font-size:12px;font-weight:800;color:var(--text-dim);cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;}
   .bgt-ccy-btn:hover{background:var(--surface-3);color:var(--text);}
   .bgt-ccy-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
   .bgt-period-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
-  .bgt-period-tab{padding:7px 13px;border:1px solid var(--border);background:var(--surface-2);border-radius:6px;font-size:12px;font-weight:700;color:var(--text-dim);cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
+  .bgt-period-tab{padding:7px 14px;border:1px solid var(--border);background:var(--surface-2);border-radius:999px;font-size:12px;font-weight:700;color:var(--text-dim);cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
   .bgt-period-tab:hover{background:var(--surface-3);border-color:var(--border-strong);color:var(--text);}
   .bgt-period-tab.active{background:var(--accent-grad);border-color:transparent;color:#fff;}
   .bgt-filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
@@ -243,7 +259,7 @@
   .bgt-health-val{font-size:17px;font-weight:800;}
   .bgt-health-lbl{font-size:10.5px;color:var(--text-dim);font-weight:700;margin-top:3px;}
   .bgt-recur-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
-  .bgt-recur-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+  .bgt-recur-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
   .bgt-recur-card:hover{border-color:var(--border-strong);box-shadow:var(--shadow);}
   .bgt-recur-inactive{opacity:.5;}
   .bgt-recur-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px;}
@@ -257,7 +273,7 @@
   @media (max-width:1200px){.bgt-goals-grid{grid-template-columns:repeat(4,1fr);}}
   @media (max-width:900px){.bgt-goals-grid{grid-template-columns:repeat(3,1fr);}}
   @media (max-width:600px){.bgt-goals-grid{grid-template-columns:repeat(2,1fr);}}
-  .bgt-goal-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s;display:flex;flex-direction:column;}
+  .bgt-goal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s;display:flex;flex-direction:column;}
   .bgt-goal-card:hover{box-shadow:var(--shadow);border-color:var(--border-strong);transform:translateY(-2px);}
   .bgt-goal-photo{aspect-ratio:1/1;background-color:var(--surface-2);background-position:center;background-size:cover;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--text-dim);}
   .bgt-goal-body{padding:10px 11px 12px;}
@@ -316,12 +332,13 @@
   .list-row .meta{font-size:11.5px;color:var(--text-dim);flex:none;}
   .row-trash-btn{background:none;border:none;color:var(--text-dim);padding:4px;flex:none;opacity:.55;transition:.12s;}
   .row-trash-btn:hover{opacity:1;color:var(--pr-critical);}
-  .tx-row{display:grid;grid-template-columns:8px 1fr 86px 96px 26px;align-items:center;gap:10px;padding:9px 6px;transition:.12s;cursor:pointer;}
+  .tx-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 22px;}
+  .tx-row{display:flex;align-items:center;gap:8px;padding:9px 6px;border-radius:8px;transition:.12s;cursor:pointer;min-width:0;}
   .tx-row:hover{background:var(--surface-2);}
-  .tx-row .title{font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .tx-row .date{font-size:11.5px;color:var(--text-dim);text-align:right;white-space:nowrap;}
-  .tx-row .amt{font-size:13px;font-weight:800;text-align:right;white-space:nowrap;}
-  @media (max-width:520px){.tx-row{grid-template-columns:8px 1fr 82px 24px;}.tx-row .date{display:none;}}
+  .tx-row .title{font-size:13.5px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tx-row .date{font-size:11px;color:var(--text-dim);flex:none;white-space:nowrap;}
+  .tx-row .amt{font-size:13px;font-weight:800;flex:none;white-space:nowrap;min-width:70px;text-align:right;}
+  @media (max-width:520px){.tx-list{grid-template-columns:1fr;}.tx-row .date{display:none;}}
   .tag{font-size:10.5px;font-weight:700;padding:2px 7px;color:#fff;flex:none;border-radius:var(--radius-sm);}
   .quick-capture{display:flex;gap:8px;margin-bottom:18px;}
   .quick-capture input{flex:1;}
@@ -375,6 +392,37 @@
   .cdp-day-selected{background:var(--accent-grad);color:#fff;font-weight:800;}
   .cdp-today-btn{width:100%;margin-top:8px;padding:7px;border:none;background:var(--surface-2);border-radius:var(--radius-sm);font-size:12px;font-weight:700;color:var(--text-dim);cursor:pointer;}
   .cdp-today-btn:hover{background:var(--surface-3);color:var(--text);}
+
+  /* kanban (tasks by workspace) */
+  .kanban{display:flex;gap:16px;align-items:flex-start;overflow-x:auto;padding-bottom:12px;}
+  .kanban-col{flex:none;width:300px;background:#EEF0F8;border:1px solid var(--border);border-radius:18px;padding:14px 12px 12px;display:flex;flex-direction:column;gap:10px;}
+  html[data-theme="dark"] .kanban-col{background:var(--surface);}
+  .kanban-col-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 0;}
+  .kanban-col-title{display:flex;align-items:center;gap:8px;min-width:0;}
+  .kanban-col-name{font-size:15px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .kanban-col-edit{width:28px;height:28px;border-radius:50%;border:none;background:transparent;color:var(--text-dim);display:flex;align-items:center;justify-content:center;padding:0;flex:none;transition:.12s;}
+  .kanban-col-edit:hover{background:var(--surface);color:var(--text);}
+  .kanban-col-sub{font-size:12px;color:var(--text-dim);font-weight:500;padding:0 4px 2px;margin-top:-6px;}
+  .kcard{background:var(--surface);border-radius:12px;padding:12px 12px 10px;box-shadow:0 1px 2px rgba(16,24,64,.05);border:1px solid transparent;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:9px;}
+  .kcard:hover{border-color:var(--border-strong);box-shadow:0 4px 14px rgba(16,24,64,.08);}
+  .kcard-done{opacity:.6;}
+  .kcard-top{display:flex;align-items:flex-start;gap:9px;}
+  .kcard-top input[type=checkbox]{margin-top:2px;}
+  .kcard-title{flex:1;min-width:0;font-size:14px;font-weight:700;line-height:1.35;word-break:break-word;}
+  .kcard-tags{display:flex;flex-wrap:wrap;gap:6px;}
+  .ktag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+  .kcard-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--text-dim);}
+  .kcard-date{font-weight:600;}
+  .kcard-date.overdue{color:var(--pr-critical);}
+  .kcard-meta{display:flex;align-items:center;gap:6px;font-size:11px;}
+  .kcard-meta svg{width:12px;height:12px;display:inline-block;vertical-align:-2px;}
+  .kanban-add-card{border:1px dashed var(--border-strong);background:rgba(255,255,255,.55);color:var(--text-dim);border-radius:10px;padding:10px;font-size:13px;font-weight:600;transition:.12s;}
+  .kanban-add-card:hover{background:var(--surface);color:var(--accent);border-color:var(--accent);}
+  .kanban-add-col{flex:none;width:300px;min-height:84px;border:1.5px dashed var(--border-strong);background:transparent;color:var(--text-dim);border-radius:18px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:.12s;}
+  .kanban-add-col:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+  .chip-add{border-style:dashed;background:transparent;}
+  .chip-add svg{width:13px;height:13px;}
+  @media (max-width:700px){.kanban{flex-direction:column;overflow-x:visible;}.kanban-col,.kanban-add-col{width:100%;}}
 
   /* direction columns (tasks / projects) */
   .dir-columns{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;align-items:start;max-width:880px;}
@@ -615,13 +663,15 @@ const ICON = {
 
 /* ============================= КОНСТАНТИ ============================= */
 const CATEGORY_PALETTE = ['#2F4EF3','#0EA5E9','#14B8A6','#22C55E','#EAB308','#F59E0B','#F97316','#EF4444','#EC4899','#A855F7','#6366F1','#64748B','#84CC16','#06B6D4'];
-const WORKSPACES = [
-  {id:'personal', name:'Особисте', color:'var(--ws-personal)'},
-  {id:'kofax', name:'Kofax', color:'var(--ws-kofax)'},
+const DEFAULT_WORKSPACES = [
+  {id:'kofax', name:'Kofax', color:'#2563EB'},
+  {id:'personal', name:'Особисте', color:'#EAB308'},
 ];
-const DIR_ORDER = ['kofax','personal'];
-const wsColor = id => (WORKSPACES.find(w=>w.id===id)||{}).color || '#999';
-const wsName = id => (WORKSPACES.find(w=>w.id===id)||{}).name || id;
+const WS_PALETTE = ['#2563EB','#EAB308','#14B8A6','#22C55E','#F97316','#EF4444','#EC4899','#A855F7','#6366F1','#0EA5E9','#64748B','#84CC16'];
+function wsList(){ return (typeof state!=='undefined' && state.data && Array.isArray(state.data.workspaces) && state.data.workspaces.length) ? state.data.workspaces : DEFAULT_WORKSPACES; }
+function getWorkspace(id){ return wsList().find(w=>w.id===id); }
+const wsColor = id => (getWorkspace(id)||{}).color || '#999';
+const wsName = id => (getWorkspace(id)||{}).name || 'Без простору';
 
 const STATUSES = ['tz','proto','design','layout','testing'];
 const STATUS_LABEL = {tz:'ТЗ', proto:'Прототип', design:'Дизайн', layout:'Верстка', testing:'Тестування'};
@@ -675,7 +725,7 @@ const LS_ACCENT = 'personalCrmAccent_v1';
 const LS_BACKUPS = 'personalCrmBackups_v1';
 const LS_BGT_DISPLAY_CCY = 'personalCrmBgtDisplayCcy_v1';
 
-function emptyData(){ return {tasks:[], budget: emptyBudgetData()}; }
+function emptyData(){ return {tasks:[], budget: emptyBudgetData(), workspaces: DEFAULT_WORKSPACES.map(w=>({...w}))}; }
 
 function saveData(){
   if(!state.user || !db) return;
@@ -746,6 +796,9 @@ function subscribeToData(uid){
       state.data = {
         tasks: Array.isArray(d.tasks)? d.tasks : [],
         budget: normalizeBudgetData(d.budget),
+        workspaces: (Array.isArray(d.workspaces) && d.workspaces.length)
+          ? d.workspaces.map(w=>({id:w.id, name:w.name||'Без назви', color:/^#/.test(w.color||'')? w.color : (w.id==='personal'?'#EAB308':'#2563EB')}))
+          : DEFAULT_WORKSPACES.map(w=>({...w})),
       };
       cleanupKykilData();
       maybeFetchExchangeRates();
@@ -1031,10 +1084,11 @@ function renderSidebar(){
     <div class="brand">
       <div class="brand-mark">${ICON.sparkle}</div>
       <div>
-        <div class="brand-name">Workspace</div>
-        <div class="brand-sub">Персональний CRM</div>
+        <div class="brand-name">workspace</div>
+        <div class="brand-sub">personal · CRM</div>
       </div>
     </div>
+    <div class="nav-label">МЕНЮ</div>
     <div class="nav">
       ${navItems.map(([id,label,icon])=>`
         <button class="nav-item ${state.view===id?'active':''}" onclick="switchView('${id}')">
@@ -1047,12 +1101,12 @@ function renderSidebar(){
     </div>
     <div class="nav-sep"></div>
     <div class="ws-legend">
-      <div style="padding:4px 4px 6px;font-weight:700;color:var(--text-dim)">Напрямки</div>
-      ${WORKSPACES.map(w=>{
+      <div class="ws-legend-head"><span>НАПРЯМКИ</span><button type="button" class="ws-legend-add" title="Новий простір" onclick="openWorkspaceModal(null)">${ICON.plus}</button></div>
+      ${wsList().map(w=>{
         const n = state.data.tasks.filter(t=>!t.done && !t.deleted && t.workspace===w.id).length;
         return `
         <div class="ws-legend-row ${state.view==='workspace'&&state.activeWs===w.id?'active':''}" onclick="openWorkspacePage('${w.id}')">
-          <span class="dot" style="background:${w.color}"></span>${w.name}
+          <span class="dot" style="background:${w.color}"></span><span class="ws-legend-name">${escapeHtml(w.name)}</span>
           ${n? `<span class="count">${n}</span>`:''}
         </div>`;
       }).join('')}
@@ -1060,9 +1114,9 @@ function renderSidebar(){
     <div class="sidebar-foot">
       <div class="profile-row" id="profileWrap" onclick="switchView('profile')" style="cursor:pointer">
         <div class="avatar">${state.profile.avatar? `<img src="${state.profile.avatar}" style="width:100%;height:100%;object-fit:cover">` : initials(state.profile.name)}</div>
-        <div>
-          <div class="profile-name">${escapeHtml(state.profile.name)}</div>
-          <div class="profile-email">${escapeHtml(state.profile.email)}</div>
+        <div style="min-width:0">
+          <div class="profile-name">${escapeHtml(state.profile.name || 'Профіль')}</div>
+          <div class="profile-email">${escapeHtml(state.profile.position || state.profile.email)}</div>
         </div>
       </div>
     </div>
@@ -1079,9 +1133,9 @@ function renderTopbar(){
     <h2>${title}</h2>
     <div class="spacer"></div>
     <div style="position:relative" id="searchWrap">
-      <button class="icon-btn" onclick="toggleSearch()" title="Пошук">${ICON.search}</button>
+      <button class="search-pill" onclick="toggleSearch()" title="Пошук">${ICON.search}<span>Пошук задачі…</span></button>
       ${state.searchOpen ? `
-      <div class="dropdown" style="top:44px;bottom:auto;left:auto;right:0;width:320px;padding:8px;">
+      <div class="dropdown" style="top:48px;bottom:auto;left:auto;right:0;width:340px;padding:10px;">
         <input id="searchInput" type="text" value="${escapeHtml(state.searchQuery||'')}" placeholder="Пошук задач..." oninput="onSearchInput()" style="margin-bottom:6px">
         <div id="searchResults">${renderSearchResults(state.searchQuery||'')}</div>
       </div>`:''}
@@ -1096,7 +1150,11 @@ function renderTopbar(){
         ${notifs.length? notifs.map((n,i)=>`<button type="button" class="notif-row" onclick="clickNotif(${i})">${escapeHtml(n.text)}</button>`).join('') : `<div style="padding:14px 12px;font-size:12.5px;color:var(--text-dim)">Немає нових сповіщень</div>`}
       </div>`:''}
     </div>
-    <button class="btn btn-primary" onclick="openTaskModal(null${wsCtx})">${ICON.plus} Задача</button>
+    <div class="user-chip" onclick="switchView('profile')" title="Профіль">
+      <div class="avatar" style="width:30px;height:30px;font-size:12px">${state.profile.avatar? `<img src="${state.profile.avatar}" style="width:100%;height:100%;object-fit:cover">` : initials(state.profile.name)}</div>
+      ${state.profile.position? `<span class="user-chip-role">${escapeHtml(state.profile.position)}</span>`:''}
+    </div>
+    <button class="btn btn-primary" onclick="openTaskModal(null${wsCtx})">${ICON.plus} Нова задача</button>
   </div>`;
 }
 
@@ -1236,8 +1294,74 @@ function datepickerToday(id){ selectDatepickerDay(id, todayStr()); }
 function renderWsFilters(){
   return `<div class="filters-row">
     <button type="button" class="chip ${state.wsFilter==='all'?'active':''}" onclick="setWsFilter('all')">Усі простори</button>
-    ${WORKSPACES.map(w=>`<button type="button" class="chip ${state.wsFilter===w.id?'active':''}" style="${state.wsFilter===w.id?`background:${w.color};border-color:${w.color}`:''}" onclick="setWsFilter('${w.id}')"><span class="dot" style="background:${state.wsFilter===w.id?'#fff':w.color}"></span>${w.name}</button>`).join('')}
+    ${wsList().map(w=>`<button type="button" class="chip ${state.wsFilter===w.id?'active':''}" style="${state.wsFilter===w.id?`background:${w.color};border-color:${w.color}`:''}" onclick="setWsFilter('${w.id}')"><span class="dot" style="background:${state.wsFilter===w.id?'#fff':w.color}"></span>${escapeHtml(w.name)}</button>`).join('')}
+    <button type="button" class="chip chip-add" onclick="openWorkspaceModal(null)" title="Новий простір">${ICON.plus} Простір</button>
   </div>`;
+}
+
+/* ============================= КЕРУВАННЯ ПРОСТОРАМИ ============================= */
+let wsModalColor = WS_PALETTE[0];
+function pickWsColor(c){
+  wsModalColor = c;
+  document.querySelectorAll('#wsColorPicker .bgt-color-swatch').forEach(el=>el.classList.toggle('active', el.dataset.color===c));
+}
+function openWorkspaceModal(id){
+  const ws = id? getWorkspace(id) : null;
+  const isNew = !ws;
+  const used = wsList().map(w=>w.color);
+  wsModalColor = ws? ws.color : (WS_PALETTE.find(c=>!used.includes(c)) || WS_PALETTE[0]);
+  const swatches = WS_PALETTE.concat(ws && !WS_PALETTE.includes(ws.color) ? [ws.color] : []);
+  openModal(`
+  <div class="modal-overlay" onmousedown="if(event.target===this)closeModal()">
+    <div class="modal" style="width:420px">
+      <div class="modal-head"><h3>${isNew?'Новий простір':'Редагувати простір'}</h3><span style="flex:1"></span>
+        <button class="icon-btn" onclick="closeModal()">${ICON.x}</button>
+      </div>
+      <div class="modal-body">
+        <label>Назва</label>
+        <input id="f_ws_name" type="text" maxlength="40" value="${ws?escapeHtml(ws.name):''}" placeholder="Наприклад, Нова робота" onkeydown="if(event.key==='Enter')saveWorkspaceForm(${isNew?'null':`'${ws.id}'`})">
+        <label>Колір</label>
+        <div class="bgt-color-picker" id="wsColorPicker">
+          ${swatches.map(c=>`<div class="bgt-color-swatch ${c===wsModalColor?'active':''}" data-color="${c}" style="background:${c}" onclick="pickWsColor('${c}')"></div>`).join('')}
+        </div>
+      </div>
+      <div class="modal-foot">
+        ${!isNew? `<button class="btn btn-ghost btn-danger-text" onclick="deleteWorkspace('${ws.id}')">${ICON.trash} Видалити</button>`:''}
+        <span style="flex:1"></span>
+        <button class="btn" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" onclick="saveWorkspaceForm(${isNew?'null':`'${ws.id}'`})">Зберегти</button>
+      </div>
+    </div>
+  </div>`);
+  setTimeout(()=>{ const i=document.getElementById('f_ws_name'); if(i) i.focus(); },0);
+}
+function saveWorkspaceForm(id){
+  const name = document.getElementById('f_ws_name').value.trim();
+  if(!name){ toast('Вкажіть назву простору'); return; }
+  if(wsList().some(w=>w.id!==id && w.name.toLowerCase()===name.toLowerCase())){ toast('Простір з такою назвою вже є'); return; }
+  if(!Array.isArray(state.data.workspaces) || !state.data.workspaces.length) state.data.workspaces = DEFAULT_WORKSPACES.map(w=>({...w}));
+  if(id){
+    const ws = getWorkspace(id);
+    ws.name = name; ws.color = wsModalColor;
+    toast('Простір збережено');
+  } else {
+    state.data.workspaces.push({id:'ws_'+uid(), name, color:wsModalColor});
+    toast('Простір створено');
+  }
+  saveData(); closeModal(); render();
+}
+function deleteWorkspace(id){
+  const ws = getWorkspace(id); if(!ws) return;
+  if(wsList().length<=1){ toast('Має лишитись хоча б один простір'); return; }
+  const n = state.data.tasks.filter(t=>t.workspace===id && !t.deleted).length;
+  const msg = n? `Видалити простір «${ws.name}»? ${n} задач(і) буде перенесено в кошик.` : `Видалити простір «${ws.name}»?`;
+  confirmAction(msg, ()=>{
+    state.data.tasks.forEach(t=>{ if(t.workspace===id) t.deleted = true; });
+    state.data.workspaces = state.data.workspaces.filter(w=>w.id!==id);
+    if(state.wsFilter===id) state.wsFilter = 'all';
+    if(state.activeWs===id){ state.activeWs = null; if(state.view==='workspace') state.view = 'tasks'; }
+    saveData(); closeModal(); toast('Простір видалено'); render();
+  });
 }
 
 function filteredTasks(){ return state.data.tasks.filter(t=>!t.deleted && (state.wsFilter==='all' || t.workspace===state.wsFilter)); }
@@ -1371,6 +1495,7 @@ function trashTask(id){
 function restoreTask(id){
   const t = getTask(id); if(!t) return;
   t.deleted = false;
+  if(!getWorkspace(t.workspace)) t.workspace = wsList()[0].id;
   saveData(); toast('Задачу відновлено'); render();
 }
 function hardDeleteTask(id){
@@ -1708,7 +1833,7 @@ function renderBudgetTransactions(){
   </div>
   <div class="card">
     <div class="section-head"><h3 style="margin:0">Транзакції</h3><span class="count">${list.length}</span></div>
-    ${list.length? list.map(t=>renderTxRow(t)).join('') : `<div class="empty-hint">Немає транзакцій за цим фільтром</div>`}
+    ${list.length? `<div class="tx-list">${list.map(t=>renderTxRow(t)).join('')}</div>` : `<div class="empty-hint">Немає транзакцій за цим фільтром</div>`}
   </div>`;
 }
 
@@ -2391,13 +2516,12 @@ function aiStatsText(){
   const tasks = state.data.tasks.filter(t=>!t.deleted);
   const open = tasks.filter(t=>!t.done);
   const done = tasks.filter(t=>t.done);
-  const byWs = WORKSPACES.map(w=>`${w.name}: ${open.filter(t=>t.workspace===w.id).length}`).join(', ');
+  const byWs = wsList().map(w=>`${w.name}: ${open.filter(t=>t.workspace===w.id).length}`).join(', ');
   return `Статистика:\nВідкритих задач: ${open.length}\nВиконаних задач: ${done.length}\n\nПо напрямках — ${byWs}`;
 }
 function detectWorkspace(text){
-  if(/kofax|кофакс/.test(text)) return 'kofax';
-  if(/особист/.test(text)) return 'personal';
-  return null;
+  const hit = wsList().find(w=>text.includes(w.name.toLowerCase()) || (w.id==='kofax' && /кофакс/.test(text)) || (w.id==='personal' && /особист/.test(text)));
+  return hit ? hit.id : null;
 }
 function aiWorkspaceTasksText(wsId){
   const tasks = state.data.tasks.filter(t=>!t.done && !t.deleted && t.workspace===wsId);
@@ -2414,7 +2538,7 @@ function parseQuickText(text){
 }
 function createTaskFromParsed(parsed, workspace){
   const task = {
-    id:uid(), title:parsed.title, description:'', workspace:workspace||'personal', dueDate:'', priority:null,
+    id:uid(), title:parsed.title, description:'', workspace:(workspace && getWorkspace(workspace))? workspace : wsList()[0].id, dueDate:'', priority:null,
     checklist:[], attachments:[], done:false, deleted:false, completedAt:null, createdAt:Date.now(),
   };
   state.data.tasks.unshift(task);
@@ -2563,58 +2687,68 @@ function sendAiPreset(text){
 /* ============================= WORKSPACE PAGE ============================= */
 function renderWorkspacePage(){
   const wsId = state.activeWs;
-  const ws = WORKSPACES.find(w=>w.id===wsId);
-  if(!ws){ state.view='dashboard'; return renderDashboard(); }
-  const tasks = state.data.tasks.filter(t=>t.workspace===wsId && !t.deleted);
-  const openTasks = tasks.filter(t=>!t.done);
+  const ws = getWorkspace(wsId);
+  if(!ws){ state.view='tasks'; return renderTasks(); }
   return `
   <div style="margin-bottom:16px">
-    <button class="btn btn-sm btn-ghost" style="margin-bottom:8px;padding-left:0" onclick="switchView('dashboard')">${ICON.arrowLeft} Усі простори</button>
-    <div style="font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px"><span class="dot" style="width:12px;height:12px;background:${ws.color}"></span>${ws.name}</div>
+    <button class="btn btn-sm btn-ghost" style="margin-bottom:8px;padding-left:0" onclick="switchView('tasks')">${ICON.arrowLeft} Усі простори</button>
   </div>
-  <div class="card" style="max-width:520px">
-    <h3>${ICON.tasks} Активні задачі <span class="count">${openTasks.length}</span></h3>
-    ${openTasks.length? openTasks.map(t=>rowTask(t)).join(''): `<div class="empty-hint">Усі задачі виконано</div>`}
-  </div>`;
+  <div class="kanban">${renderTaskColumn(wsId)}</div>`;
 }
 
 /* ============================= TASKS (three direction columns) ============================= */
 function renderTasks(){
   return `
   ${renderWsFilters()}
-  <div class="dir-columns">
-    ${DIR_ORDER.filter(w=> state.wsFilter==='all' || state.wsFilter===w).map(w=>renderTaskColumn(w)).join('')}
+  <div class="kanban">
+    ${wsList().filter(w=> state.wsFilter==='all' || state.wsFilter===w.id).map(w=>renderTaskColumn(w.id)).join('')}
+    ${state.wsFilter==='all'? `<button type="button" class="kanban-add-col" onclick="openWorkspaceModal(null)">${ICON.plus} Новий простір</button>`:''}
   </div>`;
 }
+function taskWord(n){
+  const m10 = n%10, m100 = n%100;
+  if(m10===1 && m100!==11) return 'задача';
+  if(m10>=2 && m10<=4 && (m100<12 || m100>14)) return 'задачі';
+  return 'задач';
+}
 function renderTaskColumn(wsId){
-  const ws = WORKSPACES.find(w=>w.id===wsId);
+  const ws = getWorkspace(wsId);
+  if(!ws) return '';
   const all = state.data.tasks.filter(t=>t.workspace===wsId && !t.deleted).slice().sort((a,b)=>{
     if(a.done!==b.done) return a.done?1:-1;
     return (b.priority||0)-(a.priority||0);
   });
   return `
-  <div class="card">
-    <div class="section-head">
-      <span class="dot" style="background:${ws.color};width:11px;height:11px"></span>
-      <h3>${ws.name}</h3><span class="count">${all.length}</span>
-      <button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="openTaskModal(null,{workspace:'${wsId}'})">${ICON.plus}</button>
+  <div class="kanban-col">
+    <div class="kanban-col-head">
+      <div class="kanban-col-title"><span class="dot" style="background:${ws.color}"></span><span class="kanban-col-name">${escapeHtml(ws.name)}</span></div>
+      <button class="kanban-col-edit" title="Редагувати простір" onclick="openWorkspaceModal('${ws.id}')">${ICON.edit}</button>
     </div>
-    ${all.length? all.map(t=>colTaskRow(t)).join(''): `<div class="empty-hint">Задач немає</div>`}
+    <div class="kanban-col-sub">${all.length} ${taskWord(all.length)}</div>
+    ${all.map(t=>colTaskRow(t)).join('')}
+    <button type="button" class="kanban-add-card" onclick="openTaskModal(null,{workspace:'${wsId}'})">+ Додати задачу</button>
   </div>`;
 }
 function colTaskRow(t){
   const cl = t.checklist.length;
   const clDone = t.checklist.filter(c=>c.done).length;
+  const ws = getWorkspace(t.workspace);
+  const overdue = !t.done && t.dueDate && t.dueDate < todayStr();
   return `
-  <div class="col-task-row" onclick="openTaskModal('${t.id}')">
-    <input type="checkbox" ${t.done?'checked':''} onclick="event.stopPropagation();toggleTaskDone('${t.id}')">
-    <span class="col-task-title ${t.done?'done-text':''}">${escapeHtml(t.title)}</span>
-    <span class="col-task-meta">
-      ${cl? `${ICON.tasks} ${clDone}/${cl}`:''}
-      ${t.attachments.length? ` ${ICON.paperclip} ${t.attachments.length}`:''}
-    </span>
-    ${priorityBadge(t.priority)}
-    <button class="row-trash-btn" title="У кошик" onclick="event.stopPropagation();trashTask('${t.id}')">${ICON.trash}</button>
+  <div class="kcard ${t.done?'kcard-done':''}" onclick="openTaskModal('${t.id}')">
+    <div class="kcard-top">
+      <input type="checkbox" ${t.done?'checked':''} onclick="event.stopPropagation();toggleTaskDone('${t.id}')">
+      <span class="kcard-title ${t.done?'done-text':''}">${escapeHtml(t.title)}</span>
+      <button class="row-trash-btn" title="У кошик" onclick="event.stopPropagation();trashTask('${t.id}')">${ICON.trash}</button>
+    </div>
+    <div class="kcard-tags">
+      ${ws? `<span class="ktag" style="background:${ws.color}22;color:${ws.color}">${escapeHtml(ws.name)}</span>`:''}
+      ${t.priority? `<span class="ktag" style="background:${priorityColor(t.priority)}22;color:${priorityColor(t.priority)}">Пріоритет ${t.priority}</span>`:''}
+    </div>
+    <div class="kcard-foot">
+      <span class="kcard-date ${overdue?'overdue':''}">${t.dueDate? fmtDateHuman(t.dueDate) : 'Без дедлайну'}</span>
+      <span class="kcard-meta">${cl? `${ICON.tasks} ${clDone}/${cl}`:''}${t.attachments.length? ` ${ICON.paperclip} ${t.attachments.length}`:''}</span>
+    </div>
   </div>`;
 }
 
@@ -2623,7 +2757,7 @@ function openTaskModal(id, opts){
   opts = opts || {};
   const t = id? getTask(id) : null;
   const isNew = !t;
-  const wsVal = t? t.workspace : (opts.workspace || 'personal');
+  const wsVal = t? (getWorkspace(t.workspace)? t.workspace : wsList()[0].id) : (opts.workspace && getWorkspace(opts.workspace)? opts.workspace : wsList()[0].id);
   const html = `
   <div class="panel-overlay" onmousedown="if(event.target===this)closeModal()">
     <div class="side-panel">
@@ -2638,7 +2772,7 @@ function openTaskModal(id, opts){
         <div class="row2">
           <div>
             <label>Робочий простір</label>
-            ${renderCustomSelect('f_ws', WORKSPACES.map(w=>({value:w.id,label:w.name,dot:w.color})), wsVal, null)}
+            ${renderCustomSelect('f_ws', wsList().map(w=>({value:w.id,label:w.name,dot:w.color})), wsVal, null)}
           </div>
           <div>
             <label>Дедлайн (необов'язково)</label>
