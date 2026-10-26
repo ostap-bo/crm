@@ -3075,20 +3075,20 @@ function defaultSalesData(){
       C('CA-FAT','Fresno / Bakersfield, CA',3,'Pacific','Дешевший ринок Каліфорнії','Суворіші закони про приватність'),
     ],
     templates: salesTemplatesV2().map(t => ({id:uid(), ...t})),
-    tplVersion: 2,
+    tplVersion: 3,
   };
 }
 function salesTemplatesV2(){ return [
-  {name:"Перше · немає сайту", channel:'whatsapp', text:"Hi [Name], I came across [Business Name] on Google Maps. [ReviewLine], but I noticed there's no website linked to your profile.\n\nI build websites for local service businesses in the US. I'd be happy to put together a free preview of a homepage for [Business Name], no strings attached. Would you like to see it?"},
-  {name:"Перше · слабкий сайт", channel:'whatsapp', text:"Hi [Name], I was looking at pressure washing companies in [City] and found [Business Name]. [ReviewLine]!\n\nI checked your website on my phone and it's hard to find the call button and prices, which usually costs jobs. I build fast, mobile-first sites for local service businesses. Can I make you a free preview of what a new homepage could look like?"},
-  {name:"Перше · тільки Facebook", channel:'whatsapp', text:"Hi [Name], I found [Business Name] through your Facebook page. Your before and after photos look great.\n\nA lot of homeowners search Google first, and right now they can't find a website for you there. I build websites for local service businesses and can make you a free homepage preview to see if it's a fit. Interested?"},
-  {name:"Follow-up · день 2 (з сайтом)", channel:'whatsapp', text:"Hi [Name], just following up. Here are a few sites I've built so you can see the style: woodl-site.com\n\nThe preview is free and takes me 1–2 days. All I need is a yes 👍"},
+  {name:"Перше · немає сайту", channel:'whatsapp', text:"Hi [Name], I came across [Business Name] on Google Maps. [ReviewLine], but I noticed there's no website linked to your profile.\n\nI build websites for pressure washing companies with instant quotes and online booking built in, so customers can get a price and book even when you're on a job. Can I make you a free preview of a homepage for [Business Name]? No strings attached."},
+  {name:"Перше · слабкий сайт", channel:'whatsapp', text:"Hi [Name], I was looking at pressure washing companies in [City] and found [Business Name]. [ReviewLine]!\n\nI checked your website on my phone and there's no quick way to get a price or book, which usually costs jobs. I build sites for pressure washing companies with an instant quote calculator and online booking. Can I make you a free preview of what a new homepage could look like?"},
+  {name:"Перше · тільки Facebook", channel:'whatsapp', text:"Hi [Name], I found [Business Name] through your Facebook page. Your before and after photos look great.\n\nA lot of homeowners search Google first, and right now they can't find a website for you there. I build websites for pressure washing companies with instant quotes and online booking. Want a free homepage preview to see if it's a fit?"},
+  {name:"Follow-up · день 2 (з сайтом)", channel:'whatsapp', text:"Hi [Name], just following up. Here's a 60-second demo of the booking system I set up for pressure washing companies: woodl-site.com/demo\n\nThe website preview for [Business Name] is free and takes me 1–2 days. All I need is a yes 👍"},
   {name:"Follow-up · день 5 (останнє)", channel:'whatsapp', text:"Hi [Name], last message from me, I don't want to bother you. If a new website ever makes sense for [Business Name], just reply here and I'll put together a free preview. Have a great week!"},
   {name:"Відповів «так» · збір даних", channel:'whatsapp', text:"Awesome! To make the preview, I just need a couple of things:\n1. The main services you offer (and starting prices if you're comfortable sharing)\n2. The areas you serve\n3. Any photos of your work, if you have them (optional)\n\nI'll pull the rest from your Google profile. You'll have the preview in 1–2 days."},
-  {name:"Надсилаю превʼю", channel:'whatsapp', text:"Hi [Name], here's the preview for [Business Name]: [Demo]\n\nCheck it out on your phone, that's how most of your customers will see it. Let me know what you think. If you like it, I can have the full site live in 7 days for $400, and you only pay 50% to get started."},
-  {name:"Заперечення · Скільки коштує?", channel:'whatsapp', text:"Most local businesses go with the Business plan: $400 one-time, up to 5 pages, live in 7 days. There's also a $250 one-page option. You only pay after you see and approve the preview, so there's no risk in checking it out."},
+  {name:"Надсилаю превʼю", channel:'whatsapp', text:"Hi [Name], here's the preview for [Business Name]: [Demo]\n\nCheck it out on your phone, that's how most of your customers will see it. If you like it, I can have the site live in 7 days for $400. For $750 I also set up online booking, instant replies to every lead and automatic Google review requests. You only pay 50% to get started."},
+  {name:"Заперечення · Скільки коштує?", channel:'whatsapp', text:"The website with an instant quote calculator, photo quotes and a lead inbox is $400 one-time, live in 7 days. The full Booked Jobs System with online booking, instant replies, review requests and repeat-job reminders is $750. You only pay after you see and approve the preview, so there's no risk in checking it out."},
   {name:"Заперечення · Хто ти? / Це не скам?", channel:'whatsapp', text:"Totally fair question. I'm Ostap, a web developer working with US small businesses. I'm Top Rated on Upwork with 100% job success: https://www.upwork.com/freelancers/~01e0c89dbdc64d0663\n\nYou can see my work at woodl-site.com. And you don't pay anything until you've seen and approved your preview."},
-  {name:"Заперечення · Надішли інфо", channel:'whatsapp', text:"Sure! Everything's here: woodl-site.com\n\nBut honestly, the easiest way to decide is to see your own site. I can make the preview for [Business Name] for free, and you can decide after. Want me to go ahead?"},
+  {name:"Заперечення · Надішли інфо", channel:'whatsapp', text:"Sure! Everything's here: woodl-site.com, and here's a quick demo of the booking system: woodl-site.com/demo\n\nBut honestly, the easiest way to decide is to see your own site. I can make the preview for [Business Name] for free, and you can decide after. Want me to go ahead?"},
   {name:"Заперечення · Вже є сайт / підрядник", channel:'whatsapp', text:"No problem at all! If you ever want a second opinion, I'm happy to make a free preview so you can compare. No pressure either way."},
   {name:"Заперечення · Не цікаво", channel:'whatsapp', text:"Understood, thanks for letting me know. Best of luck this season!"},
   {name:"Заперечення · Вистачає сарафанного радіо", channel:'whatsapp', text:"That's great, it means people love your work. A website mostly helps those referrals find and trust you faster when they look you up. If that ever becomes useful, my offer for a free preview stands."},
@@ -3096,10 +3096,10 @@ function salesTemplatesV2(){ return [
 ]; }
 function salesTemplatesV1Names(){ return ['Перше · немає сайту','Перше · безкоштовне превʼю','Перше · застарілий сайт','Надсилаю демо','Нагадування · день 3','Останнє · день 7–10']; }
 function migrateSalesTemplates(){
-  const sd = state.data && state.data.sales; if(!sd || (sd.tplVersion||1) >= 2) return false;
-  const old = new Set(salesTemplatesV1Names());
+  const sd = state.data && state.data.sales; if(!sd || (sd.tplVersion||1) >= 3) return false;
+  const old = new Set(salesTemplatesV1Names().concat(salesTemplatesV2().map(t => t.name)));
   sd.templates = salesTemplatesV2().map(t => ({id:uid(), ...t})).concat(sd.templates.filter(t => !old.has(t.name)));
-  sd.tplVersion = 2;
+  sd.tplVersion = 3;
   return true;
 }
 function normalizeSalesData(s){
